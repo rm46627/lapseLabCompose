@@ -8,24 +8,22 @@ import androidx.navigation.compose.composable
 
 
 @Serializable
-sealed class Screens {
-    @Serializable
-    data object SplashScreen : Screens()
+data object SplashScreen
 
-    @Serializable
-    data object Gallery : Screens()
-}
+@Serializable
+data object GalleryScreen
+
 
 @Composable
 fun SetupNavGraph(navController: NavHostController) {
     NavHost(
-        navController = navController, startDestination = Screens.SplashScreen
+        navController = navController, startDestination = SplashScreen
     ) {
-        composable<Screens.SplashScreen> {
+        composable<SplashScreen> {
             SplashScreen(navController)
         }
-        composable<Screens.Gallery> {
-            Gallery()
+        composable<GalleryScreen> {
+            Gallery(navController)
         }
     }
 }
