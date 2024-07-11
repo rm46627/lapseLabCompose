@@ -1,0 +1,35 @@
+package com.example.database
+
+import dagger.hilt.android.scopes.ViewModelScoped
+import kotlinx.coroutines.flow.Flow
+import javax.inject.Inject
+
+@ViewModelScoped
+class Repository @Inject constructor(
+    private val albumDao: AlbumDao
+) {
+    fun readAlbums(): Flow<List<Album>> {
+        return albumDao.getAlbums()
+    }
+
+    suspend fun addAlbum(album: Album) {
+        return albumDao.addAlbum(album)
+    }
+
+    suspend fun deleteAlbum(albumName: String) {
+        return albumDao.deleteAlbumByName(albumName)
+    }
+
+    suspend fun renameAlbum(oldName: String, newName: String) {
+        return albumDao.renameAlbumByName(oldName, newName)
+    }
+
+    suspend fun updateCoverPhoto(albumName: String, newPath: String) {
+        return albumDao.updateCoverPhoto(albumName, newPath)
+    }
+
+    suspend fun updateAlbumDimensions(albumName: String, width: Int, height: Int) {
+        return albumDao.updateAlbumDimensions(albumName, width, height)
+    }
+
+}

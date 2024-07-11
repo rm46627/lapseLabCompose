@@ -1,3 +1,6 @@
 <resources>
     <string name="app_name">LapseLabCompose</string>
+    <string name="album_setup_title">Fill some info about your new album</string>
+    <string name="album_name_info">Info about storing photos in device memory and system gallery app.</string>
+    <string name="notifications_options_label">Receive reminders to take another photo for your album</string>
 </resources>
