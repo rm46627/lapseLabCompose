@@ -27,9 +27,20 @@ import androidx.compose.ui.unit.dp
 import com.example.lapselabcompose.ui.theme.LapseLabComposeTheme
 import com.example.lapselabcompose.R
 import com.example.lapselabcompose.ui.common.DropDownMenu
+import kotlinx.serialization.Serializable
+
+@Serializable
+object AlbumSetupDestination
 
 @Composable
-fun AlbumSetup(onNextButtonClicked: () -> Unit) {
+fun AlbumSetupRoute(
+    onNextButtonClicked: () -> Unit
+) {
+    AlbumSetupScreen(onNextButtonClicked)
+}
+
+@Composable
+fun AlbumSetupScreen(onNextButtonClicked: () -> Unit) {
     Scaffold { it ->
         Column(
             modifier = Modifier
@@ -37,7 +48,6 @@ fun AlbumSetup(onNextButtonClicked: () -> Unit) {
                 .padding(top = 32.dp, start = 16.dp)
                 .fillMaxSize()
                 .background(MaterialTheme.colorScheme.background),
-//            verticalArrangement = Arrangement.
         ) {
             var text by remember { mutableStateOf("") }
             var nextButtonVisible by remember { mutableStateOf(false) }
@@ -96,6 +106,6 @@ fun AlbumSetup(onNextButtonClicked: () -> Unit) {
 @Composable
 fun PreviewSetup() {
     LapseLabComposeTheme {
-        AlbumSetup() {}
+        AlbumSetupScreen() {}
     }
 }

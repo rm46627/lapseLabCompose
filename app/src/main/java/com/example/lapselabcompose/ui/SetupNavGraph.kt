@@ -1,129 +1,105 @@
 package com.example.lapselabcompose.ui
 
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
-import kotlinx.serialization.Serializable
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.navigation
-import com.example.lapselabcompose.MainViewModel
-import com.example.lapselabcompose.ui.camera.Camera
-import com.example.lapselabcompose.ui.camera.Permissions
-import com.example.lapselabcompose.ui.camera.PhotoView
+import com.example.lapselabcompose.PermissionViewModel
+import com.example.lapselabcompose.ui.camera.CameraDestination
+import com.example.lapselabcompose.ui.camera.CameraRoute
+import com.example.lapselabcompose.ui.camera.CameraScreen
+import com.example.lapselabcompose.ui.camera.PhotoDestination
+import com.example.lapselabcompose.ui.camera.PhotoRoute
+import com.example.lapselabcompose.ui.gallery.GalleryDestination
+import com.example.lapselabcompose.ui.gallery.GalleryRoute
 import com.example.lapselabcompose.ui.setup.AddFirstPhoto
-import com.example.lapselabcompose.ui.setup.AlbumSetup
-
-
-@Serializable
-object SplashScreen
-@Serializable
-object GalleryScreen
-@Serializable
-object AlbumCreationGraph
-@Serializable
-object AlbumSetupScreen
-@Serializable
-object AddFirstPhotoScreen
+import com.example.lapselabcompose.ui.setup.AlbumSetupDestination
+import com.example.lapselabcompose.ui.setup.AlbumSetupRoute
+import com.example.lapselabcompose.ui.setup.AlbumSetupScreen
+import com.example.lapselabcompose.ui.setup.FirstPhotoDestination
+import com.example.lapselabcompose.ui.setup.FirstPhotoRoute
+import kotlinx.serialization.Serializable
 
 @Serializable
 object TakingPhotoGraph
-@Serializable
-object PermissionsScreen
-@Serializable
-object CameraScreen
-@Serializable
-object PhotoViewScreen
 
 @Serializable
-object AlbumGraph
+object AlbumDetailsGraph
 
-@Serializable
-data class AlbumDetailsScreen(
-    val albumId: Int
-)
-
-@Composable
-fun SetupNavGraph(
-    navController: NavHostController,
-    permissionsResultLaunch: () -> Unit,
-    galleryViewModel: GalleryViewModel = hiltViewModel(),
-    mainViewModel: MainViewModel
+class LapselabNavController(
+    private val navController: NavHostController,
 ) {
-    NavHost(
-        navController = navController, startDestination = SplashScreen
+
+    @Composable
+    fun SetupNavGraph(
+        permissionsResultLaunch: () -> Unit,
+        permissionViewModel: PermissionViewModel
     ) {
-        composable<SplashScreen> {
-            SplashScreen(navController)
+        NavHost(
+            navController = navController, startDestination = SplashScreenDestination
+        ) {
+            composable<SplashScreenDestination> {
+                SplashScreen(navController)
+            }
+            composable<GalleryDestination> {
+                GalleryRoute(onAlbumClick = ::inGalleryOnAlbumClick, onCreateClick = ::inGalleryOnCreateClick)
+            }
+            composable<AlbumSetupDestination> {
+                AlbumSetupRoute(onNextButtonClicked = ::inAlbumCreationOnNextClick)
+            }
+            composable<FirstPhotoDestination> {
+                FirstPhotoRoute(
+                    permissionsResultLaunch,
+                    permissionViewModel,
+                    onFirstImagePreviewClick = {
+                        navController.navigate(TakingPhotoGraph)
+                    },
+                    navigateToGallery = {
+                        navController.navigate(GalleryDestination)
+                    }
+                )
+            }
+            takingPhotoGraph(navController)
         }
-        composable<GalleryScreen> {
-            val albums by galleryViewModel.getAlbums.collectAsStateWithLifecycle(initialValue = emptyList())
-            Gallery(
-                navController, albums
-            )
-        }
-        albumCreationGraph(navController, permissionsResultLaunch, mainViewModel)
-        takingPhotoGraph(navController)
     }
-}
 
-fun NavGraphBuilder.albumCreationGraph(
-    navController: NavHostController,
-    permissionsResultLaunch: () -> Unit,
-    mainViewModel: MainViewModel
-) {
-    navigation<AlbumCreationGraph>(startDestination = AlbumSetupScreen) {
-        composable<AlbumSetupScreen> {
-            AlbumSetup {
-                navController.navigate(AddFirstPhotoScreen)
+    private fun NavGraphBuilder.takingPhotoGraph(
+        navController: NavHostController
+    ) {
+        navigation<TakingPhotoGraph>(startDestination = CameraDestination) {
+            composable<CameraDestination> {
+                CameraRoute()
+            }
+            composable<PhotoDestination> {
+                PhotoRoute()
             }
         }
-        composable<AddFirstPhotoScreen> {
-            AddFirstPhoto(
-                permissionsResultLaunch,
-                mainViewModel,
-                onFirstImagePreviewClick = {
-                    navController.navigate(TakingPhotoGraph)
-                },
-                navigateToGallery = {
-                    navController.navigate(GalleryScreen)
-                }
-            )
+    }
+
+    fun NavGraphBuilder.albumDetailsGraph(navController: NavHostController) {
+        navigation<AlbumDetailsGraph>(startDestination = AlbumDetailsDestination) {
+            composable<AlbumDetailsDestination> {
+                AlbumDetailsRoute(id)
+            }
         }
+    }
+
+    private fun inGalleryOnCreateClick() {
+        navController.navigate(AlbumSetupDestination)
+    }
+
+    private fun inGalleryOnAlbumClick(id: Int) {
+        navController.navigate(AlbumDetailsDestination(id))
+    }
+
+    private fun inAlbumCreationOnFirstPhotoClick() {
+        navController.navigate(CameraDestination)
+    }
+
+    private fun inAlbumCreationOnNextClick() {
+        navController.navigate(FirstPhotoDestination)
     }
 }
 
-fun NavGraphBuilder.takingPhotoGraph(
-    navController: NavHostController
-) {
-    navigation<TakingPhotoGraph>(startDestination = CameraScreen) {
-//        composable<PermissionsScreen> {
-//            Permissions(
-//                navigateToCameraScreen = {
-//                    navController.navigate(CameraScreen)
-//                }
-//            )
-//        }
-        composable<CameraScreen> {
-            Camera(
-                navigateToPermissionScreen = {
-                    navController.navigate(PermissionsScreen)
-                }
-            )
-        }
-        composable<PhotoViewScreen> {
-            PhotoView()
-        }
-    }
-}
-
-fun NavGraphBuilder.albumGraph(navController: NavHostController) {
-    navigation<AlbumGraph>(startDestination = AlbumDetailsScreen) {
-        composable<AlbumDetailsScreen> {
-            AlbumDetails(navController)
-        }
-    }
-}

@@ -1,6 +1,5 @@
-package com.example.lapselabcompose.ui
+package com.example.lapselabcompose.ui.gallery
 
-import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -19,30 +18,43 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.ShapeDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.ViewModel
-import androidx.navigation.NavController
-import androidx.navigation.compose.rememberNavController
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
 import com.bumptech.glide.integration.compose.GlideImage
-import com.example.lapselabcompose.ui.theme.LapseLabComposeTheme
 import com.example.database.Album
 import com.example.database.Repository
 import com.example.lapselabcompose.R
-import com.example.lapselabcompose.TAG
+import com.example.lapselabcompose.ui.theme.LapseLabComposeTheme
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.serialization.Serializable
 import javax.inject.Inject
 
+@Serializable
+object GalleryDestination
+
+
 @Composable
-fun Gallery(navController: NavController, albums: List<com.example.database.Album>) {
+fun GalleryRoute(
+    onAlbumClick: (Int) -> Unit, onCreateClick: () -> Unit
+) {
+    val galleryViewModel: GalleryViewModel = hiltViewModel()
+    val albums by galleryViewModel.getAlbums.collectAsStateWithLifecycle(initialValue = emptyList())
 
+    GalleryScreen(albums, onAlbumClick, onCreateClick)
+}
+
+@Composable
+fun GalleryScreen(albums: List<Album>, onAlbumClick: (Int) -> Unit, onCreateClick: () -> Unit) {
     // adding creating new album card
-    val albumsWithExtras = albums.plus(com.example.database.Album())
-
+    val albumsWithExtras = albums.plus(Album())
     Scaffold {
         Box(
             modifier = Modifier
@@ -51,21 +63,14 @@ fun Gallery(navController: NavController, albums: List<com.example.database.Albu
                 .background(MaterialTheme.colorScheme.background)
         ) {
             LazyColumn(
-
-
             ) {
                 itemsIndexed(items = albumsWithExtras, key = { index, album ->
                     album.id
                 }) { index, album ->
                     if (index == albums.size) {
-                        CreateCard {
-                            navController.navigate(AlbumSetupScreen)
-                        }
+                        CreateCard (onCreateClick)
                     } else {
-                        GalleryItem(album = album) {
-                            navController.navigate(route = AlbumDetailsScreen(album.id))
-                        }
-
+                        GalleryItem(album = album, onAlbumClick)
                     }
                 }
             }
@@ -75,11 +80,11 @@ fun Gallery(navController: NavController, albums: List<com.example.database.Albu
 
 @OptIn(ExperimentalGlideComposeApi::class)
 @Composable
-fun GalleryItem(album: Album, onGalleryItemClick: () -> Unit) {
+fun GalleryItem(album: Album, onGalleryItemClick: (Int) -> Unit) {
     Card(
         modifier = Modifier.wrapContentSize(),
         shape = ShapeDefaults.Medium,
-        onClick = onGalleryItemClick
+        onClick = { onGalleryItemClick(album.id) }
     ) {
         Column {
             GlideImage(
@@ -136,17 +141,17 @@ class GalleryViewModel @Inject constructor(
 @Composable
 fun PreviewGallery() {
     LapseLabComposeTheme {
-        Gallery(
-            navController = rememberNavController(),
+        GalleryScreen(
             albums = listOf(
-                com.example.database.Album(
+                Album(
                     1,
                     "Nowy albumik",
                     "",
                     122,
-                    5152
-                )
-            )
+                    5152,
+                ),
+            ),
+            {}, {},
         )
     }
 }

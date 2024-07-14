@@ -1,6 +1,5 @@
 package com.example.lapselabcompose.ui.setup
 
-import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -12,7 +11,6 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -21,26 +19,41 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.navigation.NavHostController
-import androidx.navigation.compose.rememberNavController
-import com.example.lapselabcompose.MainViewModel
+import com.example.lapselabcompose.PermissionViewModel
 import com.example.lapselabcompose.ui.theme.LapseLabComposeTheme
 import com.example.lapselabcompose.R
-import com.example.lapselabcompose.ui.CameraScreen
-import com.example.lapselabcompose.ui.GalleryScreen
+import kotlinx.serialization.Serializable
+
+// TODO: view GrantPermissionDialog first before giving user access to this screen
+
+@Serializable
+object FirstPhotoDestination
+
+@Composable
+fun FirstPhotoRoute(
+    permissionsResultLaunch: () -> Unit,
+    permissionViewModel: PermissionViewModel,
+    onFirstImagePreviewClick: () -> Unit,
+    navigateToGallery: () -> Unit
+) {
+    AddFirstPhoto(
+        permissionsResultLaunch,
+        permissionViewModel,
+        onFirstImagePreviewClick,
+        navigateToGallery
+    )
+}
 
 @Composable
 fun AddFirstPhoto(
     permissionsResultLaunch: () -> Unit,
-    mainViewModel: MainViewModel,
+    permissionViewModel: PermissionViewModel,
     onFirstImagePreviewClick: () -> Unit,
     navigateToGallery: () -> Unit
 ) {
 
-    val granted by mainViewModel.allPermissionsGranted.collectAsStateWithLifecycle()
-    Log.d("tag", "$granted")
+    val granted by permissionViewModel.allPermissionsGranted.collectAsStateWithLifecycle()
 
     var createButtonIsVisible by remember {
         mutableStateOf(false)
@@ -51,9 +64,11 @@ fun AddFirstPhoto(
             Text(text = "Add your first photo!")
             IconButton(
                 onClick = {
-                    permissionsResultLaunch()
                     if (granted) {
                         onFirstImagePreviewClick()
+                    } else {
+                        permissionsResultLaunch()
+
                     }
                 },
                 modifier = Modifier
@@ -82,6 +97,6 @@ fun AddFirstPhoto(
 @Composable
 fun PreviewFirstPhoto() {
     LapseLabComposeTheme {
-//        AddFirstPhoto({}, )
+        AddFirstPhoto({}, PermissionViewModel(), {}, {} )
     }
 }

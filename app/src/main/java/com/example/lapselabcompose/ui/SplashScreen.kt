@@ -23,20 +23,24 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.example.lapselabcompose.ui.theme.LapseLabComposeTheme
 import com.example.lapselabcompose.R
+import com.example.lapselabcompose.ui.gallery.GalleryDestination
 import kotlinx.coroutines.launch
+import kotlinx.serialization.Serializable
+
+
+@Serializable
+object SplashScreenDestination
 
 @Composable
 fun SplashScreen(navController: NavController) {
     val alpha = remember { Animatable(initialValue = 0f) }
     LaunchedEffect(key1 = true) {
-        launch {
-            alpha.animateTo(
-                1f, animationSpec = tween(
-                    durationMillis = 1500
-                )
+        alpha.animateTo(
+            1f, animationSpec = tween(
+                durationMillis = 1500
             )
-            navController.navigate(GalleryScreen)
-        }
+        )
+        navController.navigate(GalleryDestination)
     }
 
     Scaffold {

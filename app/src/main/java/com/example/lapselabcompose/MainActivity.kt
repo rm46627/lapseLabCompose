@@ -4,24 +4,27 @@ import android.Manifest
 import android.app.Activity
 import android.content.Context
 import android.content.Intent
+import androidx.activity.compose.setContent
 import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
 import androidx.activity.ComponentActivity
+import androidx.activity.compose.ManagedActivityResultLauncher
 import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
+import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.core.content.ContextCompat
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.lifecycle.ViewModel
 import androidx.navigation.compose.rememberNavController
+import com.example.lapselabcompose.ui.LapselabNavController
 import com.example.lapselabcompose.ui.theme.LapseLabComposeTheme
-import com.example.lapselabcompose.ui.SetupNavGraph
 import com.example.lapselabcompose.ui.common.CameraPermissionTextProvider
 import com.example.lapselabcompose.ui.common.PermissionDialog
 import dagger.hilt.android.AndroidEntryPoint
@@ -32,7 +35,6 @@ import javax.inject.Inject
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -40,66 +42,82 @@ class MainActivity : ComponentActivity() {
 
         // TODO: take off splashscreen after loading all data
 
-        val mainViewModel by viewModels<MainViewModel>()
-        val dialogQueue = mainViewModel.visiblePermissionDialogQueue
+        val permissionViewModel by viewModels<PermissionViewModel>()
+        val dialogQueue = permissionViewModel.visiblePermissionDialogQueue
+        val permissionsToRequest = permissionViewModel.permissionsToRequest
 
-        val allPermissionsGranted =
-            mainViewModel.permissionsToRequest.fold(true) { acc, permission ->
-                acc && isPermissionGranted(this, permission)
-            }
-        mainViewModel.setAllPermissionsGranted(allPermissionsGranted)
+        permissionViewModel.setAllPermissionsGranted(permissionsToRequest.fold(true) { acc, permission ->
+            acc && isPermissionGranted(this, permission)
+        })
 
         setContent {
             LapseLabComposeTheme {
-
                 val multiplePermissionResultLauncher =
-                    rememberLauncherForActivityResult(contract = ActivityResultContracts.RequestMultiplePermissions(),
-                        onResult = { perms ->
-                            mainViewModel.permissionsToRequest.forEach { permission ->
-                                mainViewModel.onPermissionResult(
-                                    permission = permission, isGranted = perms[permission] == true
-                                )
-                            }
-                        })
+                    managedActivityResultLauncher(permissionViewModel)
 
-                SetupNavGraph(
-                    navController = rememberNavController(), permissionsResultLaunch = {
-                        multiplePermissionResultLauncher.launch(mainViewModel.permissionsToRequest)
-                    }, mainViewModel = mainViewModel
+                LapselabNavController(rememberNavController()).SetupNavGraph(
+                    permissionsResultLaunch = {
+                        multiplePermissionResultLauncher.launch(permissionsToRequest)
+                    }, permissionViewModel = permissionViewModel
                 )
 
-                dialogQueue.reversed().forEach { permission ->
-                    PermissionDialog(
-                        permissionTextProvider = when (permission) {
-                            Manifest.permission.CAMERA -> {
-                                CameraPermissionTextProvider()
-                            }
-
-                            Manifest.permission.READ_EXTERNAL_STORAGE -> {
-                                // TODO: create proper classes
-                                CameraPermissionTextProvider()
-                            }
-
-                            Manifest.permission.WRITE_EXTERNAL_STORAGE -> {
-                                CameraPermissionTextProvider()
-                            }
-
-                            else -> return@forEach
-                        }, isPermanentlyDeclined = !shouldShowRequestPermissionRationale(
-                            permission
-                        ), onDismiss = mainViewModel::dismissDialog, onOkClick = {
-                            mainViewModel.dismissDialog()
-                            multiplePermissionResultLauncher.launch(
-                                arrayOf(permission)
-                            )
-                        }, onGoToAppSettingsClick = ::openAppSettings
-                    )
-                }
-
+                DisplayPermissionDialogs(
+                    dialogQueue, permissionViewModel, multiplePermissionResultLauncher
+                )
             }
         }
     }
 
+    @Composable
+    private fun managedActivityResultLauncher(permissionViewModel: PermissionViewModel): ManagedActivityResultLauncher<Array<String>, Map<String, @JvmSuppressWildcards Boolean>> {
+        val multiplePermissionResultLauncher = rememberLauncherForActivityResult(
+            contract = ActivityResultContracts.RequestMultiplePermissions(),
+            onResult = { perms ->
+                permissionViewModel.permissionsToRequest.forEach { permission ->
+                    permissionViewModel.onPermissionResult(
+                        permission = permission, isGranted = perms[permission] == true
+                    )
+                }
+            })
+        return multiplePermissionResultLauncher
+    }
+
+    @Composable
+    private fun DisplayPermissionDialogs(
+        dialogQueue: SnapshotStateList<String>,
+        permissionViewModel: PermissionViewModel,
+        multiplePermissionResultLauncher: ManagedActivityResultLauncher<Array<String>, Map<String, @JvmSuppressWildcards Boolean>>
+    ) {
+        dialogQueue.reversed().forEach { permission ->
+            PermissionDialog(
+                permissionTextProvider = when (permission) {
+                    Manifest.permission.CAMERA -> {
+                        CameraPermissionTextProvider()
+                    }
+
+                    Manifest.permission.READ_EXTERNAL_STORAGE -> {
+                        // TODO: create proper classes
+                        CameraPermissionTextProvider()
+                    }
+
+                    Manifest.permission.WRITE_EXTERNAL_STORAGE -> {
+                        CameraPermissionTextProvider()
+                    }
+
+                    else -> return@forEach
+                },
+                isPermanentlyDeclined = !shouldShowRequestPermissionRationale(permission),
+                onDismiss = permissionViewModel::dismissDialog,
+                onOkClick = {
+                    permissionViewModel.dismissDialog()
+                    multiplePermissionResultLauncher.launch(
+                        arrayOf(permission)
+                    )
+                },
+                onGoToAppSettingsClick = ::openAppSettings
+            )
+        }
+    }
 }
 
 private fun isPermissionGranted(context: Context, permission: String) =
@@ -109,12 +127,10 @@ private fun Activity.openAppSettings() {
     Intent(
         Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.fromParts("package", packageName, null)
     ).also(::startActivity)
-
 }
 
 @HiltViewModel
-class MainViewModel @Inject constructor() : ViewModel() {
-
+class PermissionViewModel @Inject constructor() : ViewModel() {
     var permissionsToRequest = arrayOf(
         Manifest.permission.CAMERA
     )
@@ -148,7 +164,6 @@ class MainViewModel @Inject constructor() : ViewModel() {
             permissionsMap[permission] = isGranted
             _allPermissionsGranted.value = permissionsMap.values.all { it }
         }
-
     }
 
     fun setAllPermissionsGranted(value: Boolean) = run { _allPermissionsGranted.value = value }
