@@ -17,6 +17,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.onFocusEvent
@@ -49,33 +50,12 @@ fun AlbumSetupScreen(onNextButtonClicked: () -> Unit) {
                 .fillMaxSize()
                 .background(MaterialTheme.colorScheme.background),
         ) {
-            var text by remember { mutableStateOf("") }
-            var nextButtonVisible by remember { mutableStateOf(false) }
+            var nextButtonEnabled by remember { mutableStateOf(true) }
 
             Text(text = stringResource(R.string.album_setup_title))
-            OutlinedTextField(
-                value = text,
-                label = { Text("Album name") },
-                trailingIcon = {
-                    IconButton(onClick = {
-                        //TODO: Display modal explaining storing photos and how to exclude them from system app gallery
-                    }, content = {
-                        Icon(
-                            imageVector = Icons.Outlined.Info,
-                            contentDescription = stringResource(R.string.album_name_info),
-                        )
-                    })
-                },
-                onValueChange = { newText ->
-                    text = newText
-                    nextButtonVisible = text.length > 3
-                },
-                modifier = Modifier.onFocusEvent {
-                    if(it.isFocused) {
-                        // TODO: Display hint about typing valid frequency
-                    }
-                }
-            )
+            // NameTextField
+            NameTextField()
+
             Column(modifier = Modifier.padding(16.dp)) {
                 Text(
                     text = stringResource(R.string.notifications_options_label),
@@ -93,13 +73,46 @@ fun AlbumSetupScreen(onNextButtonClicked: () -> Unit) {
                     ), "Select or type frequency"
                 ) {}
             }
-            if (nextButtonVisible) {
+            if (nextButtonEnabled) {
                 OutlinedButton(onClick = onNextButtonClicked) {
                     Text(text = "Next")
                 }
             }
         }
     }
+}
+
+@Composable
+fun NameTextField() {
+    var text by rememberSaveable { mutableStateOf("") }
+    val errorText = "Must be at least 3 characters long"
+    var isError by rememberSaveable { mutableStateOf(false)}
+    OutlinedTextField(
+        isError = isError,
+        supportingText = { if (isError) Text(text = errorText) },
+        value = text,
+        label = { Text("Album name") },
+        trailingIcon = {
+            IconButton(onClick = {
+                //TODO: Display modal explaining storing photos and how to exclude them from system app gallery
+            }, content = {
+                Icon(
+                    imageVector = Icons.Outlined.Info,
+                    contentDescription = stringResource(R.string.album_name_info),
+                )
+            })
+        },
+        onValueChange = { newText ->
+            text = newText
+            isError = text.length < 3
+        },
+
+        modifier = Modifier.onFocusEvent {
+            if(it.isFocused) {
+                // TODO: Display hint about typing valid frequency
+            }
+        }
+    )
 }
 
 @Preview

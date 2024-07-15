@@ -77,11 +77,12 @@ dependencies {
     implementation(libs.androidx.lifecycle.runtime.compose)
     implementation(libs.androidx.lifecycle.viewmodel.compose)
 
-
     implementation(libs.kotlinx.serialization.json)
     implementation(libs.androidx.navigation.compose)
 
     implementation(libs.core.splashscreen)
+
+    implementation(libs.androidx.material.icons.extended)
 
     // Dagger - Hilt
     implementation(libs.hilt.android)

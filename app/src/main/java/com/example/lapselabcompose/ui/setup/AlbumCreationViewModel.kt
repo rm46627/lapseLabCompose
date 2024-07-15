@@ -14,15 +14,6 @@ import javax.inject.Inject
 class AlbumCreationViewModel @Inject constructor(
     private val repository: Repository
 ) : ViewModel() {
-    
-}
-
-@HiltViewModel
-class CreateAlbumViewModel @Inject constructor(
-    private val repository: Repository,
-    private val application: Application
-) : AndroidViewModel(application) {
-
     private var albums: Flow<List<Album>> = repository.readAlbums()
     private var albumName: String? = null
     private var imagePath: String? = null
