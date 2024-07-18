@@ -23,3 +23,4 @@ rootProject.name = "LapseLabCompose"
 include(":app")
 include(":data")
 include(":notifications")
+include(":files")

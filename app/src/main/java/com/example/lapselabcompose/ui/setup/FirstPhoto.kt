@@ -1,5 +1,6 @@
 package com.example.lapselabcompose.ui.setup
 
+import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -19,10 +20,18 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.ViewModelStoreOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.navigation.NavHost
+import androidx.navigation.NavHostController
 import com.example.lapselabcompose.PermissionViewModel
 import com.example.lapselabcompose.ui.theme.LapseLabComposeTheme
 import com.example.lapselabcompose.R
+import com.example.lapselabcompose.TAG
+import com.example.lapselabcompose.ui.CreatingAlbumGraph
+import com.example.lapselabcompose.ui.camera.CameraDestination
+import com.example.lapselabcompose.ui.gallery.GalleryDestination
 import kotlinx.serialization.Serializable
 
 // TODO: view GrantPermissionDialog first before giving user access to this screen
@@ -32,25 +41,38 @@ object FirstPhotoDestination
 
 @Composable
 fun FirstPhotoRoute(
+    navController: NavHostController,
     permissionsResultLaunch: () -> Unit,
-    permissionViewModel: PermissionViewModel,
-    onFirstImagePreviewClick: () -> Unit,
-    navigateToGallery: () -> Unit
+    permissionViewModel: PermissionViewModel
 ) {
-    AddFirstPhoto(
-        permissionsResultLaunch,
-        permissionViewModel,
-        onFirstImagePreviewClick,
-        navigateToGallery
-    )
+    val parentEntry = remember(navController.currentBackStackEntry) {
+        navController.getBackStackEntry(CreatingAlbumGraph)
+    }
+    val albumCreationViewModel: AlbumCreationViewModel = hiltViewModel(parentEntry)
+
+    Log.d(TAG, "albumName in FirstPhotoRoute: ${albumCreationViewModel.albumName}")
+    albumCreationViewModel.albumName?.let {
+        AddFirstPhoto(
+            permissionsResultLaunch,
+            permissionViewModel,
+            onFirstImagePreviewClick = { albumName ->
+                navController.navigate(CameraDestination(albumName))
+            },
+            navigateToGallery = {
+                navController.navigate(GalleryDestination)
+            },
+            albumName = it
+        )
+    } ?: throw IllegalArgumentException()
 }
 
 @Composable
 fun AddFirstPhoto(
     permissionsResultLaunch: () -> Unit,
     permissionViewModel: PermissionViewModel,
-    onFirstImagePreviewClick: () -> Unit,
-    navigateToGallery: () -> Unit
+    onFirstImagePreviewClick: (String) -> Unit,
+    navigateToGallery: () -> Unit,
+    albumName: String
 ) {
 
     val granted by permissionViewModel.allPermissionsGranted.collectAsStateWithLifecycle()
@@ -65,7 +87,7 @@ fun AddFirstPhoto(
             IconButton(
                 onClick = {
                     if (granted) {
-                        onFirstImagePreviewClick()
+                        onFirstImagePreviewClick(albumName)
                     } else {
                         permissionsResultLaunch()
 
@@ -97,6 +119,6 @@ fun AddFirstPhoto(
 @Composable
 fun PreviewFirstPhoto() {
     LapseLabComposeTheme {
-        AddFirstPhoto({}, PermissionViewModel(), {}, {} )
+        AddFirstPhoto({}, PermissionViewModel(), {}, {}, "" )
     }
 }

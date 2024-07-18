@@ -6,24 +6,25 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.navigation
+import androidx.navigation.toRoute
 import com.example.lapselabcompose.PermissionViewModel
 import com.example.lapselabcompose.ui.camera.CameraDestination
 import com.example.lapselabcompose.ui.camera.CameraRoute
-import com.example.lapselabcompose.ui.camera.CameraScreen
 import com.example.lapselabcompose.ui.camera.PhotoDestination
 import com.example.lapselabcompose.ui.camera.PhotoRoute
 import com.example.lapselabcompose.ui.gallery.GalleryDestination
 import com.example.lapselabcompose.ui.gallery.GalleryRoute
-import com.example.lapselabcompose.ui.setup.AddFirstPhoto
 import com.example.lapselabcompose.ui.setup.AlbumSetupDestination
 import com.example.lapselabcompose.ui.setup.AlbumSetupRoute
-import com.example.lapselabcompose.ui.setup.AlbumSetupScreen
 import com.example.lapselabcompose.ui.setup.FirstPhotoDestination
 import com.example.lapselabcompose.ui.setup.FirstPhotoRoute
 import kotlinx.serialization.Serializable
 
 @Serializable
 object TakingPhotoGraph
+
+@Serializable
+object CreatingAlbumGraph
 
 @Serializable
 object AlbumDetailsGraph
@@ -44,36 +45,43 @@ class LapselabNavController(
                 SplashScreen(navController)
             }
             composable<GalleryDestination> {
-                GalleryRoute(onAlbumClick = ::inGalleryOnAlbumClick, onCreateClick = ::inGalleryOnCreateClick)
-            }
-            composable<AlbumSetupDestination> {
-                AlbumSetupRoute(onNextButtonClicked = ::inAlbumCreationOnNextClick)
-            }
-            composable<FirstPhotoDestination> {
-                FirstPhotoRoute(
-                    permissionsResultLaunch,
-                    permissionViewModel,
-                    onFirstImagePreviewClick = {
-                        navController.navigate(TakingPhotoGraph)
-                    },
-                    navigateToGallery = {
-                        navController.navigate(GalleryDestination)
-                    }
+                GalleryRoute(
+                    onAlbumClick = ::inGalleryOnAlbumClick,
+                    onCreateClick = ::inGalleryOnCreateClick
                 )
             }
+            creatingAlbumGraph(navController, permissionsResultLaunch, permissionViewModel)
             takingPhotoGraph(navController)
         }
     }
 
-    private fun NavGraphBuilder.takingPhotoGraph(
-        navController: NavHostController
+    private fun NavGraphBuilder.creatingAlbumGraph(
+        navController: NavHostController,
+        permissionsResultLaunch: () -> Unit,
+        permissionViewModel: PermissionViewModel
     ) {
-        navigation<TakingPhotoGraph>(startDestination = CameraDestination) {
+        navigation<CreatingAlbumGraph>(startDestination = AlbumSetupDestination) {
+            composable<AlbumSetupDestination> {
+                AlbumSetupRoute(navController)
+            }
+            composable<FirstPhotoDestination> {
+                FirstPhotoRoute(
+                    navController,
+                    permissionsResultLaunch,
+                    permissionViewModel
+                )
+            }
+        }
+    }
+
+    private fun NavGraphBuilder.takingPhotoGraph(navController: NavHostController) {
+        navigation<TakingPhotoGraph>(startDestination = CameraDestination()) {
             composable<CameraDestination> {
-                CameraRoute()
+                val args = it.toRoute<CameraDestination>()
+                CameraRoute(navController, args.albumName)
             }
             composable<PhotoDestination> {
-                PhotoRoute()
+                PhotoRoute(navController)
             }
         }
     }
@@ -93,13 +101,4 @@ class LapselabNavController(
     private fun inGalleryOnAlbumClick(id: Int) {
         navController.navigate(AlbumDetailsDestination(id))
     }
-
-    private fun inAlbumCreationOnFirstPhotoClick() {
-        navController.navigate(CameraDestination)
-    }
-
-    private fun inAlbumCreationOnNextClick() {
-        navController.navigate(FirstPhotoDestination)
-    }
 }
-

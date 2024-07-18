@@ -1,5 +1,6 @@
 package com.example.lapselabcompose.ui.setup
 
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -25,23 +26,43 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.ViewModelStoreOwner
+import androidx.navigation.NavHostController
 import com.example.lapselabcompose.ui.theme.LapseLabComposeTheme
 import com.example.lapselabcompose.R
+import com.example.lapselabcompose.TAG
+import com.example.lapselabcompose.ui.CreatingAlbumGraph
 import com.example.lapselabcompose.ui.common.DropDownMenu
+import com.example.lapselabcompose.ui.gallery.GalleryViewModel
 import kotlinx.serialization.Serializable
+import kotlin.math.log
 
 @Serializable
 object AlbumSetupDestination
 
 @Composable
 fun AlbumSetupRoute(
-    onNextButtonClicked: () -> Unit
+    navController: NavHostController
 ) {
-    AlbumSetupScreen(onNextButtonClicked)
+    val parentEntry = remember(navController.currentBackStackEntry) {
+        navController.getBackStackEntry(CreatingAlbumGraph)
+    }
+    val albumCreationViewModel: AlbumCreationViewModel = hiltViewModel(parentEntry)
+
+    AlbumSetupScreen(
+        onNextButtonClicked = {
+            navController.navigate(FirstPhotoDestination)
+        },
+        saveProvidedName = {
+            albumCreationViewModel.albumName = it
+            Log.d(TAG, "albumName: ${albumCreationViewModel.albumName}")
+        }
+    )
 }
 
 @Composable
-fun AlbumSetupScreen(onNextButtonClicked: () -> Unit) {
+fun AlbumSetupScreen(onNextButtonClicked: () -> Unit, saveProvidedName: (String) -> Unit) {
     Scaffold { it ->
         Column(
             modifier = Modifier
@@ -54,7 +75,7 @@ fun AlbumSetupScreen(onNextButtonClicked: () -> Unit) {
 
             Text(text = stringResource(R.string.album_setup_title))
             // NameTextField
-            NameTextField()
+            NameTextField(saveProvidedName)
 
             Column(modifier = Modifier.padding(16.dp)) {
                 Text(
@@ -83,10 +104,10 @@ fun AlbumSetupScreen(onNextButtonClicked: () -> Unit) {
 }
 
 @Composable
-fun NameTextField() {
+fun NameTextField(saveProvidedName: (String) -> Unit) {
     var text by rememberSaveable { mutableStateOf("") }
     val errorText = "Must be at least 3 characters long"
-    var isError by rememberSaveable { mutableStateOf(false)}
+    var isError by rememberSaveable { mutableStateOf(false) }
     OutlinedTextField(
         isError = isError,
         supportingText = { if (isError) Text(text = errorText) },
@@ -104,11 +125,12 @@ fun NameTextField() {
         },
         onValueChange = { newText ->
             text = newText
+            saveProvidedName(newText)
             isError = text.length < 3
         },
 
         modifier = Modifier.onFocusEvent {
-            if(it.isFocused) {
+            if (it.isFocused) {
                 // TODO: Display hint about typing valid frequency
             }
         }
@@ -119,6 +141,6 @@ fun NameTextField() {
 @Composable
 fun PreviewSetup() {
     LapseLabComposeTheme {
-        AlbumSetupScreen() {}
+        AlbumSetupScreen({}) {}
     }
 }
