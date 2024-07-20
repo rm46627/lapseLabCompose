@@ -1,18 +1,30 @@
-package com.example.files
+package com.example.lapselab.files
 
+import android.content.ContentValues
 import android.content.Context
+import android.graphics.Bitmap
+import android.net.Uri
 import android.os.Build
-import android.os.Environment
+import com.example.files.MediaManagerInterface
+import com.example.files.MediaStoreMediaManager
 import java.io.File
 
 class MediaManagerFactory(context: Context) : MediaManagerInterface {
 
     private var manager: MediaManagerInterface =
         if (Build.VERSION.SDK_INT > Build.VERSION_CODES.Q) {
-            MediaStoreManager(context)
+            MediaStoreMediaManager(context)
         } else {
-            FileMediaManager()
+            FileMediaManager(context)
         }
+
+    override suspend fun saveBitmap(
+        bitmap: Bitmap,
+        subfolder: String,
+        filename: String
+    ): Pair<Uri?, String> {
+        return manager.saveBitmap(bitmap, subfolder, filename)
+    }
 
     override suspend fun getLatestPhotoFile(albumName: String): File? =
         manager.getLatestPhotoFile(albumName)
@@ -40,11 +52,5 @@ class MediaManagerFactory(context: Context) : MediaManagerInterface {
 
     suspend fun getVideoFile(albumName: String, fileName: String): File {
         return File(getAlbumFolderFile(albumName), fileName)
-    }
-
-    fun noMedia(albumName: String) {
-        val folder = File("${Environment.getExternalStorageDirectory()}/$appPicturesPath/$albumName")
-        folder.mkdirs()
-        val noMediaFile = File(folder, ".nomedia").createNewFile()
     }
 }

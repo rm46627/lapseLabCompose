@@ -15,6 +15,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -28,6 +29,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.ViewModelStoreOwner
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
 import com.example.lapselabcompose.ui.theme.LapseLabComposeTheme
 import com.example.lapselabcompose.R
@@ -35,6 +37,7 @@ import com.example.lapselabcompose.TAG
 import com.example.lapselabcompose.ui.CreatingAlbumGraph
 import com.example.lapselabcompose.ui.common.DropDownMenu
 import com.example.lapselabcompose.ui.gallery.GalleryViewModel
+import kotlinx.coroutines.flow.first
 import kotlinx.serialization.Serializable
 import kotlin.math.log
 
@@ -49,21 +52,24 @@ fun AlbumSetupRoute(
         navController.getBackStackEntry(CreatingAlbumGraph)
     }
     val albumCreationViewModel: AlbumCreationViewModel = hiltViewModel(parentEntry)
+    val albums by albumCreationViewModel.albums.collectAsStateWithLifecycle(initialValue = emptyList())
 
     AlbumSetupScreen(
         onNextButtonClicked = {
-            navController.navigate(FirstPhotoDestination)
+            navController.navigate(FirstPhotoDestination())
         },
-        saveProvidedName = {
-            albumCreationViewModel.albumName = it
-            Log.d(TAG, "albumName: ${albumCreationViewModel.albumName}")
+        checkForNameConflict = { name ->
+            albumCreationViewModel.albumName = name
+            !albums.none { album ->
+                album.directoryName == name
+            }
         }
     )
 }
 
 @Composable
-fun AlbumSetupScreen(onNextButtonClicked: () -> Unit, saveProvidedName: (String) -> Unit) {
-    Scaffold { it ->
+fun AlbumSetupScreen(onNextButtonClicked: () -> Unit, checkForNameConflict: (String) -> Boolean) {
+    Scaffold {
         Column(
             modifier = Modifier
                 .padding(it)
@@ -75,7 +81,7 @@ fun AlbumSetupScreen(onNextButtonClicked: () -> Unit, saveProvidedName: (String)
 
             Text(text = stringResource(R.string.album_setup_title))
             // NameTextField
-            NameTextField(saveProvidedName)
+            NameTextField(checkForNameConflict)
 
             Column(modifier = Modifier.padding(16.dp)) {
                 Text(
@@ -104,13 +110,15 @@ fun AlbumSetupScreen(onNextButtonClicked: () -> Unit, saveProvidedName: (String)
 }
 
 @Composable
-fun NameTextField(saveProvidedName: (String) -> Unit) {
+fun NameTextField(checkForNameConflict: (String) -> Boolean) {
     var text by rememberSaveable { mutableStateOf("") }
     val errorText = "Must be at least 3 characters long"
+    val conflictText = "Album name already taken"
     var isError by rememberSaveable { mutableStateOf(false) }
+    var isConflict by rememberSaveable { mutableStateOf(false) }
     OutlinedTextField(
-        isError = isError,
-        supportingText = { if (isError) Text(text = errorText) },
+        isError = isError || isConflict,
+        supportingText = { if (isError) Text(text = errorText) else if (isConflict) Text(text = conflictText)},
         value = text,
         label = { Text("Album name") },
         trailingIcon = {
@@ -125,7 +133,7 @@ fun NameTextField(saveProvidedName: (String) -> Unit) {
         },
         onValueChange = { newText ->
             text = newText
-            saveProvidedName(newText)
+            isConflict = checkForNameConflict(newText)
             isError = text.length < 3
         },
 
@@ -141,6 +149,6 @@ fun NameTextField(saveProvidedName: (String) -> Unit) {
 @Composable
 fun PreviewSetup() {
     LapseLabComposeTheme {
-        AlbumSetupScreen({}) {}
+        AlbumSetupScreen({}, {name -> false})
     }
 }

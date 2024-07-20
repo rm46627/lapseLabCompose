@@ -1,5 +1,5 @@
 package com.example.lapselabcompose
 
 const val TAG = "mytagforloging"
-const val DATABASE_NAME = "lapseLabDatabase"
-const val filenameFormat = "yyyy-MM-dd-HH-mm-ss-SSS"
+const val APP_PICTURES_PATH = "Pictures/LapseLab"
+const val APP_MOVIE_PATH = "Movies/LapseLab"

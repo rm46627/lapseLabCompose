@@ -65,10 +65,12 @@ class LapselabNavController(
                 AlbumSetupRoute(navController)
             }
             composable<FirstPhotoDestination> {
+                val args = it.toRoute<FirstPhotoDestination>()
                 FirstPhotoRoute(
                     navController,
                     permissionsResultLaunch,
-                    permissionViewModel
+                    permissionViewModel,
+                    args.albumName
                 )
             }
         }

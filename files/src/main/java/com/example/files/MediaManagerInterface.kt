@@ -1,8 +1,15 @@
 package com.example.files
 
+import android.content.ContentValues
+import android.graphics.Bitmap
+import android.net.Uri
 import java.io.File
 
 interface MediaManagerInterface {
+
+    suspend fun saveBitmap(
+        bitmap: Bitmap, subfolder: String, filename: String
+    ): Pair<Uri?, String>
 
     suspend fun getLatestPhotoFile(albumName: String): File?
 
@@ -14,6 +21,6 @@ interface MediaManagerInterface {
 
     suspend fun deletePhoto(photoUri: String)
 
-    suspend fun getAlbumFolderFile(albumName: String) : File?
-    suspend fun getMoviesFolderFile(albumName: String) : File?
+    suspend fun getAlbumFolderFile(albumName: String): File?
+    suspend fun getMoviesFolderFile(albumName: String): File?
 }

@@ -16,56 +16,52 @@ import kotlinx.coroutines.withContext
 import java.io.File
 import java.io.IOException
 
-//@RequiresApi(Build.VERSION_CODES.Q)
-class MediaStoreManager(private val context: Context) : MediaManagerInterface {
+const val TAG = "mytagforloging:Files"
+const val appDir = "Pictures/LapseLab"
+const val PHOTO_TYPE = "image/png"
 
-    private val mediaStoreCollection: Uri =
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            MediaStore.Images.Media.getContentUri(MediaStore.VOLUME_EXTERNAL)
-        } else {
-            MediaStore.Images.Media.EXTERNAL_CONTENT_URI
-        }
+fun getLapsesDir(albumName: String) = "Pictures/LapseLab/$albumName/lapses"
 
-    private fun createContentValues(title: String, subfolder: String): ContentValues =
+@RequiresApi(Build.VERSION_CODES.Q)
+class MediaStoreMediaManager(private val context: Context) : MediaManagerInterface {
+
+    private val mediaStoreCollection: Uri? =
+        MediaStore.Images.Media.getContentUri(MediaStore.VOLUME_EXTERNAL)
+
+    private fun createContentValues(name: String, subfolder: String): ContentValues =
         ContentValues().apply {
-            put(MediaStore.Images.Media.TITLE, "$title.png")
-            put(MediaStore.Images.Media.DISPLAY_NAME, "$title.png")
-            put(MediaStore.Images.Media.MIME_TYPE, "image/png")
-            put(MediaStore.Images.Media.DATE_ADDED, System.currentTimeMillis())
-            put(MediaStore.Images.Media.DATE_TAKEN, System.currentTimeMillis())
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                put(
-                    MediaStore.MediaColumns.RELATIVE_PATH,
-                    "${Environment.DIRECTORY_PICTURES}/$subfolder"
-                )
-            }
+            put(MediaStore.MediaColumns.DISPLAY_NAME, name)
+            put(MediaStore.MediaColumns.MIME_TYPE, PHOTO_TYPE)
+            put(MediaStore.Images.Media.RELATIVE_PATH, subfolder)
         }
 
-suspend fun saveShareBitmap(bitmap: Bitmap, subfolder: String, filename: String): Pair<Uri?, String> =
-    withContext(Dispatchers.IO) {
-        val contentValues = createContentValues(filename, subfolder)
+    override suspend fun saveBitmap(
+        bitmap: Bitmap,
+        subfolder: String,
+        filename: String
+    ): Pair<Uri?, String> =
+        withContext(Dispatchers.IO) {
+            val contentValues = createContentValues(filename, subfolder)
+            var uri: Uri? = null
+            try {
+                uri = context.contentResolver.insert(
+                    MediaStore.Images.Media.EXTERNAL_CONTENT_URI, contentValues
+                ) ?: throw IOException("Failed to create new MediaStore record")
 
-        var uri: Uri? = null
+                val stream = context.contentResolver.openOutputStream(uri)
+                    ?: throw IOException("Failed to open output stream")
 
-        try {
-            uri = context.contentResolver.insert(
-                MediaStore.Images.Media.EXTERNAL_CONTENT_URI, contentValues
-            ) ?: throw IOException("Failed to create new MediaStore record")
-
-            val stream = context.contentResolver.openOutputStream(uri)
-                ?: throw IOException("Failed to open output stream")
-
-            bitmap.compress(Bitmap.CompressFormat.PNG, 100, stream)
-            stream.flush()
-            stream.close()
-        } catch (e: IOException) {
-            if (uri != null) {
-                context.contentResolver.delete(uri, null, null)
+                bitmap.compress(Bitmap.CompressFormat.PNG, 100, stream)
+                stream.flush()
+                stream.close()
+            } catch (e: IOException) {
+                if (uri != null) {
+                    context.contentResolver.delete(uri, null, null)
+                }
             }
-        }
 
-        Pair(uri, filename)
-    }
+            Pair(uri, filename)
+        }
 
     private suspend fun getMediaStoreImageCursor(
         mediaStoreCollection: Uri, albumName: String? = null
@@ -76,9 +72,9 @@ suspend fun saveShareBitmap(bitmap: Bitmap, subfolder: String, filename: String)
             val sortOrder = "DATE_ADDED DESC"
             val selection = "${MediaStore.Images.ImageColumns.RELATIVE_PATH} LIKE ?"
             val arg = if (albumName != null) {
-                "%$appPicturesPath/$albumName/%"
+                "%$appDir/$albumName/%"
             } else {
-                "%$appPicturesPath/%"
+                "%$appDir/%"
             }
             val selectionArgs = arrayOf(arg)
             cursor = context.contentResolver.query(
