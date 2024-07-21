@@ -1,6 +1,6 @@
 package com.example.lapselabcompose.ui.setup
 
-import android.util.Log
+
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -19,10 +19,12 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.onFocusEvent
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -31,13 +33,17 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.ViewModelStoreOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
+import com.example.lapselab.files.MediaManagerFactory
 import com.example.lapselabcompose.ui.theme.LapseLabComposeTheme
 import com.example.lapselabcompose.R
 import com.example.lapselabcompose.TAG
 import com.example.lapselabcompose.ui.CreatingAlbumGraph
+import com.example.lapselabcompose.ui.common.BackHandlingDialog
 import com.example.lapselabcompose.ui.common.DropDownMenu
+import com.example.lapselabcompose.ui.gallery.GalleryDestination
 import com.example.lapselabcompose.ui.gallery.GalleryViewModel
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 import kotlin.math.log
 
@@ -63,12 +69,16 @@ fun AlbumSetupRoute(
             !albums.none { album ->
                 album.directoryName == name
             }
+        },
+        onLeaveAlertClicked = {
+            // TODO: clean backstack
+            navController.navigate(GalleryDestination)
         }
     )
 }
 
 @Composable
-fun AlbumSetupScreen(onNextButtonClicked: () -> Unit, checkForNameConflict: (String) -> Boolean) {
+fun AlbumSetupScreen(onNextButtonClicked: () -> Unit, checkForNameConflict: (String) -> Boolean, onLeaveAlertClicked: () -> Unit) {
     Scaffold {
         Column(
             modifier = Modifier
@@ -107,6 +117,13 @@ fun AlbumSetupScreen(onNextButtonClicked: () -> Unit, checkForNameConflict: (Str
             }
         }
     }
+
+    BackHandlingDialog(
+        title = "Leave album creation?",
+        text = "If you exit now, you will lose your creation progress. Are you sure you want to do this?",
+        onLeaveClicked = onLeaveAlertClicked
+
+    )
 }
 
 @Composable
@@ -149,6 +166,6 @@ fun NameTextField(checkForNameConflict: (String) -> Boolean) {
 @Composable
 fun PreviewSetup() {
     LapseLabComposeTheme {
-        AlbumSetupScreen({}, {name -> false})
+        AlbumSetupScreen({}, {name -> false}, {})
     }
 }

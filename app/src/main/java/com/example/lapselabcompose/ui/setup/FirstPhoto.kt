@@ -1,13 +1,19 @@
 package com.example.lapselabcompose.ui.setup
 
 import android.util.Log
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
@@ -17,6 +23,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -36,8 +43,10 @@ import com.example.lapselabcompose.ui.theme.LapseLabComposeTheme
 import com.example.lapselabcompose.R
 import com.example.lapselabcompose.TAG
 import com.example.lapselabcompose.ui.CreatingAlbumGraph
+import com.example.lapselabcompose.ui.common.BackHandlingDialog
 import com.example.lapselabcompose.ui.camera.CameraDestination
 import com.example.lapselabcompose.ui.gallery.GalleryDestination
+import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 
 // TODO: view GrantPermissionDialog first before giving user access to this screen
@@ -67,6 +76,10 @@ fun FirstPhotoRoute(
                 albumCreationViewModel.createNewAlbum(imagePath)
                 navController.navigate(GalleryDestination)
             },
+            onLeaveAlertClicked = {
+                // TODO: clean backstack
+                navController.navigate(GalleryDestination)
+            },
             albumName = it
         )
     } ?: albumName.let {
@@ -80,6 +93,7 @@ fun AddFirstPhoto(
     permissionViewModel: PermissionViewModel,
     onFirstImagePreviewClicked: (String) -> Unit,
     onCreateAlbumClicked: (String) -> Unit,
+    onLeaveAlertClicked: () -> Unit,
     albumName: String
 ) {
 
@@ -105,22 +119,23 @@ fun AddFirstPhoto(
                 val lifecycleOwner = LocalLifecycleOwner.current
                 LaunchedEffect(lifecycleOwner.lifecycle) {
                     lifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
-                        imagePath = MediaManagerFactory(context).getLatestPhotoFile(albumName)?.absolutePath
+                        imagePath =
+                            MediaManagerFactory(context).getLatestPhotoFile(albumName)?.absolutePath
                     }
                     Log.d(TAG, "path: $imagePath")
                 }
                 LaunchedEffect(imagePath) {
                     if (imagePath != null) {
                         // ładowanie obrazu
-                    }}
-                if(imagePath == null){
+                    }
+                }
+                if (imagePath == null) {
                     Image(
                         painter = painterResource(id = R.drawable.ic_add_photo),
                         modifier = Modifier.size(300.dp),
                         contentDescription = "First image preview"
                     )
-                }
-                else {
+                } else {
                     val painter = rememberAsyncImagePainter(imagePath)
                     Image(
                         painter = painter,
@@ -138,12 +153,28 @@ fun AddFirstPhoto(
             }
         }
     }
+
+
+    val context = LocalContext.current
+    val coroutineScope = rememberCoroutineScope()
+    BackHandlingDialog(
+        title = "Leave album creation?",
+        text = "If you exit now, you will lose your creation progress. Are you sure you want to do this?",
+        onLeaveClicked = {
+            coroutineScope.launch {
+                imagePath?.let {
+                    MediaManagerFactory(context).deletePhoto(it)
+                }
+            }
+            onLeaveAlertClicked()
+        }
+    )
 }
 
 @Preview
 @Composable
 fun PreviewFirstPhoto() {
     LapseLabComposeTheme {
-        AddFirstPhoto({}, PermissionViewModel(), {}, {}, "" )
+        AddFirstPhoto({}, PermissionViewModel(), {}, {}, {}, "")
     }
 }
