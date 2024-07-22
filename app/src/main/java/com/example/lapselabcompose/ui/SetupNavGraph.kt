@@ -44,14 +44,12 @@ class LapselabNavController(
             composable<SplashScreenDestination> {
                 SplashScreen(navController)
             }
-            composable<GalleryDestination> {
-                GalleryRoute(
-                    onAlbumClick = ::inGalleryOnAlbumClick,
-                    onCreateClick = ::inGalleryOnCreateClick
-                )
+            composable<GalleryDestination>{
+                GalleryRoute(navController)
             }
             creatingAlbumGraph(navController, permissionsResultLaunch, permissionViewModel)
             takingPhotoGraph(navController)
+            albumDetailsGraph(navController)
         }
     }
 
@@ -61,12 +59,13 @@ class LapselabNavController(
         permissionViewModel: PermissionViewModel
     ) {
         navigation<CreatingAlbumGraph>(startDestination = AlbumSetupDestination) {
-            composable<AlbumSetupDestination> {
-                AlbumSetupRoute(navController)
+            composable<AlbumSetupDestination> { backStackEntry ->
+                AlbumSetupRoute(backStackEntry, navController)
             }
-            composable<FirstPhotoDestination> {
-                val args = it.toRoute<FirstPhotoDestination>()
+            composable<FirstPhotoDestination> { backStackEntry ->
+                val args = backStackEntry.toRoute<FirstPhotoDestination>()
                 FirstPhotoRoute(
+                    backStackEntry,
                     navController,
                     permissionsResultLaunch,
                     permissionViewModel,
@@ -78,29 +77,22 @@ class LapselabNavController(
 
     private fun NavGraphBuilder.takingPhotoGraph(navController: NavHostController) {
         navigation<TakingPhotoGraph>(startDestination = CameraDestination()) {
-            composable<CameraDestination> {
-                val args = it.toRoute<CameraDestination>()
-                CameraRoute(navController, args.albumName)
+            composable<CameraDestination> { backStackEntry ->
+                val args = backStackEntry.toRoute<CameraDestination>()
+                CameraRoute(backStackEntry, navController, args.albumName)
             }
-            composable<PhotoDestination> {
-                PhotoRoute(navController)
-            }
-        }
-    }
-
-    fun NavGraphBuilder.albumDetailsGraph(navController: NavHostController) {
-        navigation<AlbumDetailsGraph>(startDestination = AlbumDetailsDestination) {
-            composable<AlbumDetailsDestination> {
-                AlbumDetailsRoute(id)
+            composable<PhotoDestination> { backStackEntry ->
+                PhotoRoute(backStackEntry, navController)
             }
         }
     }
 
-    private fun inGalleryOnCreateClick() {
-        navController.navigate(AlbumSetupDestination)
-    }
-
-    private fun inGalleryOnAlbumClick(id: Int) {
-        navController.navigate(AlbumDetailsDestination(id))
+    private fun NavGraphBuilder.albumDetailsGraph(navController: NavHostController) {
+        navigation<AlbumDetailsGraph>(startDestination = AlbumDetailsDestination()) {
+            composable<AlbumDetailsDestination> { backStackEntry ->
+                val args = backStackEntry.toRoute<AlbumDetailsDestination>()
+                AlbumDetailsRoute(backStackEntry, navController, args.id)
+            }
+        }
     }
 }

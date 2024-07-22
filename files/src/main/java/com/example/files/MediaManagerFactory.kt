@@ -1,6 +1,5 @@
 package com.example.lapselab.files
 
-import android.content.ContentValues
 import android.content.Context
 import android.graphics.Bitmap
 import android.net.Uri
@@ -33,8 +32,8 @@ class MediaManagerFactory(context: Context) : MediaManagerInterface {
         manager.getPhotoFiles(albumName)
 
     // TODO: ask if user want to delete leftover photos
-    override suspend fun removeLeftoverImagesFromNewAlbumFolder(albumName: String, firstPhotoPath: String) =
-        manager.removeLeftoverImagesFromNewAlbumFolder(albumName, firstPhotoPath)
+    override suspend fun removeLeftoverPhotosFromNewAlbum(albumName: String, firstPhotoPath: String) =
+        manager.removeLeftoverPhotosFromNewAlbum(albumName, firstPhotoPath)
 
     override suspend fun deleteAlbum(albumName: String) =
         manager.deleteAlbum(albumName)

@@ -24,6 +24,7 @@ import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavHostController
 import com.example.files.appDir
 import com.example.lapselab.files.MediaManagerFactory
@@ -40,8 +41,8 @@ import java.util.Locale
 object PhotoDestination
 
 @Composable
-fun PhotoRoute(navController: NavHostController) {
-    val parentEntry = remember(navController.currentBackStackEntry) {
+fun PhotoRoute(backStackEntry: NavBackStackEntry, navController: NavHostController) {
+    val parentEntry = remember(backStackEntry) {
         navController.getBackStackEntry(TakingPhotoGraph)
     }
     val viewModel: TakingPhotoViewModel = hiltViewModel(parentEntry)
@@ -56,7 +57,11 @@ fun PhotoRoute(navController: NavHostController) {
             onAcceptClicked = { context ->
                 scope.launch {
                     withContext(Dispatchers.Main) {
-                        navController.navigate(FirstPhotoDestination(viewModel.albumName))
+                        navController.navigate(FirstPhotoDestination(viewModel.albumName)) {
+                            popUpTo(FirstPhotoDestination()) {
+                                inclusive = true
+                            }
+                        }
                         val name =
                             SimpleDateFormat(FILENAME, Locale.US).format(System.currentTimeMillis())
                         val (_, _) = MediaManagerFactory(context).saveBitmap(

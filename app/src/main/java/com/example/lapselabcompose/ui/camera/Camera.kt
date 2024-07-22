@@ -38,6 +38,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavHostController
 import com.example.lapselabcompose.ui.TakingPhotoGraph
 import kotlinx.serialization.Serializable
@@ -48,8 +49,8 @@ data class CameraDestination(
 )
 
 @Composable
-fun CameraRoute(navController: NavHostController, albumName: String) {
-    val parentEntry = remember(navController.currentBackStackEntry) {
+fun CameraRoute(backStackEntry: NavBackStackEntry, navController: NavHostController, albumName: String) {
+    val parentEntry = remember(backStackEntry) {
         navController.getBackStackEntry(TakingPhotoGraph)
     }
     val takingPhotoViewModel: TakingPhotoViewModel = hiltViewModel(parentEntry)

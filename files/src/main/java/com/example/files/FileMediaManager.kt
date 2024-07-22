@@ -67,7 +67,7 @@ class FileMediaManager(private val context: Context) : MediaManagerInterface {
         return getAlbumFolderFile(albumName).listFiles()?.reversed() ?: mutableListOf()
     }
 
-    override suspend fun removeLeftoverImagesFromNewAlbumFolder(
+    override suspend fun removeLeftoverPhotosFromNewAlbum(
         albumName: String,
         firstPhotoPath: String
     ) {

@@ -1,6 +1,7 @@
 package com.example.lapselabcompose.ui.setup
 
 
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -32,6 +33,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.ViewModelStoreOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavHostController
 import com.example.lapselab.files.MediaManagerFactory
 import com.example.lapselabcompose.ui.theme.LapseLabComposeTheme
@@ -52,9 +54,11 @@ object AlbumSetupDestination
 
 @Composable
 fun AlbumSetupRoute(
+    backStackEntry: NavBackStackEntry,
     navController: NavHostController
 ) {
-    val parentEntry = remember(navController.currentBackStackEntry) {
+    val parentEntry = remember(backStackEntry) {
+        Log.d(TAG, "$$ albumSetup remember parent entry")
         navController.getBackStackEntry(CreatingAlbumGraph)
     }
     val albumCreationViewModel: AlbumCreationViewModel = hiltViewModel(parentEntry)
@@ -62,7 +66,11 @@ fun AlbumSetupRoute(
 
     AlbumSetupScreen(
         onNextButtonClicked = {
-            navController.navigate(FirstPhotoDestination())
+            navController.navigate(FirstPhotoDestination()){
+                popUpTo(AlbumSetupDestination){
+                    inclusive = true
+                }
+            }
         },
         checkForNameConflict = { name ->
             albumCreationViewModel.albumName = name
@@ -71,8 +79,7 @@ fun AlbumSetupRoute(
             }
         },
         onLeaveAlertClicked = {
-            // TODO: clean backstack
-            navController.navigate(GalleryDestination)
+            navController.popBackStack()
         }
     )
 }

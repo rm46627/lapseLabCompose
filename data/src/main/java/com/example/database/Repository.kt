@@ -8,9 +8,13 @@ import javax.inject.Inject
 class Repository @Inject constructor(
     private val albumDao: AlbumDao
 ) {
-    fun readAlbums(): Flow<List<Album>> {
+    fun getAlbums(): Flow<List<Album>> {
         return albumDao.getAlbums()
     }
+
+    fun getAlbum(id: Int): Flow<Album> = albumDao.getAlbum(id)
+
+    suspend fun updateAlbum(album: Album) = albumDao.updateAlbum(album)
 
     suspend fun addAlbum(album: Album) {
         return albumDao.addAlbum(album)
@@ -20,16 +24,16 @@ class Repository @Inject constructor(
         return albumDao.deleteAlbumByName(albumName)
     }
 
-    suspend fun renameAlbum(oldName: String, newName: String) {
-        return albumDao.renameAlbumByName(oldName, newName)
-    }
-
-    suspend fun updateCoverPhoto(albumName: String, newPath: String) {
-        return albumDao.updateCoverPhoto(albumName, newPath)
-    }
-
-    suspend fun updateAlbumDimensions(albumName: String, width: Int, height: Int) {
-        return albumDao.updateAlbumDimensions(albumName, width, height)
-    }
+//    suspend fun renameAlbum(oldName: String, newName: String) {
+//        return albumDao.renameAlbumByName(oldName, newName)
+//    }
+//
+//    suspend fun updateCoverPhoto(albumName: String, newPath: String) {
+//        return albumDao.updateCoverPhoto(albumName, newPath)
+//    }
+//
+//    suspend fun updateAlbumDimensions(albumName: String, width: Int, height: Int) {
+//        return albumDao.updateAlbumDimensions(albumName, width, height)
+//    }
 
 }

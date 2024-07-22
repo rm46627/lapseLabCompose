@@ -116,7 +116,7 @@ class MediaStoreMediaManager(private val context: Context) : MediaManagerInterfa
         return files
     }
 
-    override suspend fun removeLeftoverImagesFromNewAlbumFolder(
+    override suspend fun removeLeftoverPhotosFromNewAlbum(
         albumName: String, firstPhotoPath: String
     ) {
         getPhotoFiles(albumName).forEach { file ->

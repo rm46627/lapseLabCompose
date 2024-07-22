@@ -1,19 +1,13 @@
 package com.example.lapselabcompose.ui.setup
 
 import android.util.Log
-import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
@@ -47,6 +41,7 @@ import com.example.lapselabcompose.ui.common.BackHandlingDialog
 import com.example.lapselabcompose.ui.camera.CameraDestination
 import com.example.lapselabcompose.ui.gallery.GalleryDestination
 import kotlinx.coroutines.launch
+import androidx.navigation.NavBackStackEntry
 import kotlinx.serialization.Serializable
 
 // TODO: view GrantPermissionDialog first before giving user access to this screen
@@ -56,15 +51,18 @@ data class FirstPhotoDestination(val albumName: String? = null)
 
 @Composable
 fun FirstPhotoRoute(
+    backStackEntry: NavBackStackEntry,
     navController: NavHostController,
     permissionsResultLaunch: () -> Unit,
     permissionViewModel: PermissionViewModel,
     albumName: String?
 ) {
-    val parentEntry = remember(navController.currentBackStackEntry) {
+    val parentEntry = remember(backStackEntry) {
         navController.getBackStackEntry(CreatingAlbumGraph)
     }
     val albumCreationViewModel: AlbumCreationViewModel = hiltViewModel(parentEntry)
+    val context = LocalContext.current
+    val coroutineScope = rememberCoroutineScope()
     albumCreationViewModel.albumName?.let {
         AddFirstPhoto(
             permissionsResultLaunch,
@@ -73,12 +71,18 @@ fun FirstPhotoRoute(
                 navController.navigate(CameraDestination(albumName))
             },
             onCreateAlbumClicked = { imagePath ->
+                navController.navigate(GalleryDestination) {
+                    popUpTo(GalleryDestination) {
+                        inclusive = true
+                    }
+                }
+                coroutineScope.launch {
+                    MediaManagerFactory(context).removeLeftoverPhotosFromNewAlbum(it, imagePath)
+                }
                 albumCreationViewModel.createNewAlbum(imagePath)
-                navController.navigate(GalleryDestination)
             },
             onLeaveAlertClicked = {
-                // TODO: clean backstack
-                navController.navigate(GalleryDestination)
+                navController.popBackStack()
             },
             albumName = it
         )
@@ -163,7 +167,7 @@ fun AddFirstPhoto(
         onLeaveClicked = {
             coroutineScope.launch {
                 imagePath?.let {
-                    MediaManagerFactory(context).deletePhoto(it)
+                    MediaManagerFactory(context).deleteAlbum(albumName)
                 }
             }
             onLeaveAlertClicked()

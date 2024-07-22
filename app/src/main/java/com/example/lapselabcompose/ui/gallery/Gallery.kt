@@ -27,11 +27,14 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.navigation.NavHostController
 import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
 import com.bumptech.glide.integration.compose.GlideImage
 import com.example.database.Album
 import com.example.database.Repository
 import com.example.lapselabcompose.R
+import com.example.lapselabcompose.ui.AlbumDetailsDestination
+import com.example.lapselabcompose.ui.setup.AlbumSetupDestination
 import com.example.lapselabcompose.ui.theme.LapseLabComposeTheme
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.serialization.Serializable
@@ -40,15 +43,20 @@ import javax.inject.Inject
 @Serializable
 object GalleryDestination
 
-
 @Composable
-fun GalleryRoute(
-    onAlbumClick: (Int) -> Unit, onCreateClick: () -> Unit
-) {
+fun GalleryRoute(navController: NavHostController) {
     val galleryViewModel: GalleryViewModel = hiltViewModel()
     val albums by galleryViewModel.getAlbums.collectAsStateWithLifecycle(initialValue = emptyList())
 
-    GalleryScreen(albums, onAlbumClick, onCreateClick)
+    GalleryScreen(
+        albums,
+        onAlbumClick = { id ->
+            navController.navigate(AlbumDetailsDestination(id))
+        },
+        onCreateClick = {
+            navController.navigate(AlbumSetupDestination)
+        }
+    )
 }
 
 @Composable
@@ -68,7 +76,7 @@ fun GalleryScreen(albums: List<Album>, onAlbumClick: (Int) -> Unit, onCreateClic
                     album.id
                 }) { index, album ->
                     if (index == albums.size) {
-                        CreateCard (onCreateClick)
+                        CreateCard(onCreateClick)
                     } else {
                         GalleryItem(album = album, onAlbumClick)
                     }
@@ -81,11 +89,9 @@ fun GalleryScreen(albums: List<Album>, onAlbumClick: (Int) -> Unit, onCreateClic
 @OptIn(ExperimentalGlideComposeApi::class)
 @Composable
 fun GalleryItem(album: Album, onGalleryItemClick: (Int) -> Unit) {
-    Card(
-        modifier = Modifier.wrapContentSize(),
+    Card(modifier = Modifier.wrapContentSize(),
         shape = ShapeDefaults.Medium,
-        onClick = { onGalleryItemClick(album.id) }
-    ) {
+        onClick = { onGalleryItemClick(album.id) }) {
         Column {
             GlideImage(
                 modifier = Modifier
@@ -131,7 +137,7 @@ fun CreateCard(onCreateNewAlbumClick: () -> Unit) {
 class GalleryViewModel @Inject constructor(
     repository: Repository
 ) : ViewModel() {
-    val getAlbums = repository.readAlbums()
+    val getAlbums = repository.getAlbums()
 
     // used to calculate span size in gallery recyclerView
     var gallerySize: Int = 0

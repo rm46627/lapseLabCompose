@@ -40,7 +40,11 @@ fun SplashScreen(navController: NavController) {
                 durationMillis = 1500
             )
         )
-        navController.navigate(GalleryDestination)
+        navController.navigate(GalleryDestination) {
+            popUpTo(navController.graph.startDestinationId) {
+                inclusive = true
+            }
+        }
     }
 
     Scaffold {

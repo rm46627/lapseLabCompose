@@ -15,7 +15,7 @@ interface MediaManagerInterface {
 
     suspend fun getPhotoFiles(albumName: String): List<File>
 
-    suspend fun removeLeftoverImagesFromNewAlbumFolder(albumName: String, firstPhotoPath: String)
+    suspend fun removeLeftoverPhotosFromNewAlbum(albumName: String, firstPhotoPath: String)
 
     suspend fun deleteAlbum(albumName: String)
 
