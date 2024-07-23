@@ -2,8 +2,10 @@ package com.example.lapselabcompose.ui.gallery
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -11,6 +13,9 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.itemsIndexed
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material3.Card
 import androidx.compose.material3.MaterialTheme
@@ -70,7 +75,14 @@ fun GalleryScreen(albums: List<Album>, onAlbumClick: (Int) -> Unit, onCreateClic
                 .fillMaxSize()
                 .background(MaterialTheme.colorScheme.background)
         ) {
-            LazyColumn(
+            LazyVerticalGrid(
+                columns = GridCells.Fixed(2),
+                contentPadding = PaddingValues(
+                    start = 12.dp,
+                    top = 16.dp,
+                    end = 12.dp,
+                    bottom = 16.dp
+                )
             ) {
                 itemsIndexed(items = albumsWithExtras, key = { index, album ->
                     album.id
@@ -89,7 +101,7 @@ fun GalleryScreen(albums: List<Album>, onAlbumClick: (Int) -> Unit, onCreateClic
 @OptIn(ExperimentalGlideComposeApi::class)
 @Composable
 fun GalleryItem(album: Album, onGalleryItemClick: (Int) -> Unit) {
-    Card(modifier = Modifier.wrapContentSize(),
+    Card(modifier = Modifier.wrapContentSize().padding(4.dp),
         shape = ShapeDefaults.Medium,
         onClick = { onGalleryItemClick(album.id) }) {
         Column {
