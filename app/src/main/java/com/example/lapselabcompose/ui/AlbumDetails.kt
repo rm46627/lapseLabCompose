@@ -1,11 +1,12 @@
 package com.example.lapselabcompose.ui
 
-import androidx.compose.animation.core.AnimationSpec
+import android.util.Log
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -16,12 +17,10 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.itemsIndexed
-import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -40,7 +39,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
-import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
@@ -56,6 +54,7 @@ import coil.compose.rememberAsyncImagePainter
 import com.example.database.Album
 import com.example.database.Repository
 import com.example.lapselab.files.MediaManagerFactory
+import com.example.lapselabcompose.TAG
 import com.example.lapselabcompose.ui.theme.LapseLabComposeTheme
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -76,9 +75,7 @@ data class AlbumDetailsDestination(val id: Int = 0)
 
 @Composable
 fun AlbumDetailsRoute(
-    backStackEntry: NavBackStackEntry,
-    navController: NavHostController,
-    id: Int
+    backStackEntry: NavBackStackEntry, navController: NavHostController, id: Int
 ) {
     val parentEntry = remember(backStackEntry) {
         navController.getBackStackEntry(AlbumDetailsGraph)
@@ -93,126 +90,75 @@ fun AlbumDetailsRoute(
     var photos by remember { mutableStateOf<List<File>?>(null) }
 
     LaunchedEffect(album) {
-        if (album != null) {
-            photos = MediaManagerFactory(context).getPhotoFiles(album!!.directoryName)
-            loadingState = false
-        }
+            photos = album?.let { MediaManagerFactory(context).getPhotoFiles(it.directoryName) }
     }
-    if (loadingState) {
-        Loading()
-    } else {
-        photos?.let { AlbumDetails(it) }
-    }
+    photos?.let { AlbumDetails(album!!, it) } ?: Loading()
 
 }
 
 @Composable
-fun AlbumDetails(photos: List<File>) {
+fun AlbumDetails(album: Album, photos: List<File>) {
     Scaffold {
         Column(modifier = Modifier.padding(it)) {
-//            LazyVerticalGrid(
-//                columns = GridCells.Fixed(3),
-//                contentPadding = PaddingValues(
-//                    start = 12.dp,
-//                    top = 16.dp,
-//                    end = 12.dp,
-//                    bottom = 16.dp
-//                )
-//            ) {
-//                itemsIndexed(items = photos, key = { index, photo ->
-//                    photo.
-//                }) { index, album ->
-//                        PhotoItem(photoFile)
-//                    }
-//            }
-            AnimatedScrollScreen()
-        }
-    }
-}
 
-@OptIn(ExperimentalFoundationApi::class)
-@Composable
-fun AnimatedScrollScreen() {
-    val listState = rememberLazyListState()
-
-    val expandedState by remember {
-        derivedStateOf {
-            when (listState.firstVisibleItemIndex) {
-                0 -> listState.firstVisibleItemScrollOffset <= 100
-                else -> false
+            val gridState = rememberLazyGridState()
+            val expandedState by remember {
+                derivedStateOf {
+                    if (photos.size < 6) true
+                    else
+                        when (gridState.firstVisibleItemIndex) {
+                            0 -> gridState.firstVisibleItemScrollOffset <= 100
+                            else -> false
+                        }
+                }
             }
-        }
-    }
 
-    Box(modifier = Modifier.fillMaxSize()) {
-        LazyColumn(state = listState) {
-            stickyHeader {
-                BannerSectionExpand(expandedState)
-            }
-            items(photos) { photo ->
-                PhotoItem(photo)
+            Column(modifier = Modifier.fillMaxSize()) {
+                BannerSectionExpand(expandedState, album)
+
+                LazyVerticalGrid(
+                    columns = GridCells.Fixed(2), contentPadding = PaddingValues(
+                        start = 12.dp, top = 16.dp, end = 12.dp, bottom = 16.dp
+                    ), state = gridState
+                ) {
+                    itemsIndexed(items = photos, key = { index, _ ->
+                        index
+                    }) { _, photo ->
+                        PhotoItem(photo.absolutePath)
+                    }
+                }
             }
         }
     }
 }
 
 @Composable
-fun BannerSectionExpand(expanded: Boolean) {
-    val scale by animateFloatAsState(targetValue = if(expanded) 1f else 0f, animationSpec = tween(durationMillis = 1000))
+fun BannerSectionExpand(expanded: Boolean, album: Album) {
+    val scale by animateFloatAsState(
+        targetValue = if (expanded) 1f else 0f, animationSpec = tween(durationMillis = 1000)
+    )
 
     Column(
         modifier = Modifier
             .fillMaxWidth()
             .height(300.dp * scale + 100.dp)
-            .background(Color.Blue, RoundedCornerShape(bottomEnd = 16.dp, bottomStart = 16.dp))
+            .background(MaterialTheme.colorScheme.primaryContainer, RoundedCornerShape(bottomEnd = 16.dp, bottomStart = 16.dp))
             .padding(16.dp)
-            .alpha(scale)
+            .alpha(scale),
+        horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Image(
-            painter = rememberAsyncImagePainter("https://via.placeholder.com/300"),
-            contentDescription = "Header Image",
+            painter = rememberAsyncImagePainter(album.coverPhotoPath),
+            contentDescription = "Album cover photo",
             contentScale = ContentScale.Crop,
             modifier = Modifier
-                .size(300.dp)
+                .width(200.dp * scale)
+                .height(200.dp * scale)
+                .padding(8.dp)
         )
         Text(
-            text = "Header Text",
+            text = album.directoryName,
             modifier = Modifier
-                .background(Color.Cyan)
-                .wrapContentHeight(),
-            style = MaterialTheme.typography.headlineLarge,
-        )
-    }
-}
-
-@Composable
-fun BannerSection(progress: Float) {
-
-    val photoAlpha = progress
-    val photoScale = progress
-    val textScale = progress * 0.3f + 0.7f
-
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .wrapContentHeight()
-            .background(Color.Blue, RoundedCornerShape(bottomEnd = 16.dp, bottomStart = 16.dp))
-            .padding(16.dp),
-    ) {
-        Image(
-            painter = rememberAsyncImagePainter("https://via.placeholder.com/300"),
-            contentDescription = "Header Image",
-            contentScale = ContentScale.Crop,
-            modifier = Modifier
-                .width(200.dp * photoScale)
-                .height(200.dp * photoScale)
-//                .scale(photoScale)
-                .alpha(photoAlpha)
-        )
-        Text(
-            text = "Header Text",
-            modifier = Modifier
-                .background(Color.Cyan)
                 .wrapContentHeight(),
             style = MaterialTheme.typography.headlineLarge,
         )
@@ -232,16 +178,6 @@ fun PhotoItem(photo: String) {
     )
 }
 
-val photos = listOf(
-    "https://via.placeholder.com/300",
-    "https://via.placeholder.com/301",
-    "https://via.placeholder.com/302",
-    "https://via.placeholder.com/303",
-    "https://via.placeholder.com/304",
-    "https://via.placeholder.com/305",
-    "https://via.placeholder.com/306"
-)
-
 @Composable
 fun Loading() {
     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.TopCenter) {
@@ -252,28 +188,6 @@ fun Loading() {
             strokeWidth = 5.dp,
             color = MaterialTheme.colorScheme.primary
         )
-    }
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun PhotosCarousel(photos: List<File>) {
-    val carouselState = rememberCarouselState { photos.size }
-
-    HorizontalMultiBrowseCarousel(
-        state = carouselState,
-        preferredItemWidth = 300.dp,
-        itemSpacing = 10.dp
-    ) { page ->
-        Box(modifier = Modifier.size(300.dp)) {
-            val painter = rememberAsyncImagePainter(photos[page].absolutePath)
-            Image(
-                painter = painter,
-                contentDescription = "Carousel photo",
-                contentScale = ContentScale.Crop,
-                modifier = Modifier.fillMaxSize()
-            )
-        }
     }
 }
 
