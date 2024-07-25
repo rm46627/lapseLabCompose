@@ -55,8 +55,8 @@ fun GalleryRoute(navController: NavHostController) {
 
     GalleryScreen(
         albums,
-        onAlbumClick = { id ->
-            navController.navigate(AlbumDetailsDestination(id))
+        onAlbumClick = { name ->
+            navController.navigate(AlbumDetailsDestination(name))
         },
         onCreateClick = {
             navController.navigate(AlbumSetupDestination)
@@ -65,7 +65,7 @@ fun GalleryRoute(navController: NavHostController) {
 }
 
 @Composable
-fun GalleryScreen(albums: List<Album>, onAlbumClick: (Int) -> Unit, onCreateClick: () -> Unit) {
+fun GalleryScreen(albums: List<Album>, onAlbumClick: (String) -> Unit, onCreateClick: () -> Unit) {
     // adding creating new album card
     val albumsWithExtras = albums.plus(Album())
     Scaffold {
@@ -100,10 +100,10 @@ fun GalleryScreen(albums: List<Album>, onAlbumClick: (Int) -> Unit, onCreateClic
 
 @OptIn(ExperimentalGlideComposeApi::class)
 @Composable
-fun GalleryItem(album: Album, onGalleryItemClick: (Int) -> Unit) {
+fun GalleryItem(album: Album, onGalleryItemClick: (String) -> Unit) {
     Card(modifier = Modifier.wrapContentSize().padding(4.dp),
         shape = ShapeDefaults.Medium,
-        onClick = { onGalleryItemClick(album.id) }) {
+        onClick = { onGalleryItemClick(album.directoryName) }) {
         Column {
             GlideImage(
                 modifier = Modifier

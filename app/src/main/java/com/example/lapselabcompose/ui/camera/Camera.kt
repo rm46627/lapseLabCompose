@@ -45,11 +45,12 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class CameraDestination(
-    val albumName: String = ""
+    val albumName: String? = null,
+    val navigatedFromAlbumDetails: Boolean = false
 )
 
 @Composable
-fun CameraRoute(backStackEntry: NavBackStackEntry, navController: NavHostController, albumName: String) {
+fun CameraRoute(backStackEntry: NavBackStackEntry, navController: NavHostController, albumName: String?,  navigatedFromAlbumDetails: Boolean = false) {
     val parentEntry = remember(backStackEntry) {
         navController.getBackStackEntry(TakingPhotoGraph)
     }
@@ -59,7 +60,7 @@ fun CameraRoute(backStackEntry: NavBackStackEntry, navController: NavHostControl
     CameraScreen(
         onPhotoTaken = { bitmap ->
             takingPhotoViewModel.bitmap = bitmap
-            navController.navigate(PhotoDestination)
+            navController.navigate(PhotoDestination(navigatedFromAlbumDetails))
         }
     )
 }

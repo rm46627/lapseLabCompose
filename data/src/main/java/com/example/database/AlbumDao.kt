@@ -14,6 +14,9 @@ interface AlbumDao {
     @Query("SELECT * FROM Album WHERE id = :albumId")
     fun getAlbum(albumId: Int): Flow<Album>
 
+    @Query("SELECT * FROM Album WHERE directory_name = :albumName")
+    fun getAlbum(albumName: String): Flow<Album>
+
     @Update
     suspend fun updateAlbum(album: Album)
 

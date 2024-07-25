@@ -2,7 +2,6 @@ package com.example.lapselabcompose.ui.camera
 
 import android.content.Context
 import android.graphics.Bitmap
-import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -28,6 +27,7 @@ import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavHostController
 import com.example.files.appDir
 import com.example.lapselab.files.MediaManagerFactory
+import com.example.lapselabcompose.ui.AlbumDetailsDestination
 import com.example.lapselabcompose.ui.TakingPhotoGraph
 import com.example.lapselabcompose.ui.setup.FirstPhotoDestination
 import kotlinx.coroutines.Dispatchers
@@ -38,10 +38,10 @@ import java.text.SimpleDateFormat
 import java.util.Locale
 
 @Serializable
-object PhotoDestination
+data class PhotoDestination(val navigatedFromAlbumDetails: Boolean = false)
 
 @Composable
-fun PhotoRoute(backStackEntry: NavBackStackEntry, navController: NavHostController) {
+fun PhotoRoute(backStackEntry: NavBackStackEntry, navController: NavHostController, navigatedFromAlbumDetails: Boolean = false) {
     val parentEntry = remember(backStackEntry) {
         navController.getBackStackEntry(TakingPhotoGraph)
     }
@@ -57,11 +57,17 @@ fun PhotoRoute(backStackEntry: NavBackStackEntry, navController: NavHostControll
             onAcceptClicked = { context ->
                 scope.launch {
                     withContext(Dispatchers.Main) {
-                        navController.navigate(FirstPhotoDestination(viewModel.albumName)) {
-                            popUpTo(FirstPhotoDestination()) {
+                        val originalDestination: Any = if (navigatedFromAlbumDetails)
+                            AlbumDetailsDestination(viewModel.albumName)
+                        else
+                            FirstPhotoDestination(viewModel.albumName)
+
+                        navController.navigate(originalDestination) {
+                            popUpTo(originalDestination) {
                                 inclusive = true
                             }
                         }
+
                         val name =
                             SimpleDateFormat(FILENAME, Locale.US).format(System.currentTimeMillis())
                         val (_, _) = MediaManagerFactory(context).saveBitmap(

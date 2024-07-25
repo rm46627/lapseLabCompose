@@ -14,6 +14,8 @@ class Repository @Inject constructor(
 
     fun getAlbum(id: Int): Flow<Album> = albumDao.getAlbum(id)
 
+    fun getAlbum(name: String): Flow<Album> = albumDao.getAlbum(name)
+
     suspend fun updateAlbum(album: Album) = albumDao.updateAlbum(album)
 
     suspend fun addAlbum(album: Album) {

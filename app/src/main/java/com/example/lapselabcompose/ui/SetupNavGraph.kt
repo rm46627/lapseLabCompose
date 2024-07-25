@@ -79,10 +79,11 @@ class LapselabNavController(
         navigation<TakingPhotoGraph>(startDestination = CameraDestination()) {
             composable<CameraDestination> { backStackEntry ->
                 val args = backStackEntry.toRoute<CameraDestination>()
-                CameraRoute(backStackEntry, navController, args.albumName)
+                CameraRoute(backStackEntry, navController, args.albumName, args.navigatedFromAlbumDetails)
             }
             composable<PhotoDestination> { backStackEntry ->
-                PhotoRoute(backStackEntry, navController)
+                val args = backStackEntry.toRoute<PhotoDestination>()
+                PhotoRoute(backStackEntry, navController, args.navigatedFromAlbumDetails)
             }
         }
     }
@@ -91,7 +92,7 @@ class LapselabNavController(
         navigation<AlbumDetailsGraph>(startDestination = AlbumDetailsDestination()) {
             composable<AlbumDetailsDestination> { backStackEntry ->
                 val args = backStackEntry.toRoute<AlbumDetailsDestination>()
-                AlbumDetailsRoute(backStackEntry, navController, args.id)
+                AlbumDetailsRoute(backStackEntry, navController, args.albumName)
             }
         }
     }
