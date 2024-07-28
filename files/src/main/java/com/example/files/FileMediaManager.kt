@@ -7,11 +7,13 @@ import android.net.Uri
 import android.os.Environment
 import android.provider.MediaStore
 import com.example.files.MediaManagerInterface
-import com.example.files.appDir
+import com.example.files.appPicturesDir
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.File
 import java.io.IOException
+import java.text.SimpleDateFormat
+import java.util.Locale
 
 class FileMediaManager(private val context: Context) : MediaManagerInterface {
 
@@ -32,10 +34,11 @@ class FileMediaManager(private val context: Context) : MediaManagerInterface {
 
     override suspend fun saveBitmap(
         bitmap: Bitmap,
-        subfolder: String,
-        filename: String
-    ): Pair<Uri?, String> =
+        subfolder: String
+    ): Uri? =
         withContext(Dispatchers.IO) {
+            val filename =
+                SimpleDateFormat(FILES_NAME_DATE_FORMAT, Locale.US).format(System.currentTimeMillis())
             val contentValues = createContentValues(filename, subfolder)
             var uri: Uri? = null
             try {
@@ -55,8 +58,12 @@ class FileMediaManager(private val context: Context) : MediaManagerInterface {
                 }
             }
 
-            Pair(uri, filename)
+            uri
         }
+
+    override suspend fun saveVideo(filename: String, subfolder: String): Uri? {
+        TODO("Not yet implemented")
+    }
 
     override suspend fun getLatestPhotoFile(albumName: String): File? {
         val photoFiles = getPhotoFiles(albumName)
@@ -87,7 +94,7 @@ class FileMediaManager(private val context: Context) : MediaManagerInterface {
     override suspend fun getAlbumFolderFile(albumName: String): File {
         return File(
             Environment.getExternalStorageDirectory(),
-            "$appDir/${albumName}"
+            "$appPicturesDir/${albumName}"
         )
     }
 

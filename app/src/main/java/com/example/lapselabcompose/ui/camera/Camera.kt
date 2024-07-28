@@ -3,7 +3,6 @@ package com.example.lapselabcompose.ui.camera
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.Matrix
-import android.provider.ContactsContract.Contacts.Photo
 import android.util.Log
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.ImageCapture
@@ -31,6 +30,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -40,7 +40,10 @@ import androidx.core.content.ContextCompat
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavHostController
-import com.example.lapselabcompose.ui.TakingPhotoGraph
+import com.example.files.appPicturesDir
+import com.example.lapselab.files.MediaManagerFactory
+import com.example.lapselabcompose.ui.CameraGraph
+import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 
 @Serializable
@@ -52,14 +55,24 @@ data class CameraDestination(
 @Composable
 fun CameraRoute(backStackEntry: NavBackStackEntry, navController: NavHostController, albumName: String?,  navigatedFromAlbumDetails: Boolean = false) {
     val parentEntry = remember(backStackEntry) {
-        navController.getBackStackEntry(TakingPhotoGraph)
+        navController.getBackStackEntry(CameraGraph)
     }
-    val takingPhotoViewModel: TakingPhotoViewModel = hiltViewModel(parentEntry)
-    takingPhotoViewModel.albumName = albumName
+    val cameraViewModel: CameraViewModel = hiltViewModel(parentEntry)
+    cameraViewModel.albumName = albumName
+
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+    val mediaManager = MediaManagerFactory(context)
 
     CameraScreen(
         onPhotoTaken = { bitmap ->
-            takingPhotoViewModel.bitmap = bitmap
+            scope.launch {
+                cameraViewModel.bitmap = bitmap
+                val uri = mediaManager.saveBitmap(
+                    bitmap = bitmap,
+                    subfolder = "$appPicturesDir/${albumName}"
+                )
+            }
             navController.navigate(PhotoDestination(navigatedFromAlbumDetails))
         }
     )

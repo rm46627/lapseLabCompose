@@ -16,64 +16,54 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.onFocusEvent
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.ViewModelStoreOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavHostController
-import com.example.lapselab.files.MediaManagerFactory
 import com.example.lapselabcompose.ui.theme.LapseLabComposeTheme
 import com.example.lapselabcompose.R
 import com.example.lapselabcompose.TAG
-import com.example.lapselabcompose.ui.CreatingAlbumGraph
+import com.example.lapselabcompose.ui.SetupGraph
 import com.example.lapselabcompose.ui.common.BackHandlingDialog
 import com.example.lapselabcompose.ui.common.DropDownMenu
-import com.example.lapselabcompose.ui.gallery.GalleryDestination
-import com.example.lapselabcompose.ui.gallery.GalleryViewModel
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
-import kotlin.math.log
 
 @Serializable
-object AlbumSetupDestination
+object SetupAlbumDestination
 
 @Composable
-fun AlbumSetupRoute(
+fun SetupAlbumRoute(
     backStackEntry: NavBackStackEntry,
     navController: NavHostController
 ) {
     val parentEntry = remember(backStackEntry) {
         Log.d(TAG, "$$ albumSetup remember parent entry")
-        navController.getBackStackEntry(CreatingAlbumGraph)
+        navController.getBackStackEntry(SetupGraph)
     }
-    val albumCreationViewModel: AlbumCreationViewModel = hiltViewModel(parentEntry)
-    val albums by albumCreationViewModel.albums.collectAsStateWithLifecycle(initialValue = emptyList())
+    val setupViewModel: SetupViewModel = hiltViewModel(parentEntry)
+    val albums by setupViewModel.albums.collectAsStateWithLifecycle(initialValue = emptyList())
 
-    AlbumSetupScreen(
+    SetupAlbumScreen(
         onNextButtonClicked = {
-            navController.navigate(FirstPhotoDestination()){
-                popUpTo(AlbumSetupDestination){
+            navController.navigate(SetupPhotoDestination()){
+                popUpTo(SetupAlbumDestination){
                     inclusive = true
                 }
             }
         },
         checkForNameConflict = { name ->
-            albumCreationViewModel.albumName = name
+            setupViewModel.albumName = name
             !albums.none { album ->
                 album.directoryName == name
             }
@@ -85,7 +75,7 @@ fun AlbumSetupRoute(
 }
 
 @Composable
-fun AlbumSetupScreen(onNextButtonClicked: () -> Unit, checkForNameConflict: (String) -> Boolean, onLeaveAlertClicked: () -> Unit) {
+fun SetupAlbumScreen(onNextButtonClicked: () -> Unit, checkForNameConflict: (String) -> Boolean, onLeaveAlertClicked: () -> Unit) {
     Scaffold {
         Column(
             modifier = Modifier
@@ -173,6 +163,6 @@ fun NameTextField(checkForNameConflict: (String) -> Boolean) {
 @Composable
 fun PreviewSetup() {
     LapseLabComposeTheme {
-        AlbumSetupScreen({}, {name -> false}, {})
+        SetupAlbumScreen({}, { name -> false}, {})
     }
 }

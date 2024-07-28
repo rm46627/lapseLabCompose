@@ -1,14 +1,10 @@
 package com.example.lapselabcompose.ui.setup
 
-import android.util.Log
-import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -21,7 +17,6 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -30,27 +25,27 @@ import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.NavHostController
-import coil.compose.rememberAsyncImagePainter
 import com.example.lapselab.files.MediaManagerFactory
 import com.example.lapselabcompose.PermissionViewModel
 import com.example.lapselabcompose.ui.theme.LapseLabComposeTheme
 import com.example.lapselabcompose.R
-import com.example.lapselabcompose.TAG
-import com.example.lapselabcompose.ui.CreatingAlbumGraph
+import com.example.lapselabcompose.ui.SetupGraph
 import com.example.lapselabcompose.ui.common.BackHandlingDialog
 import com.example.lapselabcompose.ui.camera.CameraDestination
 import com.example.lapselabcompose.ui.gallery.GalleryDestination
 import kotlinx.coroutines.launch
 import androidx.navigation.NavBackStackEntry
+import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
+import com.bumptech.glide.integration.compose.GlideImage
 import kotlinx.serialization.Serializable
 
 // TODO: view GrantPermissionDialog first before giving user access to this screen
 
 @Serializable
-data class FirstPhotoDestination(val albumName: String? = null)
+data class SetupPhotoDestination(val albumName: String? = null)
 
 @Composable
-fun FirstPhotoRoute(
+fun SetupPhotoRoute(
     backStackEntry: NavBackStackEntry,
     navController: NavHostController,
     permissionsResultLaunch: () -> Unit,
@@ -58,13 +53,13 @@ fun FirstPhotoRoute(
     albumName: String?
 ) {
     val parentEntry = remember(backStackEntry) {
-        navController.getBackStackEntry(CreatingAlbumGraph)
+        navController.getBackStackEntry(SetupGraph)
     }
-    val albumCreationViewModel: AlbumCreationViewModel = hiltViewModel(parentEntry)
+    val setupViewModel: SetupViewModel = hiltViewModel(parentEntry)
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
-    albumCreationViewModel.albumName?.let {
-        AddFirstPhoto(
+    setupViewModel.albumName?.let {
+        SetupPhotoScreen(
             permissionsResultLaunch,
             permissionViewModel,
             onFirstImagePreviewClicked = { albumName ->
@@ -79,20 +74,22 @@ fun FirstPhotoRoute(
                 coroutineScope.launch {
                     MediaManagerFactory(context).removeLeftoverPhotosFromNewAlbum(it, imagePath)
                 }
-                albumCreationViewModel.createNewAlbum(imagePath)
+                setupViewModel.createNewAlbum(imagePath)
             },
             onLeaveAlertClicked = {
                 navController.popBackStack()
             },
-            albumName = it
-        )
+            albumName = it,
+
+            )
     } ?: albumName.let {
-        albumCreationViewModel.albumName = it
+        setupViewModel.albumName = it
     }
 }
 
+@OptIn(ExperimentalGlideComposeApi::class)
 @Composable
-fun AddFirstPhoto(
+fun SetupPhotoScreen(
     permissionsResultLaunch: () -> Unit,
     permissionViewModel: PermissionViewModel,
     onFirstImagePreviewClicked: (String) -> Unit,
@@ -102,53 +99,33 @@ fun AddFirstPhoto(
 ) {
 
     val granted by permissionViewModel.allPermissionsGranted.collectAsStateWithLifecycle()
-    var imagePath by remember { mutableStateOf<String?>(null) }
+    val context = LocalContext.current
+    val lifecycleOwner = LocalLifecycleOwner.current
+    var photoPath by remember { mutableStateOf<String?>(null) }
+
+    LaunchedEffect(lifecycleOwner.lifecycle) {
+        lifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+            photoPath = MediaManagerFactory(context).getLatestPhotoFile(albumName)?.absolutePath
+        }
+    }
 
     Scaffold {
-        Column(Modifier.padding(it)) {
+        Column(Modifier.padding(it), verticalArrangement = Arrangement.Center) {
             Text(text = "Add your first photo!")
-            IconButton(
-                onClick = {
-                    if (granted) {
-                        onFirstImagePreviewClicked(albumName)
-                    } else {
-                        permissionsResultLaunch()
-                    }
-                },
+            GlideImage(
+                model = if (photoPath == null) R.drawable.ic_add_photo else photoPath,
+                contentDescription = "Image from path",
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .height(300.dp)
-            ) {
-                val context = LocalContext.current
-                val lifecycleOwner = LocalLifecycleOwner.current
-                LaunchedEffect(lifecycleOwner.lifecycle) {
-                    lifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
-                        imagePath =
-                            MediaManagerFactory(context).getLatestPhotoFile(albumName)?.absolutePath
+                    .size(300.dp)
+                    .clickable {
+                        if (granted) {
+                            onFirstImagePreviewClicked(albumName)
+                        } else {
+                            permissionsResultLaunch()
+                        }
                     }
-                    Log.d(TAG, "path: $imagePath")
-                }
-                LaunchedEffect(imagePath) {
-                    if (imagePath != null) {
-                        // ładowanie obrazu
-                    }
-                }
-                if (imagePath == null) {
-                    Image(
-                        painter = painterResource(id = R.drawable.ic_add_photo),
-                        modifier = Modifier.size(300.dp),
-                        contentDescription = "First image preview"
-                    )
-                } else {
-                    val painter = rememberAsyncImagePainter(imagePath)
-                    Image(
-                        painter = painter,
-                        contentDescription = "Image from path",
-                        modifier = Modifier.fillMaxSize()
-                    )
-                }
-            }
-            imagePath?.let {
+            )
+            photoPath?.let {
                 OutlinedButton(onClick = {
                     onCreateAlbumClicked(it)
                 }) {
@@ -158,27 +135,23 @@ fun AddFirstPhoto(
         }
     }
 
-
-    val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
-    BackHandlingDialog(
-        title = "Leave album creation?",
+    BackHandlingDialog(title = "Leave album creation?",
         text = "If you exit now, you will lose your creation progress. Are you sure you want to do this?",
         onLeaveClicked = {
             coroutineScope.launch {
-                imagePath?.let {
+                photoPath?.let {
                     MediaManagerFactory(context).deleteAlbum(albumName)
                 }
             }
             onLeaveAlertClicked()
-        }
-    )
+        })
 }
 
 @Preview
 @Composable
 fun PreviewFirstPhoto() {
     LapseLabComposeTheme {
-        AddFirstPhoto({}, PermissionViewModel(), {}, {}, {}, "")
+        SetupPhotoScreen({}, PermissionViewModel(), {}, {}, {}, "")
     }
 }

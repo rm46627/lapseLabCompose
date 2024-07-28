@@ -2,7 +2,6 @@ package com.example.lapselabcompose.ui.gallery
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -12,11 +11,9 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.layout.wrapContentSize
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.itemsIndexed
-import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material3.Card
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -38,8 +35,8 @@ import com.bumptech.glide.integration.compose.GlideImage
 import com.example.database.Album
 import com.example.database.Repository
 import com.example.lapselabcompose.R
-import com.example.lapselabcompose.ui.AlbumDetailsDestination
-import com.example.lapselabcompose.ui.setup.AlbumSetupDestination
+import com.example.lapselabcompose.ui.details.DetailsDestination
+import com.example.lapselabcompose.ui.setup.SetupAlbumDestination
 import com.example.lapselabcompose.ui.theme.LapseLabComposeTheme
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.serialization.Serializable
@@ -56,10 +53,10 @@ fun GalleryRoute(navController: NavHostController) {
     GalleryScreen(
         albums,
         onAlbumClick = { name ->
-            navController.navigate(AlbumDetailsDestination(name))
+            navController.navigate(DetailsDestination(name))
         },
         onCreateClick = {
-            navController.navigate(AlbumSetupDestination)
+            navController.navigate(SetupAlbumDestination)
         }
     )
 }

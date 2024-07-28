@@ -12,22 +12,24 @@ import com.example.lapselabcompose.ui.camera.CameraDestination
 import com.example.lapselabcompose.ui.camera.CameraRoute
 import com.example.lapselabcompose.ui.camera.PhotoDestination
 import com.example.lapselabcompose.ui.camera.PhotoRoute
+import com.example.lapselabcompose.ui.details.DetailsDestination
+import com.example.lapselabcompose.ui.details.DetailsRoute
 import com.example.lapselabcompose.ui.gallery.GalleryDestination
 import com.example.lapselabcompose.ui.gallery.GalleryRoute
-import com.example.lapselabcompose.ui.setup.AlbumSetupDestination
-import com.example.lapselabcompose.ui.setup.AlbumSetupRoute
-import com.example.lapselabcompose.ui.setup.FirstPhotoDestination
-import com.example.lapselabcompose.ui.setup.FirstPhotoRoute
+import com.example.lapselabcompose.ui.setup.SetupAlbumDestination
+import com.example.lapselabcompose.ui.setup.SetupAlbumRoute
+import com.example.lapselabcompose.ui.setup.SetupPhotoDestination
+import com.example.lapselabcompose.ui.setup.SetupPhotoRoute
 import kotlinx.serialization.Serializable
 
 @Serializable
-object TakingPhotoGraph
+object CameraGraph
 
 @Serializable
-object CreatingAlbumGraph
+object SetupGraph
 
 @Serializable
-object AlbumDetailsGraph
+object DetailsGraph
 
 class LapselabNavController(
     private val navController: NavHostController,
@@ -47,24 +49,24 @@ class LapselabNavController(
             composable<GalleryDestination>{
                 GalleryRoute(navController)
             }
-            creatingAlbumGraph(navController, permissionsResultLaunch, permissionViewModel)
-            takingPhotoGraph(navController)
-            albumDetailsGraph(navController)
+            setupGraph(navController, permissionsResultLaunch, permissionViewModel)
+            cameraGraph(navController)
+            detailsGraph(navController)
         }
     }
 
-    private fun NavGraphBuilder.creatingAlbumGraph(
+    private fun NavGraphBuilder.setupGraph(
         navController: NavHostController,
         permissionsResultLaunch: () -> Unit,
         permissionViewModel: PermissionViewModel
     ) {
-        navigation<CreatingAlbumGraph>(startDestination = AlbumSetupDestination) {
-            composable<AlbumSetupDestination> { backStackEntry ->
-                AlbumSetupRoute(backStackEntry, navController)
+        navigation<SetupGraph>(startDestination = SetupAlbumDestination) {
+            composable<SetupAlbumDestination> { backStackEntry ->
+                SetupAlbumRoute(backStackEntry, navController)
             }
-            composable<FirstPhotoDestination> { backStackEntry ->
-                val args = backStackEntry.toRoute<FirstPhotoDestination>()
-                FirstPhotoRoute(
+            composable<SetupPhotoDestination> { backStackEntry ->
+                val args = backStackEntry.toRoute<SetupPhotoDestination>()
+                SetupPhotoRoute(
                     backStackEntry,
                     navController,
                     permissionsResultLaunch,
@@ -75,8 +77,8 @@ class LapselabNavController(
         }
     }
 
-    private fun NavGraphBuilder.takingPhotoGraph(navController: NavHostController) {
-        navigation<TakingPhotoGraph>(startDestination = CameraDestination()) {
+    private fun NavGraphBuilder.cameraGraph(navController: NavHostController) {
+        navigation<CameraGraph>(startDestination = CameraDestination()) {
             composable<CameraDestination> { backStackEntry ->
                 val args = backStackEntry.toRoute<CameraDestination>()
                 CameraRoute(backStackEntry, navController, args.albumName, args.navigatedFromAlbumDetails)
@@ -88,11 +90,11 @@ class LapselabNavController(
         }
     }
 
-    private fun NavGraphBuilder.albumDetailsGraph(navController: NavHostController) {
-        navigation<AlbumDetailsGraph>(startDestination = AlbumDetailsDestination()) {
-            composable<AlbumDetailsDestination> { backStackEntry ->
-                val args = backStackEntry.toRoute<AlbumDetailsDestination>()
-                AlbumDetailsRoute(backStackEntry, navController, args.albumName)
+    private fun NavGraphBuilder.detailsGraph(navController: NavHostController) {
+        navigation<DetailsGraph>(startDestination = DetailsDestination()) {
+            composable<DetailsDestination> { backStackEntry ->
+                val args = backStackEntry.toRoute<DetailsDestination>()
+                DetailsRoute(backStackEntry, navController, args.albumName)
             }
         }
     }

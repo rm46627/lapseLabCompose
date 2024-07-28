@@ -8,6 +8,8 @@ import com.example.files.MediaManagerInterface
 import com.example.files.MediaStoreMediaManager
 import java.io.File
 
+const val FILES_NAME_DATE_FORMAT = "yyyy-MM-dd-HH-mm-ss-SSS"
+
 class MediaManagerFactory(context: Context) : MediaManagerInterface {
 
     private var manager: MediaManagerInterface =
@@ -19,10 +21,13 @@ class MediaManagerFactory(context: Context) : MediaManagerInterface {
 
     override suspend fun saveBitmap(
         bitmap: Bitmap,
-        subfolder: String,
-        filename: String
-    ): Pair<Uri?, String> {
-        return manager.saveBitmap(bitmap, subfolder, filename)
+        subfolder: String
+    ): Uri? {
+        return manager.saveBitmap(bitmap, subfolder)
+    }
+
+    override suspend fun saveVideo(filename: String, subfolder: String): Uri? {
+        return manager.saveVideo(filename, subfolder)
     }
 
     override suspend fun getLatestPhotoFile(albumName: String): File? =

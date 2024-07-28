@@ -67,6 +67,7 @@ dependencies {
     implementation(libs.androidx.ui.text.google.fonts)
     implementation(project(":data"))
     implementation(project(":files"))
+    implementation(project(":video"))
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)

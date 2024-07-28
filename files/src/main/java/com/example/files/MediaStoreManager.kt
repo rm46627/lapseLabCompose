@@ -7,20 +7,22 @@ import android.graphics.Bitmap
 import android.media.MediaScannerConnection
 import android.net.Uri
 import android.os.Build
-import android.os.Environment
 import android.provider.MediaStore
 import android.util.Log
 import androidx.annotation.RequiresApi
+import com.example.lapselab.files.FILES_NAME_DATE_FORMAT
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.File
 import java.io.IOException
+import java.text.SimpleDateFormat
+import java.util.Locale
 
 const val TAG = "mytagforloging:Files"
-const val appDir = "Pictures/LapseLab"
+const val appPicturesDir = "Pictures/LapseLab"
+const val appMoviesDir = "Movies/LapseLab"
 const val PHOTO_TYPE = "image/png"
-
-fun getLapsesDir(albumName: String) = "Pictures/LapseLab/$albumName/lapses"
+const val VIDEO_TYPE = "video/mp4"
 
 @RequiresApi(Build.VERSION_CODES.Q)
 class MediaStoreMediaManager(private val context: Context) : MediaManagerInterface {
@@ -28,20 +30,25 @@ class MediaStoreMediaManager(private val context: Context) : MediaManagerInterfa
     private val mediaStoreCollection: Uri? =
         MediaStore.Images.Media.getContentUri(MediaStore.VOLUME_EXTERNAL)
 
-    private fun createContentValues(name: String, subfolder: String): ContentValues =
+    private fun createContentValues(name: String, subfolder: String, filetype: String): ContentValues =
         ContentValues().apply {
             put(MediaStore.MediaColumns.DISPLAY_NAME, name)
-            put(MediaStore.MediaColumns.MIME_TYPE, PHOTO_TYPE)
-            put(MediaStore.Images.Media.RELATIVE_PATH, subfolder)
+            put(MediaStore.MediaColumns.MIME_TYPE, filetype)
+            Log.d(TAG, subfolder)
+            when(filetype) {
+                PHOTO_TYPE -> put(MediaStore.Images.Media.RELATIVE_PATH, subfolder)
+                VIDEO_TYPE -> put(MediaStore.Video.Media.RELATIVE_PATH, subfolder)
+            }
         }
 
     override suspend fun saveBitmap(
         bitmap: Bitmap,
-        subfolder: String,
-        filename: String
-    ): Pair<Uri?, String> =
+        subfolder: String
+    ): Uri? =
         withContext(Dispatchers.IO) {
-            val contentValues = createContentValues(filename, subfolder)
+            val filename =
+                SimpleDateFormat(FILES_NAME_DATE_FORMAT, Locale.US).format(System.currentTimeMillis())
+            val contentValues = createContentValues(filename, subfolder, PHOTO_TYPE)
             var uri: Uri? = null
             try {
                 uri = context.contentResolver.insert(
@@ -59,8 +66,24 @@ class MediaStoreMediaManager(private val context: Context) : MediaManagerInterfa
                     context.contentResolver.delete(uri, null, null)
                 }
             }
+            uri
+        }
 
-            Pair(uri, filename)
+    override suspend fun saveVideo(
+        filename: String,
+        subfolder: String
+    ): Uri =
+        withContext(Dispatchers.IO) {
+            val contentValues = createContentValues(filename, subfolder, VIDEO_TYPE)
+            var uri: Uri? = null
+            try {
+                uri = context.contentResolver.insert(
+                    MediaStore.Video.Media.EXTERNAL_CONTENT_URI, contentValues
+                ) ?: throw IOException("Failed to create new MediaStore record")
+            } catch (e: IOException) {
+                throw e
+            }
+            uri
         }
 
     private suspend fun getMediaStoreImageCursor(
@@ -72,9 +95,9 @@ class MediaStoreMediaManager(private val context: Context) : MediaManagerInterfa
             val sortOrder = "DATE_ADDED DESC"
             val selection = "${MediaStore.Images.ImageColumns.RELATIVE_PATH} LIKE ?"
             val arg = if (albumName != null) {
-                "%$appDir/$albumName/%"
+                "%$appPicturesDir/$albumName/%"
             } else {
-                "%$appDir/%"
+                "%$appPicturesDir/%"
             }
             val selectionArgs = arrayOf(arg)
             cursor = context.contentResolver.query(

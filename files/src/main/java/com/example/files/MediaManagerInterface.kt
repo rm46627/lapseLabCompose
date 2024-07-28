@@ -8,8 +8,12 @@ import java.io.File
 interface MediaManagerInterface {
 
     suspend fun saveBitmap(
-        bitmap: Bitmap, subfolder: String, filename: String
-    ): Pair<Uri?, String>
+        bitmap: Bitmap, subfolder: String
+    ): Uri?
+
+    suspend fun saveVideo(
+        filename: String, subfolder: String
+    ): Uri?
 
     suspend fun getLatestPhotoFile(albumName: String): File?
 
