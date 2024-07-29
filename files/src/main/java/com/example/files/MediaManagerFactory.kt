@@ -33,6 +33,12 @@ class MediaManagerFactory(context: Context) : MediaManagerInterface {
     override suspend fun getLatestPhotoFile(albumName: String): File? =
         manager.getLatestPhotoFile(albumName)
 
+    override suspend fun getLatestVideoFile(albumName: String): File? =
+        manager.getLatestVideoFile(albumName)
+
+    override suspend fun getLatestVideoUri(albumName: String): Uri? =
+        manager.getLatestVideoUri(albumName)
+
     override suspend fun getPhotoFiles(albumName: String): List<File> =
         manager.getPhotoFiles(albumName)
 

@@ -16,6 +16,8 @@ import com.example.lapselabcompose.ui.details.DetailsDestination
 import com.example.lapselabcompose.ui.details.DetailsRoute
 import com.example.lapselabcompose.ui.gallery.GalleryDestination
 import com.example.lapselabcompose.ui.gallery.GalleryRoute
+import com.example.lapselabcompose.ui.lab.LabDestination
+import com.example.lapselabcompose.ui.lab.LabRoute
 import com.example.lapselabcompose.ui.setup.SetupAlbumDestination
 import com.example.lapselabcompose.ui.setup.SetupAlbumRoute
 import com.example.lapselabcompose.ui.setup.SetupPhotoDestination
@@ -95,6 +97,10 @@ class LapselabNavController(
             composable<DetailsDestination> { backStackEntry ->
                 val args = backStackEntry.toRoute<DetailsDestination>()
                 DetailsRoute(backStackEntry, navController, args.albumName)
+            }
+            composable<LabDestination> { backStackEntry ->
+                val args = backStackEntry.toRoute<LabDestination>()
+                LabRoute(args.albumName ?: throw IllegalArgumentException())
             }
         }
     }

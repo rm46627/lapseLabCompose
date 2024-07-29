@@ -16,6 +16,9 @@ interface MediaManagerInterface {
     ): Uri?
 
     suspend fun getLatestPhotoFile(albumName: String): File?
+    suspend fun getLatestVideoFile(albumName: String): File?
+
+    suspend fun getLatestVideoUri(albumName: String): Uri?
 
     suspend fun getPhotoFiles(albumName: String): List<File>
 

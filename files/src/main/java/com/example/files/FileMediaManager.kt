@@ -70,6 +70,14 @@ class FileMediaManager(private val context: Context) : MediaManagerInterface {
         return photoFiles.maxByOrNull { it.lastModified() }
     }
 
+    override suspend fun getLatestVideoFile(albumName: String): File? {
+        TODO("Not yet implemented")
+    }
+
+    override suspend fun getLatestVideoUri(albumName: String): Uri? {
+        TODO("Not yet implemented")
+    }
+
     override suspend fun getPhotoFiles(albumName: String): List<File> {
         return getAlbumFolderFile(albumName).listFiles()?.reversed() ?: mutableListOf()
     }
