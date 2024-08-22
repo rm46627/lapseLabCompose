@@ -100,7 +100,7 @@ class LapselabNavController(
             }
             composable<LabDestination> { backStackEntry ->
                 val args = backStackEntry.toRoute<LabDestination>()
-                LabRoute(args.albumName ?: throw IllegalArgumentException())
+                LabRoute(backStackEntry, navController, args.albumName)
             }
         }
     }

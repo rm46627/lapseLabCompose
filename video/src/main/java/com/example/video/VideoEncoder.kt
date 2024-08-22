@@ -1,8 +1,11 @@
 package com.example.video
 
+import android.R.attr.height
+import android.R.attr.width
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Canvas
+import android.graphics.Matrix
 import android.graphics.Rect
 import android.media.MediaCodec
 import android.media.MediaCodecInfo
@@ -10,9 +13,11 @@ import android.media.MediaCodecList
 import android.media.MediaCodecList.ALL_CODECS
 import android.media.MediaFormat
 import android.os.Build
+import android.util.Log
 import android.view.Surface
 import java.io.File
 import java.nio.ByteBuffer
+
 
 const val TIMEOUT_USEC = 10000
 
@@ -24,9 +29,11 @@ class VideoEncoder(
 
     private val mediaFormat: MediaFormat = run {
         val format = MediaFormat.createVideoFormat(encoderConfig.mimeType, width, height)
-
-        format.setInteger(MediaFormat.KEY_COLOR_FORMAT,
-            MediaCodecInfo.CodecCapabilities.COLOR_FormatSurface)
+        Log.d(TAG, "MEDIA FORMAT width $width height $height mime ${encoderConfig.mimeType}")
+        format.setInteger(
+            MediaFormat.KEY_COLOR_FORMAT,
+            MediaCodecInfo.CodecCapabilities.COLOR_FormatSurface
+        )
         format.setInteger(MediaFormat.KEY_BIT_RATE, encoderConfig.bitrate)
         format.setFloat(MediaFormat.KEY_FRAME_RATE, encoderConfig.framesPerSecond)
         format.setInteger(MediaFormat.KEY_I_FRAME_INTERVAL, encoderConfig.iFrameInterval)
@@ -69,8 +76,24 @@ class VideoEncoder(
         }
     }
 
-    private fun drawBitmapAndPostCanvas(bitmap: Bitmap, canvas: Canvas?) {
-        canvas?.drawBitmap(bitmap, 0f, 0f, null)
+    private fun drawBitmapAndPostCanvas(bitmapOrg: Bitmap, canvas: Canvas?) {
+        // TODO : Dont rotate if images are horizontal
+        // need to rotate image from portrait to horizontal
+        val matrix = Matrix()
+        matrix.postRotate(-90f)
+        val scaledBitmap = Bitmap.createScaledBitmap(bitmapOrg, bitmapOrg.width, bitmapOrg.height, true)
+        val rotatedBitmap = Bitmap.createBitmap(
+            scaledBitmap,
+            0,
+            0,
+            scaledBitmap.width,
+            scaledBitmap.height,
+            matrix,
+            true
+        )
+        scaledBitmap.recycle()
+        canvas?.drawBitmap(rotatedBitmap, 0f, 0f, null)
+        rotatedBitmap.recycle()
         postCanvasFrame(canvas)
     }
 
@@ -86,7 +109,8 @@ class VideoEncoder(
         }
         var encoderOutputBuffers: Array<ByteBuffer?>? = mediaCodec.getOutputBuffers()
         while (true) {
-            val encoderStatus: Int = mediaCodec.dequeueOutputBuffer(bufferInfo, TIMEOUT_USEC.toLong())
+            val encoderStatus: Int =
+                mediaCodec.dequeueOutputBuffer(bufferInfo, TIMEOUT_USEC.toLong())
             if (encoderStatus == MediaCodec.INFO_TRY_AGAIN_LATER) {
                 if (!endOfStream) {
                     break
@@ -120,6 +144,7 @@ class VideoEncoder(
             }
         }
     }
+
     fun release() {
         drainCodec(true)
         mediaCodec.stop()

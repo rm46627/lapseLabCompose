@@ -25,7 +25,10 @@ class LapseCreator(private val context: Context, private val album: Album) {
         folder.mkdirs()
         val videoFile = File(folder, "$name.mp4")
 
-        var (height, width) = getImageDimensions(photos[0])
+        // TODO : Dont rotate if images are horizontal
+        // NEED TO ROTATE IMAGES FOR ENCODING height = width, width = height
+        // from portrait to horizontal
+        var (width, height) = getImageDimensions(photos[0])
 
         val encoderConfig = EncoderConfig(
             videoFile,
@@ -44,7 +47,6 @@ class LapseCreator(private val context: Context, private val album: Album) {
 
         var i = 0
         while (true) {
-            Log.d(TAG, "encode: $width x $height")
             when (val result = mediaProcessor.encodeMp4(photos, width, height, listOf())) {
                 is EncodingError -> {
                     Log.d(TAG, result.message)
@@ -53,7 +55,7 @@ class LapseCreator(private val context: Context, private val album: Album) {
                 is EncodingFormatError -> {
                     width -= 1
                     height -= 5
-                    if(i++ > 200) {
+                    if(i++ > 5) {
                         break
                     }
                 }
@@ -69,10 +71,9 @@ class LapseCreator(private val context: Context, private val album: Album) {
         return encoderConfig.file.name
 
     }
+}
 
-
-    private fun getImageDimensions(imageFile: File): Pair<Int, Int> {
-        val bitmap = BitmapFactory.decodeFile(imageFile.absolutePath)
-        return Pair(bitmap.height, bitmap.width)
-    }
+fun getImageDimensions(imageFile: File): Pair<Int, Int> {
+    val bitmap = BitmapFactory.decodeFile(imageFile.absolutePath)
+    return Pair(bitmap.height, bitmap.width)
 }

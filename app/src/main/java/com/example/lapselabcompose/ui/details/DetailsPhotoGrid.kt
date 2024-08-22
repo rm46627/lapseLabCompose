@@ -1,26 +1,50 @@
 package com.example.lapselabcompose.ui.details
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
+import coil.compose.AsyncImage
 import coil.compose.rememberAsyncImagePainter
+import coil.request.ImageRequest
+import coil.transform.CircleCropTransformation
+import com.example.lapselabcompose.R
 
 @Composable
 fun GridPhotoItem(photo: String) {
-    Image(
-        painter = rememberAsyncImagePainter(photo),
-        contentDescription = "Photo",
-        contentScale = ContentScale.Crop,
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(200.dp)
-            .padding(8.dp)
-    )
+        AsyncImage(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(200.dp)
+                .padding(8.dp),
+            model = ImageRequest.Builder(LocalContext.current)
+                .data(photo)
+                .crossfade(1000)
+                .transformations(
+//                    CircleCropTransformation()
+//                    RoundedCornersTransformation(),
+//                    CustomTransformation(),
+//                    BlurTransformation(LocalContext.current)
+                )
+//                .crossfade(true)
+                .build(),
+            contentDescription = "Gallery photo",
+            contentScale = ContentScale.Crop,
+//            modifier = Modifier.clip(CircleShape),
+//            placeholder = painterResource(R.drawable.ic_image_placeholder)
+        )
 }
 
 //suspend fun PointerInputScope.detectPinchGestures(

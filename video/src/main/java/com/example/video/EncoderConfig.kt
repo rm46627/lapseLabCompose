@@ -9,7 +9,7 @@ data class EncoderConfig(
         var framesPerImage: Int = 1,
         var framesPerSecond: Float = 10F,
         var bitrate: Int = 1500000,
-        var iFrameInterval: Int = 10
+        var iFrameInterval: Int = 5
 )
 
 interface EncodingProgressListener {

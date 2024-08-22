@@ -40,6 +40,8 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         installSplashScreen()
 
+        this.actionBar?.hide()
+
         // TODO: take off splashscreen after loading all data
 
         val permissionViewModel by viewModels<PermissionViewModel>()

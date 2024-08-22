@@ -25,10 +25,14 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import coil.compose.AsyncImage
 import coil.compose.rememberAsyncImagePainter
+import coil.request.ImageRequest
 import com.example.database.Album
 
 @Composable
@@ -48,15 +52,7 @@ fun DetailsHeader(expanded: Boolean, album: Album, onAddPhotoClicked: () -> Unit
             .alpha(scale),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Image(
-            painter = rememberAsyncImagePainter(album.coverPhotoPath),
-            contentDescription = "Album cover photo",
-            contentScale = ContentScale.Crop,
-            modifier = Modifier
-                .width(200.dp * scale)
-                .height(200.dp * scale)
-                .padding(8.dp)
-        )
+        AlbumCoverPhoto(album.coverPhotoPath, scale)
         Text(
             text = album.directoryName,
             style = MaterialTheme.typography.headlineLarge,
@@ -87,4 +83,21 @@ fun DetailsHeader(expanded: Boolean, album: Album, onAddPhotoClicked: () -> Unit
             }
         }
     }
+}
+
+@Composable
+fun AlbumCoverPhoto(photo: String, scale: Float) {
+    AsyncImage(
+        modifier = Modifier
+            .width(200.dp * scale)
+            .height(200.dp * scale)
+            .padding(8.dp),
+        model = ImageRequest.Builder(LocalContext.current)
+            .data(photo)
+            .crossfade(1000)
+            .transformations()
+            .build(),
+        contentDescription = "Album cover photo",
+        contentScale = ContentScale.Crop,
+    )
 }

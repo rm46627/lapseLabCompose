@@ -1,32 +1,20 @@
 package com.example.lapselabcompose.ui.details
 
-import android.util.Log
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.itemsIndexed
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -35,17 +23,11 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavHostController
 import com.example.database.Album
-import com.example.files.appMoviesDir
 import com.example.lapselab.files.MediaManagerFactory
-import com.example.lapselabcompose.TAG
 import com.example.lapselabcompose.ui.DetailsGraph
 import com.example.lapselabcompose.ui.camera.CameraDestination
 import com.example.lapselabcompose.ui.lab.LabDestination
 import com.example.lapselabcompose.ui.theme.LapseLabComposeTheme
-import com.example.video.LapseCreator
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import kotlinx.serialization.Serializable
 import java.io.File
 
@@ -60,21 +42,23 @@ fun DetailsRoute(
         navController.getBackStackEntry(DetailsGraph)
     }
     val detailsViewModel: DetailsViewModel = hiltViewModel(parentEntry)
-    detailsViewModel.setAlbumName(albumName ?: throw IllegalArgumentException())
 
+    detailsViewModel.setAlbumName(albumName ?: throw IllegalArgumentException())
     val album by detailsViewModel.album.collectAsStateWithLifecycle()
 
     val context = LocalContext.current
-    var mPhotos by remember { mutableStateOf<List<File>?>(null) }
-
     LaunchedEffect(album) {
-        mPhotos = album?.let { MediaManagerFactory(context).getPhotoFiles(albumName) }
+        val photos = album?.let {
+            MediaManagerFactory(context).getPhotoFiles(it.directoryName)
+        }
+        photos?.let { detailsViewModel.setPhotos(it) }
     }
+    val photos by detailsViewModel.photos.collectAsStateWithLifecycle()
 
-    mPhotos?.let { photos ->
+    photos?.let {
         DetailsScreen(
             album ?: throw IllegalArgumentException(),
-            photos,
+            it,
             onAddPhotoClicked = {
                 navController.navigate(CameraDestination(albumName, true))
             },
@@ -93,31 +77,32 @@ fun DetailsScreen(
     onEditVideoClicked: () -> Unit
 ) {
     Scaffold {
-        Column(modifier = Modifier.padding(it)) {
+        Column(modifier = Modifier
+            .padding(it)
+            .fillMaxSize()) {
             val gridState = rememberLazyGridState()
 
             val expandedState by remember {
                 derivedStateOf {
-                    if (!gridState.canScrollBackward)
+                    if(photos.size < 7) true
+                    else if (!gridState.canScrollBackward)
                         true
                     else
                         gridState.lastScrolledBackward && gridState.firstVisibleItemIndex == 0
                 }
             }
 
-            Column(modifier = Modifier.fillMaxSize()) {
-                DetailsHeader(expandedState, album, onAddPhotoClicked, onEditVideoClicked)
+            DetailsHeader(expandedState, album, onAddPhotoClicked, onEditVideoClicked)
 
-                LazyVerticalGrid(
-                    columns = GridCells.Fixed(2), contentPadding = PaddingValues(
-                        start = 12.dp, top = 16.dp, end = 12.dp, bottom = 16.dp
-                    ), state = gridState
-                ) {
-                    itemsIndexed(items = photos, key = { index, _ ->
-                        index
-                    }) { _, photo ->
-                        GridPhotoItem(photo.absolutePath)
-                    }
+            LazyVerticalGrid(
+                columns = GridCells.Fixed(2), contentPadding = PaddingValues(
+                    start = 12.dp, top = 16.dp, end = 12.dp, bottom = 16.dp
+                ), state = gridState
+            ) {
+                itemsIndexed(items = photos, key = { index, _ ->
+                    index
+                }) { _, photo ->
+                    GridPhotoItem(photo.absolutePath)
                 }
             }
         }

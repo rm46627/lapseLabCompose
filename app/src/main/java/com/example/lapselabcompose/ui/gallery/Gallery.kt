@@ -22,6 +22,9 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -30,8 +33,9 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
+import coil.compose.AsyncImage
+import coil.request.ImageRequest
 import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
-import com.bumptech.glide.integration.compose.GlideImage
 import com.example.database.Album
 import com.example.database.Repository
 import com.example.lapselabcompose.R
@@ -102,19 +106,26 @@ fun GalleryItem(album: Album, onGalleryItemClick: (String) -> Unit) {
         shape = ShapeDefaults.Medium,
         onClick = { onGalleryItemClick(album.directoryName) }) {
         Column {
-            GlideImage(
-                modifier = Modifier
-                    .wrapContentHeight()
-                    .fillMaxWidth(),
-                model = album.coverPhotoPath,
-                contentDescription = "Album cover photo"
-            ) {
-                it.error(R.drawable.ic_image_placeholder)
-                    .placeholder(R.drawable.ic_image_placeholder)
-            }
+            ItemCoverPhoto(album.coverPhotoPath)
             Text(text = album.directoryName, textAlign = TextAlign.Center)
         }
     }
+}
+
+@Composable
+fun ItemCoverPhoto(photo: String) {
+    AsyncImage(
+        modifier = Modifier
+            .fillMaxWidth()
+            .wrapContentHeight(),
+        model = ImageRequest.Builder(LocalContext.current)
+            .data(photo)
+            .crossfade(1000)
+            .transformations()
+            .build(),
+        contentDescription = "Album cover photo",
+        contentScale = ContentScale.Crop
+    )
 }
 
 @Composable

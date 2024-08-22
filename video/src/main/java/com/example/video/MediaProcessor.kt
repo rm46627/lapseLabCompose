@@ -31,11 +31,14 @@ class MediaProcessor(private val context: Context, private val file: File) {
     private var encodingProgressListener: EncodingProgressListener? = null
 
     @OptIn(androidx.media3.common.util.UnstableApi::class)
-    fun encodeMp4(imageList: List<File>, width: Int, height: Int, effects: List<Effect> = listOf() ): EncodingResult {
+    fun encodeMp4(
+        imageList: List<File>, width: Int, height: Int, effects: List<Effect> = listOf()
+    ): EncodingResult {
         val videoEncoder: VideoEncoder?
         try {
+            Log.d(TAG, "1 MEDIA FORMAT width $width height $height mime ${encoderConfig.mimeType}")
             videoEncoder = VideoEncoder(encoderConfig, width, height)
-        } catch (e: NullPointerException) {
+        } catch (e: Exception) {
             e.printStackTrace()
             return EncodingFormatError("Probably findEncoderForFormat() error", e)
         }
@@ -49,51 +52,41 @@ class MediaProcessor(private val context: Context, private val file: File) {
 
         for (i in imageList.indices) {
             videoEncoder.createFrame(imageList[i])
-            encodingProgressListener?.onFrameCreated(i+1, imageList.size)
+            encodingProgressListener?.onFrameCreated(i + 1, imageList.size)
         }
 
         videoEncoder.release()
 
         transformVideo(effects)
 
-
         return EncodingSuccess(file)
     }
 
     @OptIn(UnstableApi::class)
     private fun transformVideo(effects: List<Effect>) {
-        val transformerListener: Transformer.Listener =
-            object : Transformer.Listener {
-                override fun onCompleted(composition: Composition, result: ExportResult) {
+        val transformerListener: Transformer.Listener = object : Transformer.Listener {
+            override fun onCompleted(composition: Composition, result: ExportResult) {
 
-                }
-
-                override fun onError(
-                    composition: Composition, result: ExportResult,
-                    exception: ExportException
-                ) {
-
-                }
             }
+
+            override fun onError(
+                composition: Composition, result: ExportResult, exception: ExportException
+            ) {
+
+            }
+        }
         val mediaItem = MediaItem.fromUri(file.absolutePath)
-        val transformer = Transformer.Builder(context)
-            .addListener(transformerListener)
-            .build()
-        val editedMediaItem = EditedMediaItem.Builder(mediaItem)
-            .setEffects(
+        val transformer = Transformer.Builder(context).addListener(transformerListener).build()
+        val editedMediaItem = EditedMediaItem.Builder(mediaItem).setEffects(
                 Effects(
-                    /* audioProcessors= */ listOf(),
+                    /* audioProcessors= */
+                    listOf(),
                     /* videoEffects= */
-//                    listOf(
-//                        ScaleAndRotateTransformation.Builder()
-//                            .setRotationDegrees(-90f)
-//                            .build()
-//                    )
-                    effects
+                    effects + ScaleAndRotateTransformation.Builder().setRotationDegrees(-90f)
+                        .build()
                 )
             ).build()
-        val composition =
-            Composition.Builder(EditedMediaItemSequence(editedMediaItem)).build()
+        val composition = Composition.Builder(EditedMediaItemSequence(editedMediaItem)).build()
         transformer.start(composition, file.absolutePath)
     }
 

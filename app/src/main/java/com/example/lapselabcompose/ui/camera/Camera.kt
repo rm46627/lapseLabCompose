@@ -3,7 +3,10 @@ package com.example.lapselabcompose.ui.camera
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.Matrix
+import android.graphics.Point
+import android.graphics.RectF
 import android.util.Log
+import android.view.WindowManager
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.ImageCapture
 import androidx.camera.core.ImageCaptureException
@@ -43,17 +46,23 @@ import androidx.navigation.NavHostController
 import com.example.files.appPicturesDir
 import com.example.lapselab.files.MediaManagerFactory
 import com.example.lapselabcompose.ui.CameraGraph
+import com.example.video.TAG
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 
+
 @Serializable
 data class CameraDestination(
-    val albumName: String? = null,
-    val navigatedFromAlbumDetails: Boolean = false
+    val albumName: String? = null, val navigatedFromAlbumDetails: Boolean = false
 )
 
 @Composable
-fun CameraRoute(backStackEntry: NavBackStackEntry, navController: NavHostController, albumName: String?,  navigatedFromAlbumDetails: Boolean = false) {
+fun CameraRoute(
+    backStackEntry: NavBackStackEntry,
+    navController: NavHostController,
+    albumName: String?,
+    navigatedFromAlbumDetails: Boolean = false
+) {
     val parentEntry = remember(backStackEntry) {
         navController.getBackStackEntry(CameraGraph)
     }
@@ -64,18 +73,15 @@ fun CameraRoute(backStackEntry: NavBackStackEntry, navController: NavHostControl
     val scope = rememberCoroutineScope()
     val mediaManager = MediaManagerFactory(context)
 
-    CameraScreen(
-        onPhotoTaken = { bitmap ->
-            scope.launch {
-                cameraViewModel.bitmap = bitmap
-                val uri = mediaManager.saveBitmap(
-                    bitmap = bitmap,
-                    subfolder = "$appPicturesDir/${albumName}"
-                )
-            }
-            navController.navigate(PhotoDestination(navigatedFromAlbumDetails))
+    CameraScreen(onPhotoTaken = { bitmap ->
+        scope.launch {
+            cameraViewModel.bitmap = bitmap
+            val uri = mediaManager.saveBitmap(
+                bitmap = bitmap, subfolder = "$appPicturesDir/${albumName}"
+            )
         }
-    )
+        navController.navigate(PhotoDestination(navigatedFromAlbumDetails))
+    })
 }
 
 @Composable
@@ -87,7 +93,7 @@ fun CameraScreen(onPhotoTaken: (Bitmap) -> Unit) {
         }
     }
 
-    Scaffold{ padding ->
+    Scaffold { padding ->
         Box(
             modifier = Modifier
                 .padding(padding)
@@ -99,10 +105,8 @@ fun CameraScreen(onPhotoTaken: (Bitmap) -> Unit) {
                     controller.cameraSelector =
                         if (controller.cameraSelector == CameraSelector.DEFAULT_BACK_CAMERA) {
                             CameraSelector.DEFAULT_FRONT_CAMERA
-                        } else
-                            CameraSelector.DEFAULT_BACK_CAMERA
-                },
-                modifier = Modifier.offset(16.dp, 16.dp)
+                        } else CameraSelector.DEFAULT_BACK_CAMERA
+                }, modifier = Modifier.offset(16.dp, 16.dp)
             ) {
                 Icon(imageVector = Icons.Default.Cameraswitch, contentDescription = "Switch camera")
             }
@@ -127,30 +131,24 @@ fun CameraScreen(onPhotoTaken: (Bitmap) -> Unit) {
 
 @Composable
 private fun CaptureButton(
-    controller: LifecycleCameraController,
-    context: Context,
-    onPhotoTaken: (Bitmap) -> Unit
+    controller: LifecycleCameraController, context: Context, onPhotoTaken: (Bitmap) -> Unit
 ) {
     var captureButtonEnabled by remember {
         mutableStateOf(true)
     }
-    IconButton(enabled = captureButtonEnabled,
-        onClick = {
-            captureButtonEnabled = false
-            takePhoto(controller, context, onPhotoTaken)
-            captureButtonEnabled = true
-        }) {
+    IconButton(enabled = captureButtonEnabled, onClick = {
+        captureButtonEnabled = false
+        takePhoto(controller, context, onPhotoTaken)
+        captureButtonEnabled = true
+    }) {
         Icon(imageVector = Icons.Default.PhotoCamera, contentDescription = "Take photo")
     }
 }
 
 fun takePhoto(
-    cameraController: LifecycleCameraController,
-    context: Context,
-    onPhotoTaken: (Bitmap) -> Unit
+    cameraController: LifecycleCameraController, context: Context, onPhotoTaken: (Bitmap) -> Unit
 ) {
-    cameraController.takePicture(
-        ContextCompat.getMainExecutor(context),
+    cameraController.takePicture(ContextCompat.getMainExecutor(context),
         object : ImageCapture.OnImageCapturedCallback() {
             override fun onCaptureSuccess(image: ImageProxy) {
                 super.onCaptureSuccess(image)
@@ -158,23 +156,55 @@ fun takePhoto(
                 val matrix = Matrix().apply {
                     postRotate(image.imageInfo.rotationDegrees.toFloat())
                 }
-                val rotatedBitmap = Bitmap.createBitmap(
-                    image.toBitmap(),
-                    0,
-                    0,
-                    image.width,
-                    image.height,
+
+                val bitmap = image.toBitmap()
+
+                Log.d(TAG, "Original height: ${bitmap.height} width: ${bitmap.width}")
+
+                val targetRatio = 4000f / 2024f
+
+// Calculate the target dimensions, ensuring the aspect ratio is maintained and no scaling/stretching occurs
+                val (targetWidth, targetHeight) = if (bitmap.width.toFloat() / bitmap.height.toFloat() > targetRatio) {
+                    // Width is too large, so adjust the width to match the target aspect ratio
+                    val adjustedWidth = (bitmap.height * targetRatio).toInt()
+                    adjustedWidth to bitmap.height
+                } else {
+                    // Height is too large, so adjust the height to match the target aspect ratio
+                    val adjustedHeight = (bitmap.width / targetRatio).toInt()
+                    bitmap.width to adjustedHeight
+                }
+
+// Ensure target dimensions are even numbers
+                val finalWidth = targetWidth - targetWidth % 2
+                val finalHeight = targetHeight - targetHeight % 2
+
+// Calculate the x and y coordinates to center the crop
+                val x = (bitmap.width - finalWidth) / 2
+                val y = (bitmap.height - finalHeight) / 2
+
+// Log the calculated crop parameters
+                Log.d(TAG, "Crop coordinates: x = $x, y = $y, width = $finalWidth, height = $finalHeight")
+
+// Create the cropped bitmap centered on the original image
+                val croppedBitmap = Bitmap.createBitmap(
+                    bitmap,
+                    x,             // X coordinate to start the crop
+                    y,             // Y coordinate to start the crop
+                    finalWidth,    // Width of the cropped image
+                    finalHeight,   // Height of the cropped image
                     matrix,
                     true
                 )
 
-                onPhotoTaken(rotatedBitmap)
+                Log.d(TAG, "Final dimensions width = $finalWidth, height = $finalHeight")
+
+                onPhotoTaken(croppedBitmap)
+
             }
 
             override fun onError(exception: ImageCaptureException) {
                 super.onError(exception)
                 Log.e("Camera", "Couldn't take photo: ", exception)
             }
-        }
-    )
+        })
 }

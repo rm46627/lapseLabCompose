@@ -19,6 +19,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
@@ -29,6 +30,8 @@ import com.example.lapselabcompose.ui.details.DetailsDestination
 import com.example.lapselabcompose.ui.CameraGraph
 import com.example.lapselabcompose.ui.setup.SetupPhotoDestination
 import kotlinx.serialization.Serializable
+
+// TODO: Add some loading screen after taking new photo and accepting it
 
 @Serializable
 data class PhotoDestination(val navigatedFromAlbumDetails: Boolean = false)
@@ -48,6 +51,7 @@ fun PhotoRoute(
         PhotoScreen(
             bitmap = it,
             onDiscardClicked = {
+
                 navController.navigateUp()
             },
             onAcceptClicked = {

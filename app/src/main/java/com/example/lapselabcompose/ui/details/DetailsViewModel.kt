@@ -14,12 +14,16 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import java.io.File
 import javax.inject.Inject
 
 @HiltViewModel
 class DetailsViewModel @Inject constructor(private val repository: Repository) : ViewModel() {
     private val _albumName = MutableStateFlow<String?>(null)
     val albumName: StateFlow<String?> = _albumName.asStateFlow()
+
+    private val _photos = MutableStateFlow<List<File>?>(null)
+    val photos: StateFlow<List<File>?> = _photos.asStateFlow()
 
     @OptIn(ExperimentalCoroutinesApi::class)
     private val _album = _albumName.flatMapLatest { albumId ->
@@ -33,6 +37,10 @@ class DetailsViewModel @Inject constructor(private val repository: Repository) :
 
     fun setAlbumName(name: String) {
         _albumName.value = name
+    }
+
+    fun setPhotos(files: List<File>) {
+        _photos.value = files
     }
 
     fun updateAlbum(album: Album) {
