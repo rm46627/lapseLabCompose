@@ -1,6 +1,5 @@
 package com.example.lapselabcompose.ui.camera
 
-import android.content.Context
 import android.graphics.Bitmap
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
@@ -19,7 +18,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
@@ -34,10 +32,10 @@ import kotlinx.serialization.Serializable
 // TODO: Add some loading screen after taking new photo and accepting it
 
 @Serializable
-data class PhotoDestination(val navigatedFromAlbumDetails: Boolean = false)
+data class PhotoPreviewDestination(val navigatedFromAlbumDetails: Boolean = false)
 
 @Composable
-fun PhotoRoute(
+fun PhotoPreviewRoute(
     backStackEntry: NavBackStackEntry,
     navController: NavHostController,
     navigatedFromAlbumDetails: Boolean = false
@@ -48,20 +46,20 @@ fun PhotoRoute(
     val viewModel: CameraViewModel = hiltViewModel(parentEntry)
 
     viewModel.bitmap?.let {
-        PhotoScreen(
+        PhotoPreviewScreen(
             bitmap = it,
             onDiscardClicked = {
 
                 navController.navigateUp()
             },
             onAcceptClicked = {
-                val originalDestination: Any = if (navigatedFromAlbumDetails)
+                val navFromDest: Any = if (navigatedFromAlbumDetails)
                     DetailsDestination(viewModel.albumName)
                 else
                     SetupPhotoDestination(viewModel.albumName)
 
-                navController.navigate(originalDestination) {
-                    popUpTo(originalDestination) {
+                navController.navigate(navFromDest) {
+                    popUpTo(CameraGraph) {
                         inclusive = true
                     }
                 }
@@ -71,10 +69,10 @@ fun PhotoRoute(
 }
 
 @Composable
-fun PhotoScreen(
+fun PhotoPreviewScreen(
     bitmap: Bitmap,
     onDiscardClicked: () -> Unit,
-    onAcceptClicked: (context: Context) -> Unit,
+    onAcceptClicked: () -> Unit,
 ) {
     Scaffold { padding ->
         Box(
@@ -102,7 +100,7 @@ fun PhotoScreen(
                     )
                 }
                 val context = LocalContext.current
-                IconButton(onClick = { onAcceptClicked(context) }) {
+                IconButton(onClick = { onAcceptClicked() }) {
                     Icon(
                         imageVector = Icons.Default.Check,
                         contentDescription = "Accept image button"

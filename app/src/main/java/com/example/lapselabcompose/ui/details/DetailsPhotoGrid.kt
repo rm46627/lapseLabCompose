@@ -1,6 +1,7 @@
 package com.example.lapselabcompose.ui.details
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -23,12 +24,13 @@ import coil.transform.CircleCropTransformation
 import com.example.lapselabcompose.R
 
 @Composable
-fun GridPhotoItem(photo: String) {
+fun GridPhotoItem(photo: String, onPhotoClicked: () -> Unit) {
         AsyncImage(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(200.dp)
-                .padding(8.dp),
+                .padding(8.dp)
+                .clickable { onPhotoClicked() },
             model = ImageRequest.Builder(LocalContext.current)
                 .data(photo)
                 .crossfade(1000)
@@ -42,7 +44,6 @@ fun GridPhotoItem(photo: String) {
                 .build(),
             contentDescription = "Gallery photo",
             contentScale = ContentScale.Crop,
-//            modifier = Modifier.clip(CircleShape),
 //            placeholder = painterResource(R.drawable.ic_image_placeholder)
         )
 }

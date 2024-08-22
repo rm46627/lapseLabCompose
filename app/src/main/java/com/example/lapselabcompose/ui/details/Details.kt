@@ -26,6 +26,7 @@ import com.example.database.Album
 import com.example.lapselab.files.MediaManagerFactory
 import com.example.lapselabcompose.ui.DetailsGraph
 import com.example.lapselabcompose.ui.camera.CameraDestination
+import com.example.lapselabcompose.ui.camera.PhotoPreviewDestination
 import com.example.lapselabcompose.ui.lab.LabDestination
 import com.example.lapselabcompose.ui.theme.LapseLabComposeTheme
 import kotlinx.serialization.Serializable
@@ -60,10 +61,17 @@ fun DetailsRoute(
             album ?: throw IllegalArgumentException(),
             it,
             onAddPhotoClicked = {
-                navController.navigate(CameraDestination(albumName, true))
+                navController.navigate(CameraDestination(albumName, true)){
+                    popUpTo(DetailsGraph){
+                        inclusive = true
+                    }
+                }
             },
             onEditVideoClicked = {
                 navController.navigate(LabDestination(albumName))
+            },
+            onPhotoClicked = {
+//                navController.navigate(PhotoPreviewDestination)
             }
         )
     }
@@ -74,7 +82,8 @@ fun DetailsScreen(
     album: Album,
     photos: List<File>,
     onAddPhotoClicked: () -> Unit,
-    onEditVideoClicked: () -> Unit
+    onEditVideoClicked: () -> Unit,
+    onPhotoClicked: () -> Unit
 ) {
     Scaffold {
         Column(modifier = Modifier
@@ -102,7 +111,9 @@ fun DetailsScreen(
                 itemsIndexed(items = photos, key = { index, _ ->
                     index
                 }) { _, photo ->
-                    GridPhotoItem(photo.absolutePath)
+                    GridPhotoItem(photo.absolutePath) {
+                        onPhotoClicked()
+                    }
                 }
             }
         }
@@ -120,7 +131,7 @@ fun PreviewAlbumDetails() {
                 coverPhotoPath = placeholderUrls[0].absolutePath
             ),
             photos = placeholderUrls,
-            {}, {}
+            {}, {}, {}
         )
     }
 }

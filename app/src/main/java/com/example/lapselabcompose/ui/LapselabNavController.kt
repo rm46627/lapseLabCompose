@@ -1,5 +1,7 @@
 package com.example.lapselabcompose.ui
 
+import android.annotation.SuppressLint
+import android.util.Log
 import androidx.compose.runtime.Composable
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
@@ -10,8 +12,8 @@ import androidx.navigation.toRoute
 import com.example.lapselabcompose.PermissionViewModel
 import com.example.lapselabcompose.ui.camera.CameraDestination
 import com.example.lapselabcompose.ui.camera.CameraRoute
-import com.example.lapselabcompose.ui.camera.PhotoDestination
-import com.example.lapselabcompose.ui.camera.PhotoRoute
+import com.example.lapselabcompose.ui.camera.PhotoPreviewDestination
+import com.example.lapselabcompose.ui.camera.PhotoPreviewRoute
 import com.example.lapselabcompose.ui.details.DetailsDestination
 import com.example.lapselabcompose.ui.details.DetailsRoute
 import com.example.lapselabcompose.ui.gallery.GalleryDestination
@@ -37,11 +39,22 @@ class LapselabNavController(
     private val navController: NavHostController,
 ) {
 
+    @SuppressLint("RestrictedApi")
     @Composable
     fun SetupNavGraph(
         permissionsResultLaunch: () -> Unit,
         permissionViewModel: PermissionViewModel
     ) {
+
+        navController.addOnDestinationChangedListener() { controller, _, _ ->
+            val routes = controller
+                .currentBackStack.value
+                .map { it.destination.route }
+                .joinToString(",\n\t")
+
+            Log.d("BackStackLog", "BackStack: $routes")
+        }
+
         NavHost(
             navController = navController, startDestination = SplashScreenDestination
         ) {
@@ -85,9 +98,9 @@ class LapselabNavController(
                 val args = backStackEntry.toRoute<CameraDestination>()
                 CameraRoute(backStackEntry, navController, args.albumName, args.navigatedFromAlbumDetails)
             }
-            composable<PhotoDestination> { backStackEntry ->
-                val args = backStackEntry.toRoute<PhotoDestination>()
-                PhotoRoute(backStackEntry, navController, args.navigatedFromAlbumDetails)
+            composable<PhotoPreviewDestination> { backStackEntry ->
+                val args = backStackEntry.toRoute<PhotoPreviewDestination>()
+                PhotoPreviewRoute(backStackEntry, navController, args.navigatedFromAlbumDetails)
             }
         }
     }

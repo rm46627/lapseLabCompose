@@ -67,12 +67,18 @@ fun SetupPhotoRoute(
     val setupViewModel: SetupViewModel = hiltViewModel(parentEntry)
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
+    val mediaManager = MediaManagerFactory(context)
+
     setupViewModel.albumName?.let {
         SetupPhotoScreen(
             permissionsResultLaunch,
             permissionViewModel,
             onFirstImagePreviewClicked = { albumName ->
-                navController.navigate(CameraDestination(albumName))
+                navController.navigate(CameraDestination(albumName)) {
+                    popUpTo(SetupPhotoDestination()) {
+                        inclusive = true
+                    }
+                }
             },
             onCreateAlbumClicked = { imagePath ->
                 navController.navigate(GalleryDestination) {
@@ -81,11 +87,14 @@ fun SetupPhotoRoute(
                     }
                 }
                 coroutineScope.launch {
-                    MediaManagerFactory(context).removeLeftoverPhotosFromNewAlbum(it, imagePath)
+                    mediaManager.removeLeftoverPhotosFromNewAlbum(it, imagePath)
                 }
                 setupViewModel.createNewAlbum(imagePath)
             },
             onLeaveAlertClicked = {
+                coroutineScope.launch {
+                    mediaManager.deleteAlbum(it)
+                }
                 navController.popBackStack()
             },
             albumName = it,
@@ -96,7 +105,6 @@ fun SetupPhotoRoute(
     }
 }
 
-@OptIn(ExperimentalGlideComposeApi::class)
 @Composable
 fun SetupPhotoScreen(
     permissionsResultLaunch: () -> Unit,
@@ -122,7 +130,10 @@ fun SetupPhotoScreen(
         Column(
             Modifier
                 .padding(it)
-                .fillMaxSize(), verticalArrangement = Arrangement.Center, horizontalAlignment = Alignment.CenterHorizontally) {
+                .fillMaxSize(),
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
             Text(text = "Add your first photo!")
             AsyncImage(
                 modifier = Modifier
