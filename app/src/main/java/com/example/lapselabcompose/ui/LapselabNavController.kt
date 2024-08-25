@@ -16,6 +16,8 @@ import com.example.lapselabcompose.ui.camera.PhotoPreviewDestination
 import com.example.lapselabcompose.ui.camera.PhotoPreviewRoute
 import com.example.lapselabcompose.ui.details.DetailsDestination
 import com.example.lapselabcompose.ui.details.DetailsRoute
+import com.example.lapselabcompose.ui.details.PhotoBrowserDestination
+import com.example.lapselabcompose.ui.details.PhotoBrowserRoute
 import com.example.lapselabcompose.ui.gallery.GalleryDestination
 import com.example.lapselabcompose.ui.gallery.GalleryRoute
 import com.example.lapselabcompose.ui.lab.LabDestination
@@ -34,6 +36,9 @@ object SetupGraph
 
 @Serializable
 object DetailsGraph
+
+@Serializable
+object PhotosGraph
 
 class LapselabNavController(
     private val navController: NavHostController,
@@ -67,6 +72,7 @@ class LapselabNavController(
             setupGraph(navController, permissionsResultLaunch, permissionViewModel)
             cameraGraph(navController)
             detailsGraph(navController)
+            photosGraph(navController)
         }
     }
 
@@ -117,4 +123,14 @@ class LapselabNavController(
             }
         }
     }
+
+    private fun NavGraphBuilder.photosGraph(navController: NavHostController) {
+        navigation<PhotosGraph>(startDestination = PhotoBrowserDestination()) {
+            composable<PhotoBrowserDestination> { backStackEntry ->
+                val args = backStackEntry.toRoute<PhotoBrowserDestination>()
+                PhotoBrowserRoute(backStackEntry, navController, args.index)
+            }
+        }
+    }
+
 }

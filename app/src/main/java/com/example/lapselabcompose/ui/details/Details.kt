@@ -61,17 +61,13 @@ fun DetailsRoute(
             album ?: throw IllegalArgumentException(),
             it,
             onAddPhotoClicked = {
-                navController.navigate(CameraDestination(albumName, true)){
-                    popUpTo(DetailsGraph){
-                        inclusive = true
-                    }
-                }
+                navController.navigate(CameraDestination(albumName, true))
             },
             onEditVideoClicked = {
                 navController.navigate(LabDestination(albumName))
             },
-            onPhotoClicked = {
-//                navController.navigate(PhotoPreviewDestination)
+            onPhotoClicked = { index ->
+                navController.navigate(PhotoBrowserDestination(index))
             }
         )
     }
@@ -83,7 +79,7 @@ fun DetailsScreen(
     photos: List<File>,
     onAddPhotoClicked: () -> Unit,
     onEditVideoClicked: () -> Unit,
-    onPhotoClicked: () -> Unit
+    onPhotoClicked: (Int) -> Unit
 ) {
     Scaffold {
         Column(modifier = Modifier
@@ -110,9 +106,9 @@ fun DetailsScreen(
             ) {
                 itemsIndexed(items = photos, key = { index, _ ->
                     index
-                }) { _, photo ->
+                }) { index, photo ->
                     GridPhotoItem(photo.absolutePath) {
-                        onPhotoClicked()
+                        onPhotoClicked(index)
                     }
                 }
             }
