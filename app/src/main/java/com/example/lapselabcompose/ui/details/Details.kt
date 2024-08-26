@@ -57,6 +57,7 @@ fun DetailsRoute(
     val photos by detailsViewModel.photos.collectAsStateWithLifecycle()
 
     photos?.let {
+        detailsViewModel.updateCoverPhoto(it.first().absolutePath)
         DetailsScreen(
             album ?: throw IllegalArgumentException(),
             it,

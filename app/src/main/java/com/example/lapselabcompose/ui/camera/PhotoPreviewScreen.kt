@@ -38,7 +38,8 @@ data class PhotoPreviewDestination(val navigatedFromAlbumDetails: Boolean = fals
 fun PhotoPreviewRoute(
     backStackEntry: NavBackStackEntry,
     navController: NavHostController,
-    navigatedFromAlbumDetails: Boolean = false
+    navigatedFromAlbumDetails: Boolean = false,
+
 ) {
     val parentEntry = remember(backStackEntry) {
         navController.getBackStackEntry(CameraGraph)
@@ -54,6 +55,7 @@ fun PhotoPreviewRoute(
             },
             onAcceptClicked = {
                 val navFromDest: Any = if (navigatedFromAlbumDetails)
+
                     DetailsDestination(viewModel.albumName)
                 else
                     SetupPhotoDestination(viewModel.albumName)

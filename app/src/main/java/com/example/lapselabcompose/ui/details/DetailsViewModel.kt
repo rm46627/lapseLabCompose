@@ -48,4 +48,11 @@ class DetailsViewModel @Inject constructor(private val repository: Repository) :
             repository.updateAlbum(album)
         }
     }
+
+    fun updateCoverPhoto(path: String) {
+        viewModelScope.launch {
+            _albumName.value?.let { repository.updateCoverPhoto(it, path) }
+        }
+    }
+
 }

@@ -1,4 +1,4 @@
-package com.example.alarm
+package com.example.lapselabcompose
 
 import java.time.LocalDateTime
 

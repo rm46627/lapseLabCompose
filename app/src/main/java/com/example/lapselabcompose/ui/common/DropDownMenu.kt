@@ -81,6 +81,7 @@ fun DropDownMenu(items: List<String>, label: String, onValueChanged: (String) ->
             items.forEach { label ->
                 DropdownMenuItem(text = { Text(text = label) }, onClick = {
                     selectedText = label
+                    onValueChanged(label)
                     expandedState = false
                 })
             }
