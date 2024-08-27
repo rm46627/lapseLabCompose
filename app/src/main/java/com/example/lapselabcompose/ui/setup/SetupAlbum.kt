@@ -2,9 +2,12 @@ package com.example.lapselabcompose.ui.setup
 
 
 import android.util.Log
+import android.widget.Space
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Info
@@ -23,6 +26,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.onFocusEvent
 import androidx.compose.ui.platform.LocalContext
@@ -85,12 +89,14 @@ fun SetupAlbumScreen(
         Column(
             modifier = Modifier
                 .padding(it)
-                .padding(top = 32.dp, start = 16.dp)
+                .padding(16.dp, 32.dp)
                 .fillMaxSize()
                 .background(MaterialTheme.colorScheme.background),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
             var nameIsValid by remember { mutableStateOf(false) }
             var notificationsSet by remember { mutableStateOf(false) }
+            var frequencyError by remember { mutableStateOf(false) }
             val nextButtonEnabled by remember {
                 derivedStateOf {
                     nameIsValid && notificationsSet
@@ -98,7 +104,7 @@ fun SetupAlbumScreen(
             }
 
             Text(text = stringResource(R.string.album_setup_title))
-
+            Spacer(modifier = Modifier.height(32.dp))
             NameTextField(
                 checkForNameConflict = checkForNameConflict,
                 onNameValidityChanged = { isValid -> nameIsValid = isValid }
@@ -111,20 +117,26 @@ fun SetupAlbumScreen(
                 )
                 DropDownMenu(
                     items = listOf(
-                        "Don't notify me",
-                        "Every 1h",
-                        "Every 12h",
+                        "I don't need a reminder",
                         "Everyday",
                         "Every 2 days",
                         "Every 3 days",
                         "Once a week",
-                        "Once a month"
+                        "Every 2 weeks",
+                        "Once a month",
+                        "Every 2 months"
                     ), "Select or type frequency",
                     onValueChanged = { value ->
-                       if(value.isNotEmpty()) {
-                           notificationsSet = true
-                       }
-                    }
+                        if (value.isNotEmpty() && frequencyIsValid(value)) {
+                            notificationsSet = true
+                            frequencyError = false
+                        } else {
+                            frequencyError = true
+                            notificationsSet = false
+                        }
+                    },
+                    supportingText = "You can edit the available options to e.g. 'Every 4 days' or 'Every 3 months'",
+                    isError = frequencyError
                 )
             }
 
@@ -191,6 +203,22 @@ fun SetupAlbumScreen(
     )
 }
 
+fun frequencyIsValid(value: String): Boolean {
+    val patterns = listOf(
+        "I don't need a reminder",
+        "Everyday",
+        "Every\\s+\\d+\\s+days",
+        "Once\\s+a\\s+week",
+        "Every\\s+\\d+\\s+weeks",
+        "Once\\s+a\\s+month",
+        "Every\\s+\\d+\\s+months"
+    )
+    val cleanedValue = value.trim().replace("\\s+".toRegex(), " ")
+    val isValid = patterns.any { cleanedValue.matches(it.toRegex(RegexOption.IGNORE_CASE)) }
+    Log.d(TAG, "isValid: $isValid")
+    return isValid
+}
+
 @Composable
 fun NameTextField(
     checkForNameConflict: (String) -> Boolean,
@@ -205,28 +233,13 @@ fun NameTextField(
         supportingText = { if (isError) Text(text = errorText) else if (isConflict) Text(text = conflictText) },
         value = text,
         label = { Text("Album name") },
-        trailingIcon = {
-            IconButton(onClick = {
-                //TODO: Display modal explaining storing photos and how to exclude them from system app gallery
-            }, content = {
-                Icon(
-                    imageVector = Icons.Outlined.Info,
-                    contentDescription = stringResource(R.string.album_name_info),
-                )
-            })
-        },
         onValueChange = { newText ->
             text = newText
             isConflict = checkForNameConflict(newText)
             isError = text.length < 3
             onNameValidityChanged(!isError && !isConflict)
-        },
-
-        modifier = Modifier.onFocusEvent {
-            if (it.isFocused) {
-                // TODO: Display hint about typing valid frequency
-            }
-        })
+        }
+    )
 }
 
 @Preview

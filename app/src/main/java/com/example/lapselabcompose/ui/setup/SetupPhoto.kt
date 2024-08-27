@@ -48,7 +48,7 @@ import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
 import com.bumptech.glide.integration.compose.GlideImage
 import kotlinx.serialization.Serializable
 
-// TODO: view GrantPermissionDialog first before giving user access to this screen
+//TODO: Display modal explaining storing photos and how to exclude them from system app gallery
 
 @Serializable
 data class SetupPhotoDestination(val albumName: String? = null)

@@ -6,6 +6,8 @@ import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsFocusedAsState
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -13,6 +15,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -36,14 +39,23 @@ import androidx.compose.ui.unit.toSize
 import com.example.lapselabcompose.ui.theme.LapseLabComposeTheme
 
 @Composable
-fun DropDownMenu(items: List<String>, label: String, onValueChanged: (String) -> Unit) {
+fun DropDownMenu(
+    items: List<String>,
+    label: String,
+    onValueChanged: (String) -> Unit,
+    supportingText: String? = null,
+    isError: Boolean
+) {
     var selectedText by remember { mutableStateOf("") }
     var textFieldSize by remember { mutableStateOf(Size.Zero) }
 
     var expandedState by remember { mutableStateOf(false) }
     val rotationState by animateFloatAsState(targetValue = if (expandedState) 180f else 0f)
 
-    Column{
+    val interactionSource = remember { MutableInteractionSource() }
+    val isFocused by interactionSource.collectIsFocusedAsState()
+
+    Column {
         OutlinedTextField(
             value = selectedText,
             onValueChange = {
@@ -60,13 +72,19 @@ fun DropDownMenu(items: List<String>, label: String, onValueChanged: (String) ->
             label = { Text(label) },
             trailingIcon = {
                 Icon(Icons.Default.KeyboardArrowDown,
-                    "contentDescription",
+                    "expand or collapse options",
                     Modifier
                         .clickable { expandedState = !expandedState }
                         .rotate(rotationState))
             },
-
-            )
+            interactionSource = interactionSource,
+            supportingText = {
+                if (supportingText != null && isFocused) {
+                    Text(text = supportingText)
+                }
+            },
+            isError = isError
+        )
         DropdownMenu(
             expanded = expandedState,
             onDismissRequest = { expandedState = false },
@@ -99,9 +117,10 @@ fun PreviewDropDown() {
                     .fillMaxSize()
                     .padding(it)
             ) {
-                DropDownMenu(listOf("Pierwszy", "Drugi", "Trzeci", "Czwarty"), "Wybierz opcję") {
-
-                }
+                DropDownMenu(
+                    listOf("Pierwszy", "Drugi", "Trzeci", "Czwarty"),
+                    "Wybierz opcję",
+                    onValueChanged = {}, "", false)
             }
 
         }
