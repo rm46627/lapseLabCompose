@@ -25,6 +25,7 @@ android {
         }
     }
     compileOptions {
+        isCoreLibraryDesugaringEnabled = true
         sourceCompatibility = JavaVersion.VERSION_1_8
         targetCompatibility = JavaVersion.VERSION_1_8
     }
@@ -52,4 +53,6 @@ dependencies {
     // Room components
     ksp(libs.androidx.room.compiler)
     implementation(libs.androidx.room.ktx)
+
+    coreLibraryDesugaring(libs.desugar.jdk.libs)
 }

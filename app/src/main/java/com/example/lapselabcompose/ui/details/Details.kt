@@ -24,6 +24,7 @@ import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavHostController
 import com.example.database.Album
 import com.example.lapselab.files.MediaManagerFactory
+import com.example.lapselabcompose.PermissionViewModel
 import com.example.lapselabcompose.ui.DetailsGraph
 import com.example.lapselabcompose.ui.camera.CameraDestination
 import com.example.lapselabcompose.ui.camera.PhotoPreviewDestination
@@ -31,13 +32,16 @@ import com.example.lapselabcompose.ui.lab.LabDestination
 import com.example.lapselabcompose.ui.theme.LapseLabComposeTheme
 import kotlinx.serialization.Serializable
 import java.io.File
+import java.time.LocalDate
 
 @Serializable
 data class DetailsDestination(val albumName: String? = null)
 
 @Composable
 fun DetailsRoute(
-    backStackEntry: NavBackStackEntry, navController: NavHostController, albumName: String?
+    backStackEntry: NavBackStackEntry, navController: NavHostController, albumName: String?,
+    permissionsResultLaunch: () -> Unit,
+    permissionViewModel: PermissionViewModel,
 ) {
     val parentEntry = remember(backStackEntry) {
         navController.getBackStackEntry(DetailsGraph)
@@ -46,6 +50,7 @@ fun DetailsRoute(
 
     detailsViewModel.setAlbumName(albumName ?: throw IllegalArgumentException())
     val album by detailsViewModel.album.collectAsStateWithLifecycle()
+    val granted by permissionViewModel.allPermissionsGranted.collectAsStateWithLifecycle()
 
     val context = LocalContext.current
     LaunchedEffect(album) {
@@ -62,7 +67,11 @@ fun DetailsRoute(
             album ?: throw IllegalArgumentException(),
             it,
             onAddPhotoClicked = {
-                navController.navigate(CameraDestination(albumName, true))
+                if (granted) {
+                    navController.navigate(CameraDestination(albumName, true))
+                } else {
+                    permissionsResultLaunch()
+                }
             },
             onEditVideoClicked = {
                 navController.navigate(LabDestination(albumName))
@@ -116,22 +125,3 @@ fun DetailsScreen(
         }
     }
 }
-
-@Preview
-@Composable
-fun PreviewAlbumDetails() {
-    LapseLabComposeTheme {
-        DetailsScreen(
-            album = Album(
-                id = 1,
-                directoryName = "Album z różami",
-                coverPhotoPath = placeholderUrls[0].absolutePath
-            ),
-            photos = placeholderUrls,
-            {}, {}, {}
-        )
-    }
-}
-
-val placeholderUrls =
-    List<File>(10) { index -> File("https://via.placeholder.com/150?text=Image+${index + 1})") }

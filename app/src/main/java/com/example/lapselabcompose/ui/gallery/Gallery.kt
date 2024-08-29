@@ -173,9 +173,7 @@ fun PreviewGallery() {
                 Album(
                     1,
                     "Nowy albumik",
-                    "",
-                    122,
-                    5152,
+                    2
                 ),
             ),
             {}, {},

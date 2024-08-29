@@ -1,5 +1,6 @@
 package com.example.lapselabcompose.ui.setup
 
+import android.util.Log
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -46,6 +47,8 @@ import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
 import com.bumptech.glide.integration.compose.GlideImage
+import com.example.lapselabcompose.AlarmScheduler
+import com.example.lapselabcompose.TAG
 import kotlinx.serialization.Serializable
 
 //TODO: Display modal explaining storing photos and how to exclude them from system app gallery
@@ -65,19 +68,23 @@ fun SetupPhotoRoute(
         navController.getBackStackEntry(SetupGraph)
     }
     val setupViewModel: SetupViewModel = hiltViewModel(parentEntry)
+    val granted by permissionViewModel.allPermissionsGranted.collectAsStateWithLifecycle()
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
     val mediaManager = MediaManagerFactory(context)
+    val alarmScheduler = AlarmScheduler(context)
 
     setupViewModel.albumName?.let {
         SetupPhotoScreen(
-            permissionsResultLaunch,
-            permissionViewModel,
             onFirstImagePreviewClicked = { albumName ->
-                navController.navigate(CameraDestination(albumName)) {
-                    popUpTo(SetupPhotoDestination()) {
-                        inclusive = true
+                if (granted) {
+                    navController.navigate(CameraDestination(albumName)) {
+                        popUpTo(SetupPhotoDestination()) {
+                            inclusive = true
+                        }
                     }
+                } else {
+                    permissionsResultLaunch()
                 }
             },
             onCreateAlbumClicked = { imagePath ->
@@ -89,7 +96,7 @@ fun SetupPhotoRoute(
                 coroutineScope.launch {
                     mediaManager.removeLeftoverPhotosFromNewAlbum(it, imagePath)
                 }
-                setupViewModel.createNewAlbum(imagePath)
+                setupViewModel.createNewAlbum(imagePath, alarmScheduler)
             },
             onLeaveAlertClicked = {
                 coroutineScope.launch {
@@ -107,15 +114,11 @@ fun SetupPhotoRoute(
 
 @Composable
 fun SetupPhotoScreen(
-    permissionsResultLaunch: () -> Unit,
-    permissionViewModel: PermissionViewModel,
     onFirstImagePreviewClicked: (String) -> Unit,
     onCreateAlbumClicked: (String) -> Unit,
     onLeaveAlertClicked: () -> Unit,
     albumName: String
 ) {
-
-    val granted by permissionViewModel.allPermissionsGranted.collectAsStateWithLifecycle()
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
     var photoPath by remember { mutableStateOf<String?>(null) }
@@ -138,13 +141,7 @@ fun SetupPhotoScreen(
             AsyncImage(
                 modifier = Modifier
                     .size(300.dp)
-                    .clickable {
-                        if (granted) {
-                            onFirstImagePreviewClicked(albumName)
-                        } else {
-                            permissionsResultLaunch()
-                        }
-                    },
+                    .clickable { onFirstImagePreviewClicked(albumName) },
                 model = ImageRequest.Builder(LocalContext.current)
                     .data(photoPath)
                     .crossfade(1000)
@@ -174,12 +171,4 @@ fun SetupPhotoScreen(
             }
             onLeaveAlertClicked()
         })
-}
-
-@Preview
-@Composable
-fun PreviewFirstPhoto() {
-    LapseLabComposeTheme {
-        SetupPhotoScreen({}, PermissionViewModel(), {}, {}, {}, "")
-    }
 }

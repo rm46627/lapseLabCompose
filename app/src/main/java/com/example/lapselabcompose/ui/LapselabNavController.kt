@@ -66,12 +66,12 @@ class LapselabNavController(
             composable<SplashScreenDestination> {
                 SplashScreen(navController)
             }
-            composable<GalleryDestination>{
+            composable<GalleryDestination> {
                 GalleryRoute(navController)
             }
             setupGraph(navController, permissionsResultLaunch, permissionViewModel)
             cameraGraph(navController)
-            detailsGraph(navController)
+            detailsGraph(navController, permissionsResultLaunch, permissionViewModel)
             photosGraph(navController)
         }
     }
@@ -95,6 +95,7 @@ class LapselabNavController(
                     args.albumName
                 )
             }
+            cameraGraph(navController)
         }
     }
 
@@ -102,7 +103,12 @@ class LapselabNavController(
         navigation<CameraGraph>(startDestination = CameraDestination()) {
             composable<CameraDestination> { backStackEntry ->
                 val args = backStackEntry.toRoute<CameraDestination>()
-                CameraRoute(backStackEntry, navController, args.albumName, args.navigatedFromAlbumDetails)
+                CameraRoute(
+                    backStackEntry,
+                    navController,
+                    args.albumName,
+                    args.navigatedFromAlbumDetails
+                )
             }
             composable<PhotoPreviewDestination> { backStackEntry ->
                 val args = backStackEntry.toRoute<PhotoPreviewDestination>()
@@ -111,11 +117,19 @@ class LapselabNavController(
         }
     }
 
-    private fun NavGraphBuilder.detailsGraph(navController: NavHostController) {
+    private fun NavGraphBuilder.detailsGraph(
+        navController: NavHostController,
+        permissionsResultLaunch: () -> Unit,
+        permissionViewModel: PermissionViewModel
+    ) {
         navigation<DetailsGraph>(startDestination = DetailsDestination()) {
             composable<DetailsDestination> { backStackEntry ->
                 val args = backStackEntry.toRoute<DetailsDestination>()
-                DetailsRoute(backStackEntry, navController, args.albumName)
+                DetailsRoute(
+                    backStackEntry, navController, args.albumName,
+                    permissionsResultLaunch,
+                    permissionViewModel,
+                )
             }
             composable<LabDestination> { backStackEntry ->
                 val args = backStackEntry.toRoute<LabDestination>()

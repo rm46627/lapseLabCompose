@@ -1,6 +1,7 @@
 package com.example.lapselabcompose.ui.setup
 
 
+import android.content.Context
 import android.util.Log
 import android.widget.Space
 import androidx.compose.foundation.background
@@ -38,7 +39,6 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavHostController
-import com.example.lapselabcompose.AlarmItem
 import com.example.lapselabcompose.AlarmScheduler
 import com.example.lapselabcompose.ui.theme.LapseLabComposeTheme
 import com.example.lapselabcompose.R
@@ -76,13 +76,17 @@ fun SetupAlbumRoute(
         }
     }, onLeaveAlertClicked = {
         navController.popBackStack()
-    })
+    },
+        checkFrequencyValidity = { value ->
+            setupViewModel.frequencyIsValid(value)
+        })
 }
 
 @Composable
 fun SetupAlbumScreen(
     onNextButtonClicked: () -> Unit,
     checkForNameConflict: (String) -> Boolean,
+    checkFrequencyValidity: (String) -> Boolean,
     onLeaveAlertClicked: () -> Unit
 ) {
     Scaffold {
@@ -120,14 +124,13 @@ fun SetupAlbumScreen(
                         "I don't need a reminder",
                         "Everyday",
                         "Every 2 days",
-                        "Every 3 days",
                         "Once a week",
-                        "Every 2 weeks",
+                        "Every 3 weeks",
                         "Once a month",
-                        "Every 2 months"
+                        "Every 6 months"
                     ), "Select or type frequency",
                     onValueChanged = { value ->
-                        if (value.isNotEmpty() && frequencyIsValid(value)) {
+                        if (value.isNotEmpty() && checkFrequencyValidity(value)) {
                             notificationsSet = true
                             frequencyError = false
                         } else {
@@ -135,55 +138,10 @@ fun SetupAlbumScreen(
                             notificationsSet = false
                         }
                     },
-                    supportingText = "You can edit the available options to e.g. 'Every 4 days' or 'Every 3 months'",
+                    supportingText = "You can edit the available options to e.g. 'Every 3 days' or 'Every 2 weeks'",
                     isError = frequencyError
                 )
             }
-
-//            ////
-//            // ALARM TEST
-//            // TODO: add alarms to database
-//            // TODO: restart alarms after reboot - https://www.youtube.com/watch?v=UiQWb3T2G-U
-//            ////
-//            val context = LocalContext.current
-//            val alarmScheduler = AlarmScheduler(context)
-//            var alarmItem: AlarmItem? = null
-//            var secondsText by remember {
-//                mutableStateOf("")
-//            }
-//            var message by remember {
-//                mutableStateOf("")
-//            }
-//            Column {
-//                OutlinedTextField(value = secondsText,
-//                    onValueChange = { secondsText = it },
-//                    label = {
-//                        Text(
-//                            text = "seconds"
-//                        )
-//                    })
-//                OutlinedTextField(value = message, onValueChange = { message = it }, label = {
-//                    Text(
-//                        text = "message"
-//                    )
-//                })
-//                Button(onClick = {
-//                    alarmItem = AlarmItem(
-//                        time = LocalDateTime.now().plusSeconds(secondsText.toLong()),
-//                        message = message
-//                    )
-//                    alarmItem?.let(alarmScheduler::schedule)
-//                    secondsText = ""
-//                    message = ""
-//                }) {
-//                    Text(text = "Schedule")
-//                }
-//                Button(onClick = {
-//                    alarmItem?.let(alarmScheduler::cancel)
-//                }) {
-//                    Text(text = "Cancel")
-//                }
-//            }
 
             if (nextButtonEnabled) {
                 OutlinedButton(
@@ -201,22 +159,6 @@ fun SetupAlbumScreen(
         onLeaveClicked = onLeaveAlertClicked
 
     )
-}
-
-fun frequencyIsValid(value: String): Boolean {
-    val patterns = listOf(
-        "I don't need a reminder",
-        "Everyday",
-        "Every\\s+\\d+\\s+days",
-        "Once\\s+a\\s+week",
-        "Every\\s+\\d+\\s+weeks",
-        "Once\\s+a\\s+month",
-        "Every\\s+\\d+\\s+months"
-    )
-    val cleanedValue = value.trim().replace("\\s+".toRegex(), " ")
-    val isValid = patterns.any { cleanedValue.matches(it.toRegex(RegexOption.IGNORE_CASE)) }
-    Log.d(TAG, "isValid: $isValid")
-    return isValid
 }
 
 @Composable
@@ -240,12 +182,4 @@ fun NameTextField(
             onNameValidityChanged(!isError && !isConflict)
         }
     )
-}
-
-@Preview
-@Composable
-fun PreviewSetup() {
-    LapseLabComposeTheme {
-        SetupAlbumScreen({}, { name -> false }, {})
-    }
 }

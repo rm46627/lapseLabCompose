@@ -1,6 +1,7 @@
 package com.example.lapselabcompose
 
 import android.Manifest
+import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.Context
 import android.content.Intent
@@ -10,12 +11,14 @@ import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.ManagedActivityResultLauncher
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
+import androidx.annotation.RequiresApi
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.snapshots.SnapshotStateList
@@ -46,9 +49,11 @@ class MainActivity : ComponentActivity() {
 
         val permissionViewModel by viewModels<PermissionViewModel>()
         val dialogQueue = permissionViewModel.visiblePermissionDialogQueue
-        val permissionsToRequest = permissionViewModel.permissionsToRequest
+        Log.d(TAG, "permissions saved to val")
+        val permissionsToRequest = permissionViewModel.photosPermissionsToRequest
 
         permissionViewModel.setAllPermissionsGranted(permissionsToRequest.fold(true) { acc, permission ->
+            Log.d(TAG, "perm: $permission")
             acc && isPermissionGranted(this, permission)
         })
 
@@ -75,7 +80,7 @@ class MainActivity : ComponentActivity() {
         val multiplePermissionResultLauncher = rememberLauncherForActivityResult(
             contract = ActivityResultContracts.RequestMultiplePermissions(),
             onResult = { perms ->
-                permissionViewModel.permissionsToRequest.forEach { permission ->
+                permissionViewModel.photosPermissionsToRequest.forEach { permission ->
                     permissionViewModel.onPermissionResult(
                         permission = permission, isGranted = perms[permission] == true
                     )
@@ -106,6 +111,10 @@ class MainActivity : ComponentActivity() {
                         CameraPermissionTextProvider()
                     }
 
+                    Manifest.permission.POST_NOTIFICATIONS -> {
+                        CameraPermissionTextProvider()
+                    }
+
                     else -> return@forEach
                 },
                 isPermanentlyDeclined = !shouldShowRequestPermissionRationale(permission),
@@ -131,22 +140,29 @@ private fun Activity.openAppSettings() {
     ).also(::startActivity)
 }
 
+@SuppressLint("InlinedApi")
 @HiltViewModel
 class PermissionViewModel @Inject constructor() : ViewModel() {
-    var permissionsToRequest = arrayOf(
-        Manifest.permission.CAMERA
-    )
-    private val permissionsMap = mutableMapOf(Pair(Manifest.permission.CAMERA, false))
+
+    var photosPermissionsToRequest =
+        arrayOf(
+            Manifest.permission.CAMERA,
+            Manifest.permission.POST_NOTIFICATIONS
+        )
+
+//    lateinit var notificationsPermissionToRequest: Array<String>
+
+    private val permissionsMap = mutableMapOf(Pair(Manifest.permission.CAMERA, false), Pair(Manifest.permission.POST_NOTIFICATIONS, false))
     private val _allPermissionsGranted = MutableStateFlow(false)
     val allPermissionsGranted = _allPermissionsGranted.asStateFlow()
     val visiblePermissionDialogQueue = mutableStateListOf<String>()
 
     init {
         if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.P) {
-            permissionsToRequest = arrayOf(
+            photosPermissionsToRequest = arrayOf(
                 Manifest.permission.CAMERA,
                 Manifest.permission.READ_EXTERNAL_STORAGE,
-                Manifest.permission.WRITE_EXTERNAL_STORAGE
+                Manifest.permission.WRITE_EXTERNAL_STORAGE,
             )
             permissionsMap[Manifest.permission.READ_EXTERNAL_STORAGE] = false
             permissionsMap[Manifest.permission.WRITE_EXTERNAL_STORAGE] = false
