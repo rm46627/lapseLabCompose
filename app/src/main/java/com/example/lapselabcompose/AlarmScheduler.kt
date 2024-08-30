@@ -19,7 +19,8 @@ class AlarmScheduler(
 
     fun schedule(albumName: String, daysBetweenAlarms: Long) {
         val intent = Intent(context, AlarmReceiver::class.java).apply {
-            putExtra("EXTRA_MESSAGE", albumName)
+            putExtra("ALBUM_NAME", albumName)
+            putExtra("NEW_ALARM_TIME", daysBetweenAlarms)
         }
         val now = LocalDate.now()
         val notificationDate = LocalDateTime.of(now.plusDays(daysBetweenAlarms), LocalTime.NOON)
