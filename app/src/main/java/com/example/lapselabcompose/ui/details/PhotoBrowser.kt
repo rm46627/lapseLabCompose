@@ -1,5 +1,6 @@
 package com.example.lapselabcompose.ui.details
 
+import android.util.Log
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -15,6 +16,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -28,10 +30,12 @@ import androidx.navigation.NavHostController
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.example.lapselab.files.MediaManagerFactory
+import com.example.lapselabcompose.TAG
 import com.example.lapselabcompose.ui.DetailsGraph
 import com.example.lapselabcompose.ui.PhotosGraph
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
+import java.lang.NullPointerException
 
 @Serializable
 data class PhotoBrowserDestination(val index: Int = 0)
@@ -48,8 +52,10 @@ fun PhotoBrowserRoute(
         navController.getBackStackEntry(DetailsGraph)
     }
     val viewModel: DetailsViewModel = hiltViewModel(parentEntry)
-    val photos by viewModel.photos.collectAsStateWithLifecycle()
-    photos?.let {
+    val albumNameState by viewModel.albumName.collectAsStateWithLifecycle()
+    val photosState by viewModel.photos.collectAsStateWithLifecycle()
+    val albumName = albumNameState ?: throw NullPointerException()
+    photosState?.let { photos ->
         PhotoBrowserScreen(
             onNextButtonClicked = {
                 navController.navigate(PhotoBrowserDestination(index + 1)) {
@@ -67,18 +73,26 @@ fun PhotoBrowserRoute(
             },
             onDeleteButtonClicked = {
                 scope.launch {
-                    MediaManagerFactory(context).deletePhoto(photos!![index].absolutePath)
-                    navController.navigate(PhotoBrowserDestination(index - 1)) {
-                        popUpTo(PhotosGraph){
-                            inclusive = true
+                    MediaManagerFactory(context).deletePhoto(photos[index].absolutePath)
+                    val updatedPhotos = MediaManagerFactory(context).getPhotoFiles(albumName)
+                    viewModel.setPhotos(updatedPhotos)
+
+                    if (photos.size > 1) {
+                        val destIndex = if(index == 0) 0 else index - 1
+                        navController.navigate(PhotoBrowserDestination(destIndex)) {
+                            popUpTo(PhotosGraph){
+                                inclusive = true
+                            }
                         }
+                    } else {
+                        navController.popBackStack()
                     }
                 }
             },
-            photoPath = photos!![index].absolutePath,
+            photoPath = photos[index].absolutePath,
             date = "01.01.2024 12:00",
             index,
-            index == photos!!.size - 1
+            index == photos.size - 1
         )
     }
 }

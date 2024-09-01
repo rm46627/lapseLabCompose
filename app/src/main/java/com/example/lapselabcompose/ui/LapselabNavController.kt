@@ -64,7 +64,10 @@ class LapselabNavController(
             navController = navController, startDestination = SplashScreenDestination
         ) {
             composable<SplashScreenDestination> {
-                SplashScreen(navController)
+                SplashScreenRoute(navController)
+            }
+            composable<OnBoardingDestination> {
+                OnBoardingRoute(navController)
             }
             composable<GalleryDestination> {
                 GalleryRoute(navController)

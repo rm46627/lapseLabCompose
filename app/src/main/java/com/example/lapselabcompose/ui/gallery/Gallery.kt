@@ -68,7 +68,7 @@ fun GalleryRoute(navController: NavHostController) {
 
 @Composable
 fun GalleryScreen(albums: List<Album>, onAlbumClick: (String) -> Unit, onCreateClick: () -> Unit) {
-    // adding creating new album card
+    // adds creating new album card
     val albumsWithExtras = albums.plus(Album())
     Scaffold {
         Box(
@@ -100,7 +100,6 @@ fun GalleryScreen(albums: List<Album>, onAlbumClick: (String) -> Unit, onCreateC
     }
 }
 
-@OptIn(ExperimentalGlideComposeApi::class)
 @Composable
 fun GalleryItem(album: Album, onGalleryItemClick: (String) -> Unit) {
     Card(modifier = Modifier.wrapContentSize().padding(4.dp),
@@ -162,6 +161,8 @@ class GalleryViewModel @Inject constructor(
 
     // used to calculate span size in gallery recyclerView
     var gallerySize: Int = 0
+
+
 }
 
 @Preview

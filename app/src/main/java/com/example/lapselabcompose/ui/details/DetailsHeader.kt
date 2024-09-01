@@ -38,7 +38,8 @@ import com.example.database.Album
 @Composable
 fun DetailsHeader(expanded: Boolean, album: Album, onAddPhotoClicked: () -> Unit, onEditVideoClicked: () -> Unit) {
     val scale by animateFloatAsState(
-        targetValue = if (expanded) 1f else 0f, animationSpec = tween(durationMillis = 1000)
+        targetValue = if (expanded) 1f else 0f, animationSpec = tween(durationMillis = 1000),
+        label = ""
     )
 
     Column(

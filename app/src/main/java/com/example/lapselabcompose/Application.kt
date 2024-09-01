@@ -15,6 +15,8 @@ import dagger.hilt.android.HiltAndroidApp
 // TODO: daily photos streak counter
 // TODO: different frames for better streak and stars for photos counter and albums
 
+const val NOTIFICATION_CHANNEL = "channel_id"
+
 @HiltAndroidApp
 class Application : Application(), CameraXConfig.Provider {
 
@@ -22,7 +24,7 @@ class Application : Application(), CameraXConfig.Provider {
         super.onCreate()
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val channel = NotificationChannel(
-                "channel_id",
+                NOTIFICATION_CHANNEL,
                 "New Album Photo Reminders",
                 NotificationManager.IMPORTANCE_HIGH
             )

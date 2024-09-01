@@ -1,10 +1,11 @@
-package com.example.lapselabcompose
+package com.example.lapselabcompose.services
 
 import android.app.AlarmManager
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import android.util.Log
+import com.example.lapselabcompose.TAG
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.LocalTime
@@ -18,18 +19,21 @@ class AlarmScheduler(
     private val alarmManager = context.getSystemService(AlarmManager::class.java)
 
     fun schedule(albumName: String, daysBetweenAlarms: Long) {
+
         val intent = Intent(context, AlarmReceiver::class.java).apply {
             putExtra("ALBUM_NAME", albumName)
             putExtra("NEW_ALARM_TIME", daysBetweenAlarms)
         }
-        val now = LocalDate.now()
-        val notificationDate = LocalDateTime.of(now.plusDays(daysBetweenAlarms), LocalTime.NOON)
 
-        Log.d(TAG, "alarm schedule: $albumName $notificationDate")
+        val now = LocalDateTime.now()
+        val notificationDate = LocalDateTime.of(now.year, now.month, now.dayOfMonth, now.hour, now.minute, now.second.plus(15))
+        val secToRun = ChronoUnit.MILLIS.between(LocalDateTime.now(), notificationDate) / 1000
+
+        Log.d(TAG, "alarm schedule: $albumName $notificationDate and now is $now, sec: $secToRun")
 
         alarmManager.setExactAndAllowWhileIdle(
             AlarmManager.RTC_WAKEUP,
-            ChronoUnit.MILLIS.between(LocalDateTime.now(), notificationDate),
+            secToRun,
             PendingIntent.getBroadcast(
                 context,
                 albumName.hashCode(), // identifier for adding new or updating existing alarm

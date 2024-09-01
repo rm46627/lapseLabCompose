@@ -1,9 +1,11 @@
 package com.example.lapselabcompose.ui.details
 
+import androidx.compose.runtime.LaunchedEffect
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.database.Album
 import com.example.database.Repository
+import com.example.lapselab.files.MediaManagerFactory
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow

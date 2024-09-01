@@ -55,4 +55,6 @@ dependencies {
     implementation(libs.androidx.room.ktx)
 
     coreLibraryDesugaring(libs.desugar.jdk.libs)
+
+    implementation(libs.androidx.datastore.preferences.android)
 }

@@ -5,12 +5,11 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.database.Album
 import com.example.database.Repository
-import com.example.lapselabcompose.AlarmScheduler
 import com.example.lapselabcompose.TAG
+import com.example.lapselabcompose.services.AlarmScheduler
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
-import java.time.LocalDate
 import javax.inject.Inject
 
 @HiltViewModel
@@ -52,6 +51,7 @@ class SetupViewModel @Inject constructor(
             )
             repository.addAlbum(newAlbum)
             if (daysBetweenReminders != 0L){
+                Log.d(TAG, "$albumName days between: $daysBetweenReminders ")
                 alarmScheduler.schedule(name, daysBetweenReminders)
             }
         }

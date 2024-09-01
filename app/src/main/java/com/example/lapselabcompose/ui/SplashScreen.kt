@@ -12,27 +12,50 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.State
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavController
-import androidx.navigation.compose.rememberNavController
-import com.example.lapselabcompose.ui.theme.LapseLabComposeTheme
+import com.example.database.DataStoreRepository
 import com.example.lapselabcompose.R
 import com.example.lapselabcompose.ui.gallery.GalleryDestination
+import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
-
+import javax.inject.Inject
 
 @Serializable
 object SplashScreenDestination
 
 @Composable
-fun SplashScreen(navController: NavController) {
+fun SplashScreenRoute(navController: NavController) {
+    val splashViewModel: SplashViewModel = hiltViewModel()
+
+    SplashScreen(
+        navigateAfterAnimation = {
+            val nextScreen by splashViewModel.startDestination
+            navController.navigate(nextScreen) {
+                popUpTo(navController.graph.startDestinationId) {
+                    inclusive = true
+                }
+            }
+        }
+    )
+}
+
+@Composable
+fun SplashScreen(navigateAfterAnimation: () -> Unit) {
     val alpha = remember { Animatable(initialValue = 0f) }
     LaunchedEffect(key1 = true) {
         alpha.animateTo(
@@ -40,11 +63,7 @@ fun SplashScreen(navController: NavController) {
                 durationMillis = 1500
             )
         )
-        navController.navigate(GalleryDestination) {
-            popUpTo(navController.graph.startDestinationId) {
-                inclusive = true
-            }
-        }
+        navigateAfterAnimation()
     }
 
     Scaffold {
@@ -68,10 +87,34 @@ fun SplashScreen(navController: NavController) {
     }
 }
 
-@Preview
-@Composable
-fun PreviewSplash() {
-    LapseLabComposeTheme {
-        SplashScreen(rememberNavController())
+@HiltViewModel
+class SplashViewModel @Inject constructor(
+    private val repository: DataStoreRepository
+) : ViewModel() {
+
+    private val _isLoading: MutableState<Boolean> = mutableStateOf(true)
+    val isLoading: State<Boolean> = _isLoading
+
+    private val _startDestination: MutableState<Any> = mutableStateOf(SplashScreenDestination)
+    val startDestination: State<Any> = _startDestination
+
+    init {
+        viewModelScope.launch {
+            repository.readOnBoardingState().collect { completed ->
+                if (completed) {
+                    _startDestination.value = GalleryDestination
+                } else {
+                    _startDestination.value = OnBoardingDestination
+                }
+            }
+            _isLoading.value = false
+        }
     }
+
+    fun saveOnBoardingState(completed: Boolean) {
+        viewModelScope.launch(Dispatchers.IO) {
+            repository.saveOnBoardingState(completed = completed)
+        }
+    }
+
 }
