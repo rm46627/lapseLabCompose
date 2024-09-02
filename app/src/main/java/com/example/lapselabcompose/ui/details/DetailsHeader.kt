@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AddPhotoAlternate
+import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.SlowMotionVideo
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -70,6 +71,12 @@ fun DetailsHeader(expanded: Boolean, album: Album, onAddPhotoClicked: () -> Unit
                 style = MaterialTheme.typography.headlineSmall,
             )
             Spacer(modifier = Modifier.weight(2f))
+            IconButton(onClick = {}) {
+                Icon(
+                    imageVector = Icons.Default.Notifications,
+                    contentDescription = "Add photo button"
+                )
+            }
             IconButton(onClick = onAddPhotoClicked) {
                 Icon(
                     imageVector = Icons.Default.AddPhotoAlternate,

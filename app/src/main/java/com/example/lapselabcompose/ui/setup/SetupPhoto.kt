@@ -44,7 +44,8 @@ import coil.request.ImageRequest
 import com.example.lapselabcompose.services.AlarmScheduler
 import kotlinx.serialization.Serializable
 
-//TODO: Display modal explaining storing photos and how to exclude them from system app gallery
+//TODO: Display modal explaining storing photos and how to exclude them from the system app gallery
+// creating .nomedia file
 
 @Serializable
 data class SetupPhotoDestination(val albumName: String? = null)

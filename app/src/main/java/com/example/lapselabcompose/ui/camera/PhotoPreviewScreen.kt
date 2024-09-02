@@ -1,6 +1,7 @@
 package com.example.lapselabcompose.ui.camera
 
 import android.graphics.Bitmap
+import android.graphics.Camera
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -26,6 +27,8 @@ import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavHostController
 import com.example.lapselabcompose.ui.details.DetailsDestination
 import com.example.lapselabcompose.ui.CameraGraph
+import com.example.lapselabcompose.ui.DetailsGraph
+import com.example.lapselabcompose.ui.SetupGraph
 import com.example.lapselabcompose.ui.setup.SetupPhotoDestination
 import kotlinx.serialization.Serializable
 
@@ -40,34 +43,36 @@ fun PhotoPreviewRoute(
     navController: NavHostController,
     navigatedFromAlbumDetails: Boolean = false,
 
-) {
+    ) {
     val parentEntry = remember(backStackEntry) {
         navController.getBackStackEntry(CameraGraph)
     }
     val viewModel: CameraViewModel = hiltViewModel(parentEntry)
+    val bitmap = viewModel.bitmap ?: throw NullPointerException()
 
-    viewModel.bitmap?.let {
-        PhotoPreviewScreen(
-            bitmap = it,
-            onDiscardClicked = {
+    PhotoPreviewScreen(
+        bitmap = bitmap,
+        onDiscardClicked = {
 
-                navController.navigateUp()
-            },
-            onAcceptClicked = {
-                val navFromDest: Any = if (navigatedFromAlbumDetails)
-
-                    DetailsDestination(viewModel.albumName)
-                else
-                    SetupPhotoDestination(viewModel.albumName)
-
-                navController.navigate(navFromDest) {
-                    popUpTo(CameraGraph) {
-                        inclusive = true
-                    }
+            navController.navigateUp()
+        },
+        onAcceptClicked = {
+            val navFromDest: Any
+            val popUpToDest: Any
+            if (navigatedFromAlbumDetails) {
+                navFromDest = DetailsDestination(viewModel.albumName)
+                popUpToDest = DetailsGraph
+            } else {
+                navFromDest = SetupPhotoDestination(viewModel.albumName)
+                popUpToDest = CameraGraph
+            }
+            navController.navigate(navFromDest) {
+                popUpTo(popUpToDest) {
+                    inclusive = true
                 }
             }
-        )
-    } ?: throw IllegalArgumentException()
+        }
+    )
 }
 
 @Composable
@@ -101,7 +106,6 @@ fun PhotoPreviewScreen(
                         contentDescription = "Discard image button"
                     )
                 }
-                val context = LocalContext.current
                 IconButton(onClick = { onAcceptClicked() }) {
                     Icon(
                         imageVector = Icons.Default.Check,

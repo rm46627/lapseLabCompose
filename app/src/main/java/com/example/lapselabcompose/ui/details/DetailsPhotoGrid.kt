@@ -7,7 +7,11 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ShapeDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -21,22 +25,29 @@ import coil.compose.AsyncImage
 import coil.compose.rememberAsyncImagePainter
 import coil.request.ImageRequest
 import coil.transform.CircleCropTransformation
+import coil.transform.RoundedCornersTransformation
 import com.example.lapselabcompose.R
 
 @Composable
 fun GridPhotoItem(photo: String, onPhotoClicked: () -> Unit) {
+    Card(
+        modifier = Modifier.wrapContentSize().padding(8.dp),
+        elevation = CardDefaults.cardElevation(
+            defaultElevation = 4.dp
+        ),
+        shape = ShapeDefaults.ExtraSmall
+    ) {
         AsyncImage(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(200.dp)
-                .padding(8.dp)
                 .clickable { onPhotoClicked() },
             model = ImageRequest.Builder(LocalContext.current)
                 .data(photo)
                 .crossfade(1000)
                 .transformations(
 //                    CircleCropTransformation()
-//                    RoundedCornersTransformation(),
+//                    RoundedCornersTransformation(50f),
 //                    CustomTransformation(),
 //                    BlurTransformation(LocalContext.current)
                 )
@@ -46,6 +57,7 @@ fun GridPhotoItem(photo: String, onPhotoClicked: () -> Unit) {
             contentScale = ContentScale.Crop,
 //            placeholder = painterResource(R.drawable.ic_image_placeholder)
         )
+    }
 }
 
 //suspend fun PointerInputScope.detectPinchGestures(

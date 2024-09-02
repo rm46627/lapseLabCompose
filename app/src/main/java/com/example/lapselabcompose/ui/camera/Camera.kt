@@ -47,6 +47,13 @@ import com.example.video.TAG
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 
+// TODO: Add ghost button
+//TODO: Display a modal explaining the ghost button usage
+// TODO: add slider to control transparency of the ghost image
+//TODO: Check if user trying to do next photo in different orientation and warn him about that
+// e.g. view black screen with text asking for rotating device
+// send proper orientation with args
+//TODO: series mode - taking photo without moving to photo fragment, updating ghost image immediately
 
 @Serializable
 data class CameraDestination(

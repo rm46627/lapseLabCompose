@@ -37,7 +37,7 @@ import java.time.LocalDate
 @Serializable
 data class DetailsDestination(val albumName: String? = null)
 
-// TODO:
+// TODO: Add option to import (copy) a photo from the gallery
 
 @Composable
 fun DetailsRoute(
@@ -62,9 +62,10 @@ fun DetailsRoute(
         photos?.let { detailsViewModel.setPhotos(it) }
     }
     val photos by detailsViewModel.photos.collectAsStateWithLifecycle()
-    // TODO: throws NoSuchElementException list is empty when removing the only existing photo.
     photos?.let {
-        detailsViewModel.updateCoverPhoto(it.first().absolutePath)
+        if(it.isNotEmpty()){
+            detailsViewModel.updateCoverPhoto(it.first().absolutePath)
+        }
         DetailsScreen(
             album ?: throw IllegalArgumentException(),
             it,

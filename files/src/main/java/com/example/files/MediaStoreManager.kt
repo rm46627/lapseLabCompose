@@ -59,6 +59,7 @@ class MediaStoreMediaManager(private val context: Context) : MediaManagerInterfa
         // TODO: add video files to remove
         val files = getPhotoFiles(albumName)
         if (files.size == 0) {
+
             return
         }
         val albumFolder = files[0].parentFile
