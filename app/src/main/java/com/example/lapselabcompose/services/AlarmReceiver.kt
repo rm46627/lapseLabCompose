@@ -14,20 +14,19 @@ import com.example.lapselabcompose.TAG
 class AlarmReceiver: BroadcastReceiver() {
 
     override fun onReceive(context: Context?, intent: Intent?) {
-        Log.d(TAG, "onReceive")
-
         val ctx = context ?: throw IllegalStateException("Context cannot be null")
-        val message = intent?.getStringExtra("EXTRA_MESSAGE") ?: return
+        val albumName = intent?.getStringExtra("ALBUM_NAME") ?: return
+        val daysBetween = intent.getStringExtra("DAYS_BETWEEN") ?: return
 
         val notificationManager = ctx.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-        val notificaton = NotificationCompat.Builder(ctx, NOTIFICATION_CHANNEL)
-            .setContentText(message)
+        val notification = NotificationCompat.Builder(ctx, NOTIFICATION_CHANNEL)
+            .setContentText("Message")
             .setContentTitle("Reminder")
             .setSmallIcon(R.drawable.logofinal)
             .build()
-        notificationManager.notify(1, notificaton)
-        Log.d(TAG,"notified: $message")
-        // TODO: shedule new alarm after
+        notificationManager.notify(1, notification)
 
+        val alarmScheduler = AlarmScheduler(context)
+        alarmScheduler.schedule(albumName, daysBetween.toLong())
     }
 }

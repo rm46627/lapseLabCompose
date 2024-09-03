@@ -33,7 +33,7 @@ class SetupViewModel @Inject constructor(
         )
         val cleanedValue = value.trim().replace("\\s+".toRegex(), " ")
         val isValid = patterns.any { cleanedValue.matches(it.toRegex(RegexOption.IGNORE_CASE)) }
-        if(isValid) {
+        if (isValid) {
             notificationFrequency = value
         }
         return isValid
@@ -49,9 +49,10 @@ class SetupViewModel @Inject constructor(
                 coverPhotoPath = imagePath,
                 daysBetweenReminders = daysBetweenReminders
             )
+
             repository.addAlbum(newAlbum)
-            if (daysBetweenReminders != 0L){
-                Log.d(TAG, "$albumName days between: $daysBetweenReminders ")
+            Log.d(TAG, "daysBetweenReminders: $daysBetweenReminders ")
+            if (daysBetweenReminders != 0L) {
                 alarmScheduler.schedule(name, daysBetweenReminders)
             }
         }
@@ -69,19 +70,22 @@ class SetupViewModel @Inject constructor(
         val words = freq.split(" ")
         val timeMap = mapOf(
             "day" to 1L,
+            "days" to 1L,
             "week" to 7L,
-            "month" to 30L
+            "weeks" to 7L,
+            "month" to 30L,
+            "months" to 30L
         )
-        return when(words.size) {
+        return when (words.size) {
             1 -> 1
             3 -> {
-                if(words[0] == "Once"){
-                    timeMap[words[2]] ?: 0
-                } else {
-                    val timeUnit = timeMap[words[2].plus("s")] ?: 0
-                    timeUnit * words[1].toLong()
-                }
+                val timeUnit = timeMap[words[2]] ?: 0
+                val days = if (words[0] == "Once") {
+                    timeUnit
+                } else timeUnit * words[1].toLong()
+                days
             }
+
             else -> 0
         }
     }
