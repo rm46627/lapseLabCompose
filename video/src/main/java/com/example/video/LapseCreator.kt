@@ -10,7 +10,7 @@ import java.io.File
 import java.text.SimpleDateFormat
 import java.util.Locale
 
-const val TAG = "mytagforloging:Video"
+const val TAG = "mytagforloging"
 const val FILES_NAME_DATE_FORMAT = "yyyy-MM-dd-HH-mm-ss-SSS"
 const val APP_MOVIE_PATH = "Movies/LapseLab"
 
@@ -24,6 +24,7 @@ class LapseCreator(private val context: Context, private val album: Album) {
             File("${Environment.getExternalStorageDirectory()}/$APP_MOVIE_PATH/${album.directoryName}")
         folder.mkdirs()
         val videoFile = File(folder, "$name.mp4")
+        Log.d(TAG, "creating videofile, ${videoFile.name}")
 
         // TODO : Dont rotate if images are horizontal
         // NEED TO ROTATE IMAGES FOR ENCODING height = width, width = height

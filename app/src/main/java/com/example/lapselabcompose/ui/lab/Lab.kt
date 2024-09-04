@@ -1,7 +1,7 @@
 package com.example.lapselabcompose.ui.lab
 
-import android.net.Uri
 import android.util.Log
+import androidx.annotation.OptIn
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -15,7 +15,6 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -25,17 +24,15 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
-import androidx.compose.ui.window.isPopupLayout
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.media3.common.MediaItem
+import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.ExoPlayer
-import androidx.media3.exoplayer.source.ProgressiveMediaSource
 import androidx.media3.ui.PlayerView
 import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavHostController
@@ -45,15 +42,13 @@ import com.example.lapselabcompose.TAG
 import com.example.lapselabcompose.ui.DetailsGraph
 import com.example.lapselabcompose.ui.details.DetailsViewModel
 import com.example.video.LapseCreator
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import kotlinx.serialization.Serializable
 
 @Serializable
 data class LabDestination(val albumName: String? = null)
 
+@OptIn(UnstableApi::class)
 @Composable
 fun LabRoute(backStackEntry: NavBackStackEntry, navController: NavHostController, albumName: String?) {
     val parentEntry = remember(backStackEntry) {
@@ -66,22 +61,22 @@ fun LabRoute(backStackEntry: NavBackStackEntry, navController: NavHostController
     val context = LocalContext.current
     val exoPlayer = ExoPlayer.Builder(context).build()
     val mediaManager = MediaManagerFactory(context)
-    val videoUriState = produceState<Uri?>(initialValue = null, albumName) {
-        value = mediaManager.getLatestVideoUri(albumName?: throw IllegalArgumentException())
+
+    var videoIteration by remember { mutableStateOf(0) }
+    val videoUriState = produceState<String?>(initialValue = null, key1 = albumName, key2 = videoIteration) {
+        value = mediaManager.getLatestVideoFile(albumName?: throw IllegalArgumentException())?.absolutePath
+        Log.d(TAG, "videoUriState: $value")
     }
-    val latestVideoUri = videoUriState.value
-    val mediaSource = remember(latestVideoUri) {
-        if (latestVideoUri != null) MediaItem.fromUri(latestVideoUri) else null
+    val mediaSource = remember(videoUriState.value) {
+        val newUri = videoUriState.value
+        Log.d(TAG, "newUri: $newUri")
+        if (newUri != null) MediaItem.fromUri(newUri) else null
     }
     LaunchedEffect(mediaSource) {
         if (mediaSource != null) {
             exoPlayer.setMediaItem(mediaSource)
+            Log.d(TAG, "player prepare!")
             exoPlayer.prepare()
-        }
-    }
-    DisposableEffect(Unit) {
-        onDispose {
-            exoPlayer.release()
         }
     }
 
@@ -95,13 +90,22 @@ fun LabRoute(backStackEntry: NavBackStackEntry, navController: NavHostController
                 filename,
                 "$appMoviesDir/${album!!.directoryName}"
             )
+            exoPlayer.release()
+            videoIteration++
+            Log.d(TAG, "videoIteration: $videoIteration")
+        },
+        onReloadBtnClicked = {
+            Log.d(TAG, "Reload")
+            Log.d(TAG, "${exoPlayer.isReleased}")
+            exoPlayer.release()
+            Log.d(TAG, "${exoPlayer.isReleased}")
         }
     )
 
 }
 
 @Composable
-fun LabScreen(exoPlayer: ExoPlayer, mediaSource: MediaItem?, onGenerateVideoBtnClicked: suspend () -> Unit) {
+fun LabScreen(exoPlayer: ExoPlayer, mediaSource: MediaItem?, onGenerateVideoBtnClicked: suspend () -> Unit, onReloadBtnClicked: () -> Unit) {
     val scope = rememberCoroutineScope()
     var isLoading by remember{ mutableStateOf(false) }
     Scaffold { padding ->
@@ -110,6 +114,7 @@ fun LabScreen(exoPlayer: ExoPlayer, mediaSource: MediaItem?, onGenerateVideoBtnC
                 .padding(padding)
                 .fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.SpaceBetween) {
             if (mediaSource != null) {
+                Log.d(TAG, "RECOMPOSED")
                 AndroidView(
                     factory = { ctx ->
                         PlayerView(ctx).apply {
@@ -126,8 +131,7 @@ fun LabScreen(exoPlayer: ExoPlayer, mediaSource: MediaItem?, onGenerateVideoBtnC
                 scope.launch {
                     isLoading = true
                     try {
-                        delay(3000)
-//                        onGenerateVideoBtnClicked()
+                        onGenerateVideoBtnClicked()
                     } finally {
                         isLoading = false
                     }
@@ -135,13 +139,19 @@ fun LabScreen(exoPlayer: ExoPlayer, mediaSource: MediaItem?, onGenerateVideoBtnC
             }) {
                 Text(text = "generate video")
             }
+            Button(onClick = onReloadBtnClicked) {
+                Text(text = "reload")
+            }
 
         }
         if(isLoading){
             Box(modifier = Modifier
                 .background(color = Color.White.copy(alpha = 0.5f))
                 .fillMaxSize()){
-                CircularProgressIndicator(modifier = Modifier.fillMaxWidth().height(200.dp).padding(64.dp))
+                CircularProgressIndicator(modifier = Modifier
+                    .fillMaxWidth()
+                    .height(200.dp)
+                    .padding(64.dp))
             }
         }
     }

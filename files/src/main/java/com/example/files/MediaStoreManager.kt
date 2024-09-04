@@ -19,7 +19,7 @@ import java.io.IOException
 import java.text.SimpleDateFormat
 import java.util.Locale
 
-const val TAG = "mytagforloging:Files"
+const val TAG = "mytagforloging"
 const val appPicturesDir = "Pictures/LapseLab"
 const val appMoviesDir = "Movies/LapseLab"
 const val PHOTO_TYPE = "image/png"
@@ -46,9 +46,9 @@ class MediaStoreMediaManager(private val context: Context) : MediaManagerInterfa
 
     private fun createContentValues(name: String, subfolder: String, filetype: String): ContentValues =
         ContentValues().apply {
+            Log.d(TAG, "createContentValues")
             put(MediaStore.MediaColumns.DISPLAY_NAME, name)
             put(MediaStore.MediaColumns.MIME_TYPE, filetype)
-            Log.d(TAG, subfolder)
             when(filetype) {
                 PHOTO_TYPE -> put(MediaStore.Images.Media.RELATIVE_PATH, subfolder)
                 VIDEO_TYPE -> put(MediaStore.Video.Media.RELATIVE_PATH, subfolder)
@@ -194,16 +194,34 @@ class MediaStoreMediaManager(private val context: Context) : MediaManagerInterfa
             } catch (e: IOException) {
                 throw e
             }
+            Log.d(TAG, "created content values: $uri,,, filename: $filename")
             uri
         }
+
+// Show the names of media store entries
+//        getMediaStoreVideoCursor(mediaStoreVideoCollection, albumName).use { cursor ->
+//            if (cursor?.moveToFirst() != true) return null
+//            do {
+//                val videoDataColumn = cursor.getColumnIndexOrThrow(videoDataColumnIndex)
+//                val contentFilePath = cursor.getString(videoDataColumn)
+//                file = File(contentFilePath)
+//                Log.d(TAG, "file ${file!!.name}")
+//            }while (cursor.moveToNext())
+//        }
 
     override suspend fun getLatestVideoFile(albumName: String): File? {
         var file: File?
         if (mediaStoreVideoCollection == null) return null
         getMediaStoreVideoCursor(mediaStoreVideoCollection, albumName).use { cursor ->
             if (cursor?.moveToFirst() != true) return null
-            val videoDataColumn = cursor.getColumnIndexOrThrow(videoDataColumnIndex)
-            val contentFilePath = cursor.getString(videoDataColumn)
+            var videoDataColumn = cursor.getColumnIndexOrThrow(videoDataColumnIndex)
+            var contentFilePath = cursor.getString(videoDataColumn)
+            // MEDIA STORE CREATES DUPLICATED ENTRIES WITH (1) AT THE END OF FILENAME
+            while (contentFilePath.takeLast(5)[0] == ')') {
+                cursor.moveToNext()
+                videoDataColumn = cursor.getColumnIndexOrThrow(videoDataColumnIndex)
+                contentFilePath = cursor.getString(videoDataColumn)
+            }
             file = File(contentFilePath)
         }
         return file
