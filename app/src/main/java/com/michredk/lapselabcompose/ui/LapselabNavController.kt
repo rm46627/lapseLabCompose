@@ -1,0 +1,155 @@
+package com.michredk.lapselabcompose.ui
+
+import android.annotation.SuppressLint
+import android.util.Log
+import androidx.compose.runtime.Composable
+import androidx.navigation.NavGraphBuilder
+import androidx.navigation.NavHostController
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.navigation
+import androidx.navigation.toRoute
+import com.michredk.lapselabcompose.PermissionViewModel
+import com.michredk.lapselabcompose.ui.camera.CameraDestination
+import com.michredk.lapselabcompose.ui.camera.CameraRoute
+import com.michredk.lapselabcompose.ui.camera.PhotoPreviewDestination
+import com.michredk.lapselabcompose.ui.camera.PhotoPreviewRoute
+import com.michredk.lapselabcompose.ui.details.DetailsDestination
+import com.michredk.lapselabcompose.ui.details.DetailsRoute
+import com.michredk.lapselabcompose.ui.details.PhotoBrowserDestination
+import com.michredk.lapselabcompose.ui.details.PhotoBrowserRoute
+import com.michredk.lapselabcompose.ui.gallery.GalleryDestination
+import com.michredk.lapselabcompose.ui.gallery.GalleryRoute
+import com.michredk.lapselabcompose.ui.lab.LabDestination
+import com.michredk.lapselabcompose.ui.lab.LabRoute
+import com.michredk.lapselabcompose.ui.setup.SetupAlbumDestination
+import com.michredk.lapselabcompose.ui.setup.SetupAlbumRoute
+import com.michredk.lapselabcompose.ui.setup.SetupPhotoDestination
+import com.michredk.lapselabcompose.ui.setup.SetupPhotoRoute
+import kotlinx.serialization.Serializable
+
+@Serializable
+object CameraGraph
+
+@Serializable
+object SetupGraph
+
+@Serializable
+object DetailsGraph
+
+@Serializable
+object PhotosGraph
+
+class LapselabNavController(
+    private val navController: NavHostController,
+) {
+
+    @SuppressLint("RestrictedApi")
+    @Composable
+    fun SetupNavGraph(
+        permissionsResultLaunch: () -> Unit,
+        permissionViewModel: PermissionViewModel,
+        showInterstialAd: () -> Unit
+    ) {
+
+        navController.addOnDestinationChangedListener() { controller, _, _ ->
+            val routes = controller
+                .currentBackStack.value
+                .map { it.destination.route }
+                .joinToString(",\n\t")
+
+            Log.d("BackStackLog", "BackStack: $routes")
+        }
+
+        NavHost(
+            navController = navController, startDestination = SplashScreenDestination
+        ) {
+            composable<SplashScreenDestination> {
+                SplashScreenRoute(navController)
+            }
+            composable<OnBoardingDestination> {
+                OnBoardingRoute(navController)
+            }
+            composable<GalleryDestination> {
+                GalleryRoute(navController)
+            }
+            setupGraph(navController, permissionsResultLaunch, permissionViewModel)
+            cameraGraph(navController)
+            detailsGraph(navController, permissionsResultLaunch, permissionViewModel, showInterstialAd)
+            photosGraph(navController)
+        }
+    }
+
+    private fun NavGraphBuilder.setupGraph(
+        navController: NavHostController,
+        permissionsResultLaunch: () -> Unit,
+        permissionViewModel: PermissionViewModel
+    ) {
+        navigation<SetupGraph>(startDestination = SetupAlbumDestination) {
+            composable<SetupAlbumDestination> { backStackEntry ->
+                SetupAlbumRoute(backStackEntry, navController)
+            }
+            composable<SetupPhotoDestination> { backStackEntry ->
+                val args = backStackEntry.toRoute<SetupPhotoDestination>()
+                SetupPhotoRoute(
+                    backStackEntry,
+                    navController,
+                    permissionsResultLaunch,
+                    permissionViewModel,
+                    args.albumName
+                )
+            }
+            cameraGraph(navController)
+        }
+    }
+
+    private fun NavGraphBuilder.cameraGraph(navController: NavHostController) {
+        navigation<CameraGraph>(startDestination = CameraDestination()) {
+            composable<CameraDestination> { backStackEntry ->
+                val args = backStackEntry.toRoute<CameraDestination>()
+                CameraRoute(
+                    backStackEntry,
+                    navController,
+                    args.albumName,
+                    args.navigatedFromAlbumDetails
+                )
+            }
+            composable<PhotoPreviewDestination> { backStackEntry ->
+                val args = backStackEntry.toRoute<PhotoPreviewDestination>()
+                PhotoPreviewRoute(backStackEntry, navController, args.navigatedFromAlbumDetails)
+            }
+        }
+    }
+
+    private fun NavGraphBuilder.detailsGraph(
+        navController: NavHostController,
+        permissionsResultLaunch: () -> Unit,
+        permissionViewModel: PermissionViewModel,
+        showInterstialAd: () -> Unit
+    ) {
+        navigation<DetailsGraph>(startDestination = DetailsDestination()) {
+            composable<DetailsDestination> { backStackEntry ->
+                val args = backStackEntry.toRoute<DetailsDestination>()
+                DetailsRoute(
+                    backStackEntry, navController, args.albumName,
+                    permissionsResultLaunch,
+                    permissionViewModel,
+                )
+            }
+            composable<LabDestination> { backStackEntry ->
+                val args = backStackEntry.toRoute<LabDestination>()
+                LabRoute(backStackEntry, navController, args.albumName, showInterstialAd)
+            }
+        }
+    }
+
+    private fun NavGraphBuilder.photosGraph(navController: NavHostController) {
+        navigation<PhotosGraph>(startDestination = PhotoBrowserDestination()) {
+            composable<PhotoBrowserDestination> { backStackEntry ->
+                val args = backStackEntry.toRoute<PhotoBrowserDestination>()
+                PhotoBrowserRoute(backStackEntry, navController, args.index)
+            }
+        }
+    }
+
+}

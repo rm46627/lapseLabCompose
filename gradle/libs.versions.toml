@@ -4,7 +4,7 @@ cameraLifecycle = "1.3.4"
 cameraxVersion = "1.4.0-rc01"
 coilCompose = "2.6.0"
 datastorePreferencesAndroid = "1.1.1"
-desugar_jdk_libs = "2.0.4"
+desugar_jdk_libs = "2.1.2"
 glide = "1.0.0-beta01"
 coreSplashscreenVersion = "1.0.1"
 kotlin = "2.0.0"
@@ -12,16 +12,17 @@ coreKtx = "1.13.1"
 junit = "4.13.2"
 junitVersion = "1.2.1"
 espressoCore = "3.6.1"
-lifecycleRuntimeKtx = "2.8.4"
-activityCompose = "1.9.1"
-composeBom = "2024.08.00"
-material3 = "1.3.0-rc01"
-media3Transformer = "1.4.0"
-navigationRuntimeKtx = "2.7.7"
+lifecycleRuntimeKtx = "2.8.5"
+activityCompose = "1.9.2"
+composeBom = "2024.09.00"
+material3 = "1.3.0"
+media3Transformer = "1.4.1"
+navigationRuntimeKtx = "2.8.0"
 kotlinxSerializationJson = "1.7.0"
-navigationCompose = "2.8.0-rc01"
-uiTextGoogleFonts = "1.6.8"
-materialIconsExtended = "1.6.8"
+navigationCompose = "2.8.0"
+playServicesAds = "23.3.0"
+uiTextGoogleFonts = "1.7.0"
+materialIconsExtended = "1.7.0"
 
 roomCompiler = "2.6.1"
 hiltAndroid = "2.51.1"
@@ -83,6 +84,7 @@ material = { group = "com.google.android.material", name = "material", version.r
 
 androidx-material-icons-extended = { module = "androidx.compose.material:material-icons-extended", version.ref = "materialIconsExtended" }
 material3 = { module = "androidx.compose.material3:material3", version.ref = "material3" }
+play-services-ads = { module = "com.google.android.gms:play-services-ads", version.ref = "playServicesAds" }
 
 
 [plugins]

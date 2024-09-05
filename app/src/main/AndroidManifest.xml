@@ -37,6 +37,9 @@
             </intent-filter>
         </activity>
         <receiver android:name=".services.AlarmReceiver" />
+        <meta-data
+            android:name="com.google.android.gms.ads.APPLICATION_ID"
+            android:value="ca-app-pub-1091895857582029~5339985494"/>
     </application>
 
 </manifest>

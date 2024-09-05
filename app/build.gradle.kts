@@ -8,7 +8,7 @@ plugins {
 }
 
 android {
-    namespace = "com.example.lapselabcompose"
+    namespace = "com.michredk.lapselabcompose"
     compileSdk = 34
 
     defaultConfig {
@@ -116,6 +116,7 @@ dependencies {
     implementation(libs.androidx.media3.ui)
 
 //    implementation(libs.androidx.datastore.preferences.android)
+    implementation(libs.play.services.ads)
 
 
 }

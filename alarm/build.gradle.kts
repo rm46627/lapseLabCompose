@@ -4,7 +4,7 @@ plugins {
 }
 
 android {
-    namespace = "com.example.alarm"
+    namespace = "com.michredk.alarm"
     compileSdk = 34
 
     defaultConfig {

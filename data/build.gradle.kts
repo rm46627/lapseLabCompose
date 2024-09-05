@@ -5,7 +5,7 @@ plugins {
 }
 
 android {
-    namespace = "com.example.database"
+    namespace = "com.michredk.database"
     compileSdk = 34
 
     defaultConfig {
@@ -25,7 +25,7 @@ android {
         }
     }
     compileOptions {
-        isCoreLibraryDesugaringEnabled = true
+//        isCoreLibraryDesugaringEnabled = true
         sourceCompatibility = JavaVersion.VERSION_1_8
         targetCompatibility = JavaVersion.VERSION_1_8
     }
@@ -54,7 +54,7 @@ dependencies {
     ksp(libs.androidx.room.compiler)
     implementation(libs.androidx.room.ktx)
 
-    coreLibraryDesugaring(libs.desugar.jdk.libs)
+//    coreLibraryDesugaring(libs.desugar.jdk.libs)
 
     implementation(libs.androidx.datastore.preferences.android)
 }

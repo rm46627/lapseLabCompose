@@ -4,7 +4,7 @@ plugins {
 }
 
 android {
-    namespace = "com.example.files"
+    namespace = "com.michredk.files"
     compileSdk = 34
 
     defaultConfig {

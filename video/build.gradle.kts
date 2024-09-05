@@ -4,7 +4,7 @@ plugins {
 }
 
 android {
-    namespace = "com.example.video"
+    namespace = "com.michredk.video"
     compileSdk = 34
 
     defaultConfig {

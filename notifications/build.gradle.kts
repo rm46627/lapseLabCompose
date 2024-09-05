@@ -4,7 +4,7 @@ plugins {
 }
 
 android {
-    namespace = "com.example.notifications"
+    namespace = "com.michredk.notifications"
     compileSdk = 34
 
     defaultConfig {
