@@ -1,4 +1,4 @@
-package com.michredk.lapselabcompose
+package com.michredk.lapselabcompose.ui
 
 import android.Manifest
 import android.annotation.SuppressLint
@@ -18,9 +18,19 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarDuration
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.SnackbarResult
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.snapshots.SnapshotStateList
+import androidx.compose.ui.Modifier
 import androidx.core.content.ContextCompat
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.lifecycle.ViewModel
@@ -33,7 +43,9 @@ import com.google.android.gms.ads.MobileAds
 import com.google.android.gms.ads.RequestConfiguration
 import com.google.android.gms.ads.interstitial.InterstitialAd
 import com.google.android.gms.ads.interstitial.InterstitialAdLoadCallback
-import com.michredk.lapselabcompose.ui.LapselabNavController
+import com.michredk.lapselabcompose.ui.common.ObserveAsEvents
+import com.michredk.lapselabcompose.TAG
+import com.michredk.lapselabcompose.services.SnackbarController
 import com.michredk.lapselabcompose.ui.common.CameraPermissionTextProvider
 import com.michredk.lapselabcompose.ui.common.PermissionDialog
 import com.michredk.lapselabcompose.ui.theme.LapseLabComposeTheme
@@ -62,9 +74,10 @@ class MainActivity : ComponentActivity() {
         CoroutineScope(Dispatchers.IO).launch {
             // Initialize the Google Mobile Ads SDK on a background thread.
             MobileAds.initialize(this@MainActivity) {}
-//            MobileAds.setRequestConfiguration(
-//                RequestConfiguration.Builder().setTestDeviceIds(listOf("ABCDEF012345")).build()
-//            )
+            MobileAds.setRequestConfiguration(
+                RequestConfiguration.Builder()
+                    .setTestDeviceIds(listOf("545D4AC067871249CD54F65223A886E5")).build()
+            )
             runOnUiThread {
                 // Load an ad on the main thread.
                 loadInterstitialAd()
@@ -85,16 +98,39 @@ class MainActivity : ComponentActivity() {
             LapseLabComposeTheme {
                 val multiplePermissionResultLauncher =
                     managedActivityResultLauncher(permissionViewModel)
-
-                LapselabNavController(rememberNavController()).SetupNavGraph(
-                    permissionsResultLaunch = {
-                        multiplePermissionResultLauncher.launch(permissionsToRequest)
-                    }, permissionViewModel = permissionViewModel, ::showInterstitialAd, ::loadInterstitialAd
-                )
-
-                DisplayPermissionDialogs(
-                    dialogQueue, permissionViewModel, multiplePermissionResultLauncher
-                )
+                val snackbarHostState = remember {
+                    SnackbarHostState()
+                }
+                val scope = rememberCoroutineScope()
+                ObserveAsEvents(flow = SnackbarController.events, snackbarHostState) { event ->
+                    scope.launch {
+                        snackbarHostState.currentSnackbarData?.dismiss()
+                        val result = snackbarHostState.showSnackbar(
+                            message = event.message,
+                            actionLabel = event.actionObj?.name,
+                            duration = SnackbarDuration.Long
+                        )
+                        if(result == SnackbarResult.ActionPerformed) {
+                            event.actionObj?.action?.invoke()
+                        }
+                    }
+                }
+                Scaffold(
+                    snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
+                    modifier = Modifier.fillMaxSize()
+                ) { innerPadding ->
+                    LapselabNavController(rememberNavController()).SetupNavGraph(
+                        modifier = Modifier.padding(innerPadding),
+                        permissionsResultLaunch = {
+                            multiplePermissionResultLauncher.launch(permissionsToRequest)
+                        },
+                        permissionViewModel = permissionViewModel,
+                        showInterstitialAd = ::showInterstitialAd
+                    )
+                    DisplayPermissionDialogs(
+                        dialogQueue, permissionViewModel, multiplePermissionResultLauncher
+                    )
+                }
             }
         }
     }

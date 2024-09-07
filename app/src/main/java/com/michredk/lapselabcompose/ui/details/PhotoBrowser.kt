@@ -56,14 +56,14 @@ fun PhotoBrowserRoute(
         PhotoBrowserScreen(
             onNextButtonClicked = {
                 navController.navigate(PhotoBrowserDestination(index + 1)) {
-                    popUpTo(PhotosGraph){
+                    popUpTo(PhotosGraph) {
                         inclusive = true
                     }
                 }
             },
             onPreviousButtonClicked = {
                 navController.navigate(PhotoBrowserDestination(index - 1)) {
-                    popUpTo(PhotosGraph){
+                    popUpTo(PhotosGraph) {
                         inclusive = true
                     }
                 }
@@ -75,9 +75,9 @@ fun PhotoBrowserRoute(
                     viewModel.setPhotos(updatedPhotos)
 
                     if (photos.size > 1) {
-                        val destIndex = if(index == 0) 0 else index - 1
+                        val destIndex = if (index == 0) 0 else index - 1
                         navController.navigate(PhotoBrowserDestination(destIndex)) {
-                            popUpTo(PhotosGraph){
+                            popUpTo(PhotosGraph) {
                                 inclusive = true
                             }
                         }
@@ -104,46 +104,44 @@ fun PhotoBrowserScreen(
     index: Int,
     isLastPhoto: Boolean
 ) {
-    Scaffold { padding ->
-        Box(
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+    ) {
+        AsyncImage(
             modifier = Modifier
-                .fillMaxSize()
-                .padding(padding)
-        ) {
-            AsyncImage(
-                modifier = Modifier
-                    .fillMaxSize(),
-                model = ImageRequest.Builder(LocalContext.current)
-                    .data(photoPath)
-                    .crossfade(1000)
-                    .build(),
-                contentDescription = "Gallery photo",
-                contentScale = ContentScale.Crop,
-            )
-            Column(modifier = Modifier.fillMaxSize()) {
-                Text(text = date)
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                ) {
-                    if (index != 0) {
-                        IconButton(onClick = onPreviousButtonClicked) {
-                            Icon(imageVector = Icons.Default.ArrowBackIos, contentDescription = "")
-                        }
+                .fillMaxSize(),
+            model = ImageRequest.Builder(LocalContext.current)
+                .data(photoPath)
+                .crossfade(1000)
+                .build(),
+            contentDescription = "Gallery photo",
+            contentScale = ContentScale.Crop,
+        )
+        Column(modifier = Modifier.fillMaxSize()) {
+            Text(text = date)
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+            ) {
+                if (index != 0) {
+                    IconButton(onClick = onPreviousButtonClicked) {
+                        Icon(imageVector = Icons.Default.ArrowBackIos, contentDescription = "")
                     }
-                    IconButton(onClick = onDeleteButtonClicked) {
-                        Icon(imageVector = Icons.Default.DeleteForever, contentDescription = "")
-                    }
-                    if (!isLastPhoto) {
-                        IconButton(onClick = onNextButtonClicked) {
-                            Icon(
-                                imageVector = Icons.Default.ArrowForwardIos,
-                                contentDescription = ""
-                            )
-                        }
+                }
+                IconButton(onClick = onDeleteButtonClicked) {
+                    Icon(imageVector = Icons.Default.DeleteForever, contentDescription = "")
+                }
+                if (!isLastPhoto) {
+                    IconButton(onClick = onNextButtonClicked) {
+                        Icon(
+                            imageVector = Icons.Default.ArrowForwardIos,
+                            contentDescription = ""
+                        )
                     }
                 }
             }
         }
     }
+
 }
 

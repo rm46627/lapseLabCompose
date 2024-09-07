@@ -1,4 +1,4 @@
-package com.michredk.lapselabcompose.ui
+package com.michredk.lapselabcompose.ui.startup
 
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.tween
@@ -6,10 +6,8 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
@@ -66,24 +64,21 @@ fun SplashScreen(navigateAfterAnimation: () -> Unit) {
         navigateAfterAnimation()
     }
 
-    Scaffold {
-        Column(
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(MaterialTheme.colorScheme.background)
+    ) {
+        Icon(
             modifier = Modifier
-                .padding(it)
-                .fillMaxSize()
-                .background(MaterialTheme.colorScheme.background)
-        ) {
-            Icon(
-                modifier = Modifier
-                    .weight(3f)
-                    .scale(0.95f)
-                    .alpha(alpha.value),
-                tint = Color.Unspecified,
-                painter = painterResource(id = R.drawable.logofinal),
-                contentDescription = "LapseLab logo"
-            )
-            Spacer(modifier = Modifier.weight(1f))
-        }
+                .weight(3f)
+                .scale(0.95f)
+                .alpha(alpha.value),
+            tint = Color.Unspecified,
+            painter = painterResource(id = R.drawable.logofinal),
+            contentDescription = "LapseLab logo"
+        )
+        Spacer(modifier = Modifier.weight(1f))
     }
 }
 

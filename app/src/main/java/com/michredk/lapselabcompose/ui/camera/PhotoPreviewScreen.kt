@@ -78,38 +78,36 @@ fun PhotoPreviewScreen(
     onDiscardClicked: () -> Unit,
     onAcceptClicked: () -> Unit,
 ) {
-    Scaffold { padding ->
-        Box(
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+    ) {
+        Image(
+            bitmap = bitmap.asImageBitmap(),
+            contentDescription = null,
             modifier = Modifier
                 .fillMaxSize()
-                .padding(padding)
+        )
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .align(Alignment.BottomCenter)
+                .padding(16.dp),
+            horizontalArrangement = Arrangement.SpaceAround
         ) {
-            Image(
-                bitmap = bitmap.asImageBitmap(),
-                contentDescription = null,
-                modifier = Modifier
-                    .fillMaxSize()
-            )
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .align(Alignment.BottomCenter)
-                    .padding(16.dp),
-                horizontalArrangement = Arrangement.SpaceAround
-            ) {
-                IconButton(onClick = onDiscardClicked) {
-                    Icon(
-                        imageVector = Icons.Default.Delete,
-                        contentDescription = "Discard image button"
-                    )
-                }
-                IconButton(onClick = { onAcceptClicked() }) {
-                    Icon(
-                        imageVector = Icons.Default.Check,
-                        contentDescription = "Accept image button"
-                    )
-                }
+            IconButton(onClick = onDiscardClicked) {
+                Icon(
+                    imageVector = Icons.Default.Delete,
+                    contentDescription = "Discard image button"
+                )
+            }
+            IconButton(onClick = { onAcceptClicked() }) {
+                Icon(
+                    imageVector = Icons.Default.Check,
+                    contentDescription = "Accept image button"
+                )
             }
         }
     }
+
 }

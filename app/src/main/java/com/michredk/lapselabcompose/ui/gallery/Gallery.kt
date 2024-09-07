@@ -128,35 +128,33 @@ fun GalleryScreen(
 ) {
     // adds creating new album card
     val albumsWithExtras = albums.plus(Album())
-    Scaffold {
-        Box(
-            modifier = Modifier
-                .padding(it)
-                .fillMaxSize()
-                .background(MaterialTheme.colorScheme.background)
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(MaterialTheme.colorScheme.background)
+    ) {
+        LazyVerticalGrid(
+            columns = GridCells.Fixed(2), contentPadding = PaddingValues(
+                start = 12.dp, top = 16.dp, end = 12.dp, bottom = 16.dp
+            )
         ) {
-            LazyVerticalGrid(
-                columns = GridCells.Fixed(2), contentPadding = PaddingValues(
-                    start = 12.dp, top = 16.dp, end = 12.dp, bottom = 16.dp
-                )
-            ) {
-                itemsIndexed(items = albumsWithExtras, key = { index, album ->
-                    album.id
-                }) { index, album ->
-                    if (index == albums.size) {
-                        CreateCard(onCreateClick)
-                    } else {
-                        GalleryItem(
-                            album = album,
-                            onAlbumClick,
-                            dropDownItems = dropDownItems,
-                            onMenuItemClicked = onMenuItemClicked
-                        )
-                    }
+            itemsIndexed(items = albumsWithExtras, key = { index, album ->
+                album.id
+            }) { index, album ->
+                if (index == albums.size) {
+                    CreateCard(onCreateClick)
+                } else {
+                    GalleryItem(
+                        album = album,
+                        onAlbumClick,
+                        dropDownItems = dropDownItems,
+                        onMenuItemClicked = onMenuItemClicked
+                    )
                 }
             }
         }
     }
+
 }
 
 @Composable
@@ -176,7 +174,7 @@ fun GalleryItem(
         mutableStateOf(0.dp)
     }
     val density = LocalDensity.current
-    val interactionSource = remember{
+    val interactionSource = remember {
         MutableInteractionSource()
     }
 
@@ -189,9 +187,9 @@ fun GalleryItem(
             detectTapGestures(
                 onTap = { onGalleryItemClick(album.directoryName) },
                 onLongPress = {
-                isContextMenuVisible = true
-                pressOffset = DpOffset(it.x.toDp(), it.y.toDp())
-            },
+                    isContextMenuVisible = true
+                    pressOffset = DpOffset(it.x.toDp(), it.y.toDp())
+                },
                 onPress = {
                     val press = PressInteraction.Press(it)
                     interactionSource.emit(press)

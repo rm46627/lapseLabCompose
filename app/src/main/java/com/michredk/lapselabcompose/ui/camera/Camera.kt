@@ -96,39 +96,35 @@ fun CameraScreen(onPhotoTaken: (Bitmap) -> Unit) {
             setEnabledUseCases(CameraController.IMAGE_CAPTURE)
         }
     }
-
-    Scaffold { padding ->
-        Box(
-            modifier = Modifier
-                .padding(padding)
-                .fillMaxSize()
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+    ) {
+        CameraPreview(controller = controller, modifier = Modifier.fillMaxSize())
+        IconButton(
+            onClick = {
+                controller.cameraSelector =
+                    if (controller.cameraSelector == CameraSelector.DEFAULT_BACK_CAMERA) {
+                        CameraSelector.DEFAULT_FRONT_CAMERA
+                    } else CameraSelector.DEFAULT_BACK_CAMERA
+            }, modifier = Modifier.offset(16.dp, 16.dp)
         ) {
-            CameraPreview(controller = controller, modifier = Modifier.fillMaxSize())
-            IconButton(
-                onClick = {
-                    controller.cameraSelector =
-                        if (controller.cameraSelector == CameraSelector.DEFAULT_BACK_CAMERA) {
-                            CameraSelector.DEFAULT_FRONT_CAMERA
-                        } else CameraSelector.DEFAULT_BACK_CAMERA
-                }, modifier = Modifier.offset(16.dp, 16.dp)
-            ) {
-                Icon(imageVector = Icons.Default.Cameraswitch, contentDescription = "Switch camera")
-            }
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .align(Alignment.BottomCenter)
-                    .padding(16.dp),
-                horizontalArrangement = Arrangement.SpaceAround
-            ) {
-                IconButton(onClick = {
+            Icon(imageVector = Icons.Default.Cameraswitch, contentDescription = "Switch camera")
+        }
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .align(Alignment.BottomCenter)
+                .padding(16.dp),
+            horizontalArrangement = Arrangement.SpaceAround
+        ) {
+            IconButton(onClick = {
 
-                }) {
-                    Icon(imageVector = Icons.Default.PeopleAlt, contentDescription = "Open gallery")
-                }
-                CaptureButton(controller, context, onPhotoTaken)
-                Spacer(modifier = Modifier.width(10.dp))
+            }) {
+                Icon(imageVector = Icons.Default.PeopleAlt, contentDescription = "Open gallery")
             }
+            CaptureButton(controller, context, onPhotoTaken)
+            Spacer(modifier = Modifier.width(10.dp))
         }
     }
 }

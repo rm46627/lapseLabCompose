@@ -6,7 +6,7 @@ import androidx.lifecycle.viewModelScope
 import com.michredk.database.Album
 import com.michredk.database.Repository
 import com.michredk.lapselabcompose.TAG
-import com.michredk.lapselabcompose.services.AlarmScheduler
+import com.michredk.lapselabcompose.services.alarm.AlarmScheduler
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch

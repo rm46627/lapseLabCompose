@@ -27,7 +27,7 @@
         android:theme="@style/Theme.LapseLabCompose"
         tools:targetApi="31">
         <activity
-            android:name=".MainActivity"
+            android:name=".ui.MainActivity"
             android:exported="true"
             android:theme="@style/Theme.LapseLabCompose.MySplash">
             <intent-filter>
@@ -36,7 +36,7 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <receiver android:name=".services.AlarmReceiver" />
+        <receiver android:name=".services.alarm.AlarmReceiver" />
         <meta-data
             android:name="com.google.android.gms.ads.APPLICATION_ID"
             android:value="ca-app-pub-1091895857582029~5339985494"/>

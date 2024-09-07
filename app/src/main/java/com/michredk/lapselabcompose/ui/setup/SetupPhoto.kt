@@ -5,10 +5,8 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -29,7 +27,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.NavHostController
 import com.michredk.lapselab.files.MediaManagerFactory
-import com.michredk.lapselabcompose.PermissionViewModel
+import com.michredk.lapselabcompose.ui.PermissionViewModel
 import com.michredk.lapselabcompose.R
 import com.michredk.lapselabcompose.ui.SetupGraph
 import com.michredk.lapselabcompose.ui.common.BackHandlingDialog
@@ -39,7 +37,7 @@ import kotlinx.coroutines.launch
 import androidx.navigation.NavBackStackEntry
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
-import com.michredk.lapselabcompose.services.AlarmScheduler
+import com.michredk.lapselabcompose.services.alarm.AlarmScheduler
 import kotlinx.serialization.Serializable
 
 //TODO: Display modal explaining storing photos and how to exclude them from the system app gallery
@@ -120,39 +118,36 @@ fun SetupPhotoScreen(
             photoPath = MediaManagerFactory(context).getLatestPhotoFile(albumName)?.absolutePath
         }
     }
-
-    Scaffold {
-        Column(
-            Modifier
-                .padding(it)
-                .fillMaxSize(),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Column(modifier = Modifier.weight(3f)) {
-                Text(text = "Add your first photo!")
-                AsyncImage(
-                    modifier = Modifier
-                        .width(300.dp)
-                        .height(400.dp)
-                        .clickable { onFirstImagePreviewClicked(albumName) },
-                    model = ImageRequest.Builder(LocalContext.current)
-                        .data(photoPath)
-                        .crossfade(1000)
-                        .transformations()
-                        .build(),
-                    contentDescription = "First album photo",
-                    error = painterResource(id = R.drawable.ic_add_photo)
-                )
-                photoPath?.let {
-                    OutlinedButton(onClick = {
-                        onCreateAlbumClicked(it)
-                    }) {
-                        Text(text = "Create new album")
-                    }
+    Column(
+        Modifier
+            .fillMaxSize(),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Column(modifier = Modifier.weight(3f)) {
+            Text(text = "Add your first photo!")
+            AsyncImage(
+                modifier = Modifier
+                    .width(300.dp)
+                    .height(400.dp)
+                    .clickable { onFirstImagePreviewClicked(albumName) },
+                model = ImageRequest.Builder(LocalContext.current)
+                    .data(photoPath)
+                    .crossfade(1000)
+                    .transformations()
+                    .build(),
+                contentDescription = "First album photo",
+                error = painterResource(id = R.drawable.ic_add_photo)
+            )
+            photoPath?.let {
+                OutlinedButton(onClick = {
+                    onCreateAlbumClicked(it)
+                }) {
+                    Text(text = "Create new album")
                 }
             }
-            Spacer(modifier = Modifier.weight(1F))
         }
+        Spacer(modifier = Modifier.weight(1F))
+
     }
 
     val coroutineScope = rememberCoroutineScope()

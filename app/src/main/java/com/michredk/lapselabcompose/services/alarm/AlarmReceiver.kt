@@ -1,4 +1,4 @@
-package com.michredk.lapselabcompose.services
+package com.michredk.lapselabcompose.services.alarm
 
 import android.app.NotificationManager
 import android.content.BroadcastReceiver

@@ -1,4 +1,4 @@
-package com.michredk.lapselabcompose.ui.lab
+package com.michredk.lapselabcompose.ui.details
 
 import android.util.Log
 import androidx.activity.compose.BackHandler
@@ -13,7 +13,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -40,14 +39,16 @@ import androidx.navigation.NavHostController
 import com.michredk.files.appMoviesDir
 import com.michredk.lapselab.files.MediaManagerFactory
 import com.michredk.lapselabcompose.TAG
+import com.michredk.lapselabcompose.services.SnackbarController
+import com.michredk.lapselabcompose.services.SnackbarEvent
 import com.michredk.lapselabcompose.ui.DetailsGraph
-import com.michredk.lapselabcompose.ui.details.DetailsViewModel
 import com.michredk.video.LapseCreator
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
+import java.lang.NullPointerException
 
-// TODO: make screen animate alpha to 0f in BackHandler and on generate video btn click
+// TODO: make screen animate alpha to 0f in BackHandler and on generate video btn click with showScreen
 
 @Serializable
 data class LabDestination(val albumName: String? = null)
@@ -71,17 +72,16 @@ fun LabRoute(
     val exoPlayer = ExoPlayer.Builder(context).build()
     val mediaManager = MediaManagerFactory(context)
 
-    var showScreen by remember { mutableStateOf(true)}
+    var showScreen by remember { mutableStateOf(true) }
     BackHandler {
         showScreen = false
         navController.popBackStack()
     }
     var videoUriState by remember { mutableStateOf<String?>(null) }
     LaunchedEffect(Unit) {
-        val result = mediaManager.getLatestVideoFile(
+        videoUriState = mediaManager.getLatestVideoFile(
             albumName ?: throw IllegalArgumentException()
         )?.absolutePath
-        videoUriState = result
     }
 
     var mediaSource = remember(videoUriState) {
@@ -96,44 +96,47 @@ fun LabRoute(
         exoPlayer.prepare()
     }
 
-    DisposableEffect(Unit) {
-        onDispose {
-            exoPlayer.release()
-        }
-    }
-
     val scope = rememberCoroutineScope()
     var isLoading by remember { mutableStateOf(false) }
 
-    if(showScreen){
+    if (showScreen) {
         LabScreen(
             exoPlayer,
             mediaSource,
             onGenerateVideoBtnClicked = {
-                showInterstitialAd()
+                isLoading = true
                 scope.launch {
-                    isLoading = true
                     try {
+                        val photosSafe = photos ?: throw NullPointerException()
+                        if (photosSafe.size < 2) throw IllegalArgumentException()
+                        Log.d(TAG, "after if for 2 pictures")
+                        showInterstitialAd()
                         val lab = LapseCreator(context, album!!)
-                        val filename = lab.createVideo(photos ?: throw IllegalArgumentException())
+                        val filename = lab.createVideo(photosSafe)
                         MediaManagerFactory(context).saveVideo(
                             filename,
                             "$appMoviesDir/${album!!.directoryName}"
                         )
                         exoPlayer.release()
                         mediaSource = null
-                    } finally {
-                        videoUriState = mediaManager.getLatestVideoFile(
-                            albumName ?: throw IllegalArgumentException()
-                        )?.absolutePath
-                        isLoading = false
-                        navController.navigate(LabDestination(albumName)){
+                        navController.navigate(LabDestination(albumName)) {
                             popUpTo(LabDestination(albumName)) {
                                 inclusive = true
                             }
                         }
+                    } catch (e: IllegalArgumentException) {
+                        scope.launch {
+                            SnackbarController.sendEvent(
+                                event = SnackbarEvent(
+                                    message = "Need at least two pictures to generate video"
+                                )
+                            )
+                        }
+                    } finally {
+                        isLoading = false
                     }
                 }
+
             },
             onTestBtnClicked = {
 
@@ -141,6 +144,11 @@ fun LabRoute(
             testBtnText = "Nothing",
             isLoading
         )
+    }
+    DisposableEffect(Unit) {
+        onDispose {
+            exoPlayer.release()
+        }
     }
 }
 
@@ -153,49 +161,46 @@ fun LabScreen(
     testBtnText: String,
     isLoading: Boolean
 ) {
-    Scaffold { padding ->
-        Column(
-            Modifier
-                .padding(padding)
-                .fillMaxSize(),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.SpaceBetween
-        ) {
-            if (mediaSource != null) {
-                AndroidView(
-                    factory = { ctx ->
-                        PlayerView(ctx).apply {
-                            player = exoPlayer
-                        }
-                    },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(400.dp) // Set your desired height
-                )
-                exoPlayer.repeatMode = ExoPlayer.REPEAT_MODE_ALL
-                exoPlayer.play()
-            }
-            Button(onClick = onGenerateVideoBtnClicked) {
-                Text(text = "generate video")
-            }
-            Button(onClick = onTestBtnClicked) {
-                Text(text = testBtnText)
-            }
-
-        }
-        if (isLoading) {
-            Box(
+    Column(
+        Modifier
+            .fillMaxSize(),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.SpaceBetween
+    ) {
+        if (mediaSource != null) {
+            AndroidView(
+                factory = { ctx ->
+                    PlayerView(ctx).apply {
+                        player = exoPlayer
+                    }
+                },
                 modifier = Modifier
-                    .background(color = Color.White.copy(alpha = 0.5f))
-                    .fillMaxSize()
-            ) {
-                CircularProgressIndicator(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(200.dp)
-                        .padding(64.dp)
-                )
-            }
+                    .fillMaxWidth()
+                    .height(400.dp) // Set your desired height
+            )
+            exoPlayer.repeatMode = ExoPlayer.REPEAT_MODE_ALL
+            exoPlayer.play()
+        }
+        Button(onClick = onGenerateVideoBtnClicked) {
+            Text(text = "generate video")
+        }
+        Button(onClick = onTestBtnClicked) {
+            Text(text = testBtnText)
+        }
+
+    }
+    if (isLoading) {
+        Box(
+            modifier = Modifier
+                .background(color = Color.White.copy(alpha = 0.5f))
+                .fillMaxSize()
+        ) {
+            CircularProgressIndicator(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(200.dp)
+                    .padding(64.dp)
+            )
         }
     }
 }

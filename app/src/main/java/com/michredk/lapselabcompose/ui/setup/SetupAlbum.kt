@@ -76,66 +76,63 @@ fun SetupAlbumScreen(
     checkFrequencyValidity: (String) -> Boolean,
     onLeaveAlertClicked: () -> Unit
 ) {
-    Scaffold {
-        Column(
-            modifier = Modifier
-                .padding(it)
-                .padding(16.dp, 32.dp)
-                .fillMaxSize()
-                .background(MaterialTheme.colorScheme.background),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            var nameIsValid by remember { mutableStateOf(false) }
-            var notificationsSet by remember { mutableStateOf(false) }
-            var frequencyError by remember { mutableStateOf(false) }
-            val nextButtonEnabled by remember {
-                derivedStateOf {
-                    nameIsValid && notificationsSet
-                }
+    Column(
+        modifier = Modifier
+            .padding(16.dp, 32.dp)
+            .fillMaxSize()
+            .background(MaterialTheme.colorScheme.background),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        var nameIsValid by remember { mutableStateOf(false) }
+        var notificationsSet by remember { mutableStateOf(false) }
+        var frequencyError by remember { mutableStateOf(false) }
+        val nextButtonEnabled by remember {
+            derivedStateOf {
+                nameIsValid && notificationsSet
             }
+        }
 
-            Text(text = stringResource(R.string.album_setup_title))
-            Spacer(modifier = Modifier.height(32.dp))
-            NameTextField(
-                checkForNameConflict = checkForNameConflict,
-                onNameValidityChanged = { isValid -> nameIsValid = isValid }
+        Text(text = stringResource(R.string.album_setup_title))
+        Spacer(modifier = Modifier.height(32.dp))
+        NameTextField(
+            checkForNameConflict = checkForNameConflict,
+            onNameValidityChanged = { isValid -> nameIsValid = isValid }
+        )
+
+        Column(modifier = Modifier.padding(16.dp)) {
+            Text(
+                text = stringResource(R.string.notifications_options_label),
+                textAlign = TextAlign.Center
             )
+            DropDownMenu(
+                items = listOf(
+                    "I don't need a reminder",
+                    "Everyday",
+                    "Every 2 days",
+                    "Once a week",
+                    "Every 3 weeks",
+                    "Once a month",
+                    "Every 6 months"
+                ), "Select or type frequency",
+                onValueChanged = { value ->
+                    if (value.isNotEmpty() && checkFrequencyValidity(value)) {
+                        notificationsSet = true
+                        frequencyError = false
+                    } else {
+                        frequencyError = true
+                        notificationsSet = false
+                    }
+                },
+                supportingText = "You can edit the available options to e.g. 'Every 3 days' or 'Every 2 weeks'",
+                isError = frequencyError
+            )
+        }
 
-            Column(modifier = Modifier.padding(16.dp)) {
-                Text(
-                    text = stringResource(R.string.notifications_options_label),
-                    textAlign = TextAlign.Center
-                )
-                DropDownMenu(
-                    items = listOf(
-                        "I don't need a reminder",
-                        "Everyday",
-                        "Every 2 days",
-                        "Once a week",
-                        "Every 3 weeks",
-                        "Once a month",
-                        "Every 6 months"
-                    ), "Select or type frequency",
-                    onValueChanged = { value ->
-                        if (value.isNotEmpty() && checkFrequencyValidity(value)) {
-                            notificationsSet = true
-                            frequencyError = false
-                        } else {
-                            frequencyError = true
-                            notificationsSet = false
-                        }
-                    },
-                    supportingText = "You can edit the available options to e.g. 'Every 3 days' or 'Every 2 weeks'",
-                    isError = frequencyError
-                )
-            }
-
-            if (nextButtonEnabled) {
-                OutlinedButton(
-                    onClick = onNextButtonClicked
-                ) {
-                    Text(text = "Next")
-                }
+        if (nextButtonEnabled) {
+            OutlinedButton(
+                onClick = onNextButtonClicked
+            ) {
+                Text(text = "Next")
             }
         }
     }

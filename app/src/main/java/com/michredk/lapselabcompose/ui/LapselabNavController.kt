@@ -3,13 +3,13 @@ package com.michredk.lapselabcompose.ui
 import android.annotation.SuppressLint
 import android.util.Log
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.navigation
 import androidx.navigation.toRoute
-import com.michredk.lapselabcompose.PermissionViewModel
 import com.michredk.lapselabcompose.ui.camera.CameraDestination
 import com.michredk.lapselabcompose.ui.camera.CameraRoute
 import com.michredk.lapselabcompose.ui.camera.PhotoPreviewDestination
@@ -20,8 +20,12 @@ import com.michredk.lapselabcompose.ui.details.PhotoBrowserDestination
 import com.michredk.lapselabcompose.ui.details.PhotoBrowserRoute
 import com.michredk.lapselabcompose.ui.gallery.GalleryDestination
 import com.michredk.lapselabcompose.ui.gallery.GalleryRoute
-import com.michredk.lapselabcompose.ui.lab.LabDestination
-import com.michredk.lapselabcompose.ui.lab.LabRoute
+import com.michredk.lapselabcompose.ui.details.LabDestination
+import com.michredk.lapselabcompose.ui.details.LabRoute
+import com.michredk.lapselabcompose.ui.startup.OnBoardingDestination
+import com.michredk.lapselabcompose.ui.startup.OnBoardingRoute
+import com.michredk.lapselabcompose.ui.startup.SplashScreenDestination
+import com.michredk.lapselabcompose.ui.startup.SplashScreenRoute
 import com.michredk.lapselabcompose.ui.setup.SetupAlbumDestination
 import com.michredk.lapselabcompose.ui.setup.SetupAlbumRoute
 import com.michredk.lapselabcompose.ui.setup.SetupPhotoDestination
@@ -47,9 +51,10 @@ class LapselabNavController(
     @SuppressLint("RestrictedApi")
     @Composable
     fun SetupNavGraph(
+        modifier: Modifier,
         permissionsResultLaunch: () -> Unit,
         permissionViewModel: PermissionViewModel,
-        showInterstialAd: () -> Unit
+        showInterstitialAd: () -> Unit
     ) {
 
         navController.addOnDestinationChangedListener() { controller, _, _ ->
@@ -62,7 +67,7 @@ class LapselabNavController(
         }
 
         NavHost(
-            navController = navController, startDestination = SplashScreenDestination
+            modifier = modifier, navController = navController, startDestination = SplashScreenDestination
         ) {
             composable<SplashScreenDestination> {
                 SplashScreenRoute(navController)
@@ -75,7 +80,7 @@ class LapselabNavController(
             }
             setupGraph(navController, permissionsResultLaunch, permissionViewModel)
             cameraGraph(navController)
-            detailsGraph(navController, permissionsResultLaunch, permissionViewModel, showInterstialAd)
+            detailsGraph(navController, permissionsResultLaunch, permissionViewModel, showInterstitialAd)
             photosGraph(navController)
         }
     }
