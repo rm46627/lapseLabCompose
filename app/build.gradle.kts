@@ -69,7 +69,6 @@ dependencies {
     implementation(project(":data"))
     implementation(project(":files"))
     implementation(project(":video"))
-    implementation(project(":alarm"))
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)

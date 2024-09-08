@@ -31,6 +31,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.core.content.ContextCompat
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.lifecycle.ViewModel
@@ -46,6 +47,7 @@ import com.google.android.gms.ads.interstitial.InterstitialAdLoadCallback
 import com.michredk.lapselabcompose.ui.common.ObserveAsEvents
 import com.michredk.lapselabcompose.TAG
 import com.michredk.lapselabcompose.services.SnackbarController
+import com.michredk.lapselabcompose.services.alarm.AlarmScheduler
 import com.michredk.lapselabcompose.ui.common.CameraPermissionTextProvider
 import com.michredk.lapselabcompose.ui.common.PermissionDialog
 import com.michredk.lapselabcompose.ui.theme.LapseLabComposeTheme

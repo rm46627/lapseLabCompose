@@ -36,6 +36,8 @@ import com.michredk.lapselabcompose.ui.common.BackHandlingDialog
 import com.michredk.lapselabcompose.ui.common.DropDownMenu
 import kotlinx.serialization.Serializable
 
+// TODO: Prevent creating album with forbidden names like 9:12
+
 @Serializable
 object SetupAlbumDestination
 
@@ -50,23 +52,27 @@ fun SetupAlbumRoute(
     val setupViewModel: SetupViewModel = hiltViewModel(parentEntry)
     val albums by setupViewModel.albums.collectAsStateWithLifecycle(initialValue = emptyList())
 
-    SetupAlbumScreen(onNextButtonClicked = {
-        navController.navigate(SetupPhotoDestination()) {
-            popUpTo(SetupAlbumDestination) {
-                inclusive = true
+    SetupAlbumScreen(
+        onNextButtonClicked = {
+            navController.navigate(SetupPhotoDestination()) {
+                popUpTo(SetupAlbumDestination) {
+                    inclusive = true
+                }
             }
-        }
-    }, checkForNameConflict = { name ->
-        setupViewModel.albumName = name
-        !albums.none { album ->
-            album.directoryName == name
-        }
-    }, onLeaveAlertClicked = {
-        navController.popBackStack()
-    },
+        },
+        checkForNameConflict = { name ->
+            setupViewModel.albumName = name
+            !albums.none { album ->
+                album.directoryName == name
+            }
+        },
+        onLeaveAlertClicked = {
+            navController.popBackStack()
+        },
         checkFrequencyValidity = { value ->
             setupViewModel.frequencyIsValid(value)
-        })
+        }
+    )
 }
 
 @Composable

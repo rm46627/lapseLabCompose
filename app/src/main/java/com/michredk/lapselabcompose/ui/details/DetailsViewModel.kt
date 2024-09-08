@@ -1,9 +1,11 @@
 package com.michredk.lapselabcompose.ui.details
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.michredk.database.Album
 import com.michredk.database.Repository
+import com.michredk.lapselabcompose.TAG
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -25,6 +27,16 @@ class DetailsViewModel @Inject constructor(private val repository: Repository) :
     private val _photos = MutableStateFlow<List<File>?>(null)
     val photos: StateFlow<List<File>?> = _photos.asStateFlow()
 
+    private val _labUiState = MutableStateFlow(LabUiState())
+    val labUiState: StateFlow<LabUiState> = _labUiState.asStateFlow()
+
+    private val _videoProperties = MutableStateFlow(LabUiState())
+    val videoProperties: StateFlow<LabUiState> = _videoProperties.asStateFlow()
+
+//    private var _labState by mutableStateOf(LabUiState())
+//    val labState: LabUiState
+//        get() = _labState
+
     @OptIn(ExperimentalCoroutinesApi::class)
     private val _album = _albumName.flatMapLatest { albumId ->
         if (albumId != null) {
@@ -34,6 +46,20 @@ class DetailsViewModel @Inject constructor(private val repository: Repository) :
         }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
     val album = _album
+
+    init {
+        viewModelScope.launch {
+            _album.collect { album ->
+                album?.let {
+                    val state = LabUiState(
+                        framesPerImage = it.framesPerImage, bitrate = it.bitrate
+                    )
+                    _labUiState.value = state
+                    _videoProperties.value = state
+                }
+            }
+        }
+    }
 
     fun setAlbumName(name: String) {
         _albumName.value = name
@@ -45,7 +71,9 @@ class DetailsViewModel @Inject constructor(private val repository: Repository) :
 
     fun updateAlbum(album: Album) {
         viewModelScope.launch {
-            repository.updateAlbum(album)
+            val updatedAlbum = album.copy(framesPerImage = labUiState.value.framesPerImage, bitrate = labUiState.value.bitrate)
+            Log.d(TAG, "${updatedAlbum.toString()}")
+            repository.updateAlbum(updatedAlbum)
         }
     }
 
@@ -55,4 +83,12 @@ class DetailsViewModel @Inject constructor(private val repository: Repository) :
         }
     }
 
+    fun updateLabUiState(newState: LabUiState) {
+        _labUiState.value = newState
+    }
+
 }
+
+data class LabUiState(
+    val framesPerImage: Int = 30, val bitrate: Int = 1500000
+)

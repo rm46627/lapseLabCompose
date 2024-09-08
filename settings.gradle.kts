@@ -22,7 +22,5 @@ dependencyResolutionManagement {
 rootProject.name = "LapseLabCompose"
 include(":app")
 include(":data")
-include(":notifications")
 include(":files")
 include(":video")
-include(":alarm")

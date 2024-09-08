@@ -14,9 +14,9 @@ const val TAG = "mytagforloging"
 const val FILES_NAME_DATE_FORMAT = "yyyy-MM-dd-HH-mm-ss-SSS"
 const val APP_MOVIE_PATH = "Movies/LapseLab"
 
-class LapseCreator(private val context: Context, private val album: Album, ) {
+class LapseCreator(private val context: Context, private val album: Album) {
 
-    suspend fun createVideo(photos: List<File>): String {
+    suspend fun createVideo(photos: List<File>, framesPerImage: Int, bitrate: Int): String {
         val date =
             SimpleDateFormat(FILES_NAME_DATE_FORMAT, Locale.US).format(System.currentTimeMillis())
         val name = "${album.directoryName}-${photos.size}images-$date"
@@ -34,9 +34,9 @@ class LapseCreator(private val context: Context, private val album: Album, ) {
         val encoderConfig = EncoderConfig(
             videoFile,
             MediaFormat.MIMETYPE_VIDEO_AVC,
-            1,
-            1F,
-            1500000
+            framesPerImage,
+            30F,
+            bitrate
         )
 
         val mediaProcessor = MediaProcessor(context, encoderConfig)

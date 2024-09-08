@@ -13,5 +13,7 @@ data class Album (
     @ColumnInfo(name = "last_reminder_sent_on") val lastReminderSentOn: LocalDate = LocalDate.now(),
     @ColumnInfo(name = "cover_photo_path") var coverPhotoPath: String = "",
     @ColumnInfo(name = "video_width") val videoWidth: Int? = null,
-    @ColumnInfo(name = "video_height") val videoHeight: Int? = null
+    @ColumnInfo(name = "video_height") val videoHeight: Int? = null,
+    @ColumnInfo(name = "frames_per_image") val framesPerImage: Int = 30,
+    @ColumnInfo(name = "bitrate") val bitrate: Int = 1500000,
 )

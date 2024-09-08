@@ -6,6 +6,7 @@ import android.content.Context
 import android.content.Intent
 import android.util.Log
 import com.michredk.lapselabcompose.TAG
+import java.time.Duration
 import java.time.LocalDateTime
 import java.time.ZoneId
 
@@ -24,9 +25,11 @@ class AlarmScheduler(
             putExtra("DAYS_BETWEEN", daysBetweenAlarms)
         }
 
-        val notifyAt = LocalDateTime.now().plusDays(daysBetweenAlarms)
+        val now = LocalDateTime.now()
+        val notifyAt = now.plusDays(daysBetweenAlarms)
         val zonedDateTime = notifyAt.atZone(ZoneId.systemDefault())
         val timeInMillis = zonedDateTime.toInstant().toEpochMilli()
+        Log.d(TAG, "h: ${Duration.between(now, notifyAt).toHours()}")
 
         alarmManager.setExactAndAllowWhileIdle(
             AlarmManager.RTC_WAKEUP,
