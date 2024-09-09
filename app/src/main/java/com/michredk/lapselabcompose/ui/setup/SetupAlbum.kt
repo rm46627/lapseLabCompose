@@ -69,7 +69,7 @@ fun SetupAlbumRoute(
         onLeaveAlertClicked = {
             navController.popBackStack()
         },
-        checkFrequencyValidity = { value ->
+        frequencyIsValid = { value ->
             setupViewModel.frequencyIsValid(value)
         }
     )
@@ -79,7 +79,7 @@ fun SetupAlbumRoute(
 fun SetupAlbumScreen(
     onNextButtonClicked: () -> Unit,
     checkForNameConflict: (String) -> Boolean,
-    checkFrequencyValidity: (String) -> Boolean,
+    frequencyIsValid: (String) -> Boolean,
     onLeaveAlertClicked: () -> Unit
 ) {
     Column(
@@ -121,7 +121,7 @@ fun SetupAlbumScreen(
                     "Every 6 months"
                 ), "Select or type frequency",
                 onValueChanged = { value ->
-                    if (value.isNotEmpty() && checkFrequencyValidity(value)) {
+                    if (frequencyIsValid(value)) {
                         notificationsSet = true
                         frequencyError = false
                     } else {

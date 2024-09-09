@@ -1,5 +1,6 @@
 package com.michredk.lapselabcompose.ui.setup
 
+import android.util.Log
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -37,6 +38,7 @@ import kotlinx.coroutines.launch
 import androidx.navigation.NavBackStackEntry
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
+import com.michredk.lapselabcompose.TAG
 import com.michredk.lapselabcompose.services.alarm.AlarmScheduler
 import kotlinx.serialization.Serializable
 
@@ -84,6 +86,7 @@ fun SetupPhotoRoute(
                     }
                 }
                 coroutineScope.launch {
+                    Log.d(TAG, "media manager: ${Thread.currentThread().name}")
                     mediaManager.removeLeftoverPhotosFromNewAlbum(it, imagePath)
                 }
                 setupViewModel.createNewAlbum(imagePath, alarmScheduler)

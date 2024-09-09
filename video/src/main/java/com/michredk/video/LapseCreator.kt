@@ -34,8 +34,8 @@ class LapseCreator(private val context: Context, private val album: Album) {
         val encoderConfig = EncoderConfig(
             videoFile,
             MediaFormat.MIMETYPE_VIDEO_AVC,
-            framesPerImage,
-            30F,
+            10,
+            10F,
             bitrate
         )
 

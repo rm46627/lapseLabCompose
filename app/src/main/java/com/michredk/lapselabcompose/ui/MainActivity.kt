@@ -81,7 +81,6 @@ class MainActivity : ComponentActivity() {
                     .setTestDeviceIds(listOf("545D4AC067871249CD54F65223A886E5")).build()
             )
             runOnUiThread {
-                // Load an ad on the main thread.
                 loadInterstitialAd()
             }
         }
@@ -193,6 +192,7 @@ class MainActivity : ComponentActivity() {
     }
 
     private fun loadInterstitialAd() {
+        Log.d(TAG,"LOADING ADDDDDD")
         if (adIsLoading || interstitialAd != null) {
             return
         }
@@ -221,10 +221,10 @@ class MainActivity : ComponentActivity() {
     }
 
     private fun showInterstitialAd() {
-        Log.d(TAG, "showInterstitialAd")
         if (interstitialAd == null) {
             loadInterstitialAd()
         }
+        Log.d(TAG, "ShowInterstitalAd running on thread: ${Thread.currentThread().name}")
         interstitialAd?.fullScreenContentCallback =
             object : FullScreenContentCallback() {
                 override fun onAdDismissedFullScreenContent() {

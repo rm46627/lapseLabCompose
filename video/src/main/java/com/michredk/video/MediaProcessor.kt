@@ -3,6 +3,7 @@ package com.michredk.video
 import android.content.Context
 import android.media.MediaCodecList
 import android.media.MediaCodecList.REGULAR_CODECS
+import android.os.Looper
 import android.util.Log
 import androidx.annotation.OptIn
 import androidx.media3.common.Effect
@@ -77,6 +78,7 @@ class MediaProcessor(private val context: Context, private val file: File) {
             }
         }
         val mediaItem = MediaItem.fromUri(file.absolutePath)
+        Looper.prepare()
         val transformer = Transformer.Builder(context).addListener(transformerListener).build()
         val editedMediaItem = EditedMediaItem.Builder(mediaItem).setEffects(
                 Effects(
