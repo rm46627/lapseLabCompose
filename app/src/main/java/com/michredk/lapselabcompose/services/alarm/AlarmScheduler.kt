@@ -7,7 +7,9 @@ import android.content.Intent
 import android.util.Log
 import com.michredk.lapselabcompose.TAG
 import java.time.Duration
+import java.time.LocalDate
 import java.time.LocalDateTime
+import java.time.LocalTime
 import java.time.ZoneId
 
 // TODO: Schedule an alarm to go off at a time picked by the user.
@@ -19,17 +21,36 @@ class AlarmScheduler(
 
     private val alarmManager = context.getSystemService(AlarmManager::class.java)
 
-    fun schedule(albumName: String, daysBetweenAlarms: Long) {
+    fun schedule(albumName: String, daysBetweenAlarms: Long, time: LocalTime? = null) {
         val intent = Intent(context, AlarmReceiver::class.java).apply {
             putExtra("ALBUM_NAME", albumName)
             putExtra("DAYS_BETWEEN", daysBetweenAlarms)
+            time?.let {
+                putExtra("HOUR", time.hour)
+                putExtra("MINUTE", time.minute)
+            }
         }
 
         val now = LocalDateTime.now()
-        val notifyAt = now.plusDays(daysBetweenAlarms)
+        val notifyTime = LocalTime.of(time?.hour ?: now.hour, time?.minute ?: now.minute)
+        val timeHasPassedToday = !now.isBefore(LocalDateTime.of(LocalDate.now(), notifyTime))
+//        Log.d(TAG, "now: $now, " +
+//                "\nnotifyTime: $notifyTime, " +
+//                "\nLocalDateTime.of(LocalDate.now(), notifyTime): ${LocalDateTime.of(LocalDate.now(), notifyTime)} " +
+//                "\nnow.isBefore(LocalDateTime.of(LocalDate.now(), notifyTime)): ${now.isBefore(LocalDateTime.of(LocalDate.now(), notifyTime))}" +
+//                "\ntimeHasPassed $timeHasPassedToday")
+        val notifyDate = if (timeHasPassedToday){
+            now.toLocalDate().plusDays(daysBetweenAlarms)
+        } else {
+            now.toLocalDate().plusDays(daysBetweenAlarms-1)
+        }
+
+        val notifyAt = LocalDateTime.of(notifyDate, notifyTime)
         val zonedDateTime = notifyAt.atZone(ZoneId.systemDefault())
         val timeInMillis = zonedDateTime.toInstant().toEpochMilli()
-        Log.d(TAG, "h: ${Duration.between(now, notifyAt).toHours()}")
+
+        Log.d(TAG, "schedule days: $daysBetweenAlarms,time: $time")
+        Log.d(TAG, "h: ${Duration.between(now, notifyAt).toHours()}, min: ${Duration.between(now, notifyAt).toMinutes()}")
 
         alarmManager.setExactAndAllowWhileIdle(
             AlarmManager.RTC_WAKEUP,

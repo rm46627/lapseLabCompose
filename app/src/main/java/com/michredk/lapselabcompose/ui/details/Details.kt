@@ -36,6 +36,7 @@ import androidx.navigation.NavHostController
 import com.michredk.database.Album
 import com.michredk.lapselab.files.MediaManagerFactory
 import com.michredk.lapselabcompose.TAG
+import com.michredk.lapselabcompose.services.alarm.AlarmScheduler
 import com.michredk.lapselabcompose.ui.PermissionViewModel
 import com.michredk.lapselabcompose.ui.DetailsGraph
 import com.michredk.lapselabcompose.ui.camera.CameraDestination
@@ -44,6 +45,7 @@ import com.michredk.lapselabcompose.ui.common.FreqUtils
 import com.michredk.lapselabcompose.ui.common.PermissionTextProvider
 import kotlinx.serialization.Serializable
 import java.io.File
+import java.time.LocalTime
 
 @Serializable
 data class DetailsDestination(val albumName: String? = null)
@@ -95,9 +97,8 @@ fun DetailsRoute(
             onPhotoClicked = { index ->
                 navController.navigate(PhotoBrowserDestination(index))
             },
-            onApplyNotificationDialogClicked = { freq ->
-                detailsViewModel.updateAlbum(albumSafe, freq)
-
+            onApplyNotificationDialogClicked = { time, freq ->
+                detailsViewModel.updateAlbum(albumSafe, freq, time, AlarmScheduler(context))
             }
         )
     }
@@ -110,7 +111,7 @@ fun DetailsScreen(
     onAddPhotoClicked: () -> Unit,
     onEditVideoClicked: () -> Unit,
     onPhotoClicked: (Int) -> Unit,
-    onApplyNotificationDialogClicked: (String) -> Unit
+    onApplyNotificationDialogClicked: (LocalTime, String) -> Unit
 ) {
     var showNotificationDialog by remember {
         mutableStateOf(false)

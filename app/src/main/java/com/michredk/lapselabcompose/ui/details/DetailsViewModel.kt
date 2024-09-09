@@ -6,6 +6,7 @@ import androidx.lifecycle.viewModelScope
 import com.michredk.database.Album
 import com.michredk.database.Repository
 import com.michredk.lapselabcompose.TAG
+import com.michredk.lapselabcompose.services.alarm.AlarmScheduler
 import com.michredk.lapselabcompose.ui.common.FreqUtils
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -18,6 +19,7 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import java.io.File
+import java.time.LocalTime
 import javax.inject.Inject
 
 @HiltViewModel
@@ -33,8 +35,6 @@ class DetailsViewModel @Inject constructor(private val repository: Repository) :
 
     private val _videoProperties = MutableStateFlow(LabUiState())
     val videoProperties: StateFlow<LabUiState> = _videoProperties.asStateFlow()
-
-    var daysBetweenReminders: Long = 0
 
     @OptIn(ExperimentalCoroutinesApi::class)
     private val _album = _albumName.flatMapLatest { albumId ->
@@ -55,7 +55,6 @@ class DetailsViewModel @Inject constructor(private val repository: Repository) :
                     )
                     _labUiState.value = state
                     _videoProperties.value = state
-                    daysBetweenReminders = album.daysBetweenReminders
                 }
             }
         }
@@ -69,16 +68,25 @@ class DetailsViewModel @Inject constructor(private val repository: Repository) :
         _photos.value = files
     }
 
-    fun updateAlbum(album: Album, freq: String? = null) {
+    fun updateAlbum(album: Album, freq: String? = null, notificationTime: LocalTime? = null, scheduler: AlarmScheduler? = null) {
         viewModelScope.launch {
-            if (freq != null){
-                val days = FreqUtils.freqStrToDays(freq)
-                daysBetweenReminders = days
-                Log.d(TAG, "freq: $freq days: $days")
-            }
-            val updatedAlbum = album.copy(daysBetweenReminders = daysBetweenReminders, framesPerImage = labUiState.value.framesPerImage, bitrate = labUiState.value.bitrate)
-            Log.d(TAG, "updated: $updatedAlbum")
+            val days = if(freq != null)
+                FreqUtils.freqStrToDays(freq)
+            else
+                album.daysBetweenReminders
+
+            val updatedAlbum = album.copy(
+                reminderTime = notificationTime ?: album.reminderTime,
+                daysBetweenReminders = days,
+                framesPerImage = labUiState.value.framesPerImage,
+                bitrate = labUiState.value.bitrate
+            )
             repository.updateAlbum(updatedAlbum)
+            if(days == 0L) {
+                // TODO: remove alarm if it exists
+            } else {
+                scheduler?.schedule(album.directoryName, days, notificationTime)
+            }
         }
     }
 
@@ -91,16 +99,6 @@ class DetailsViewModel @Inject constructor(private val repository: Repository) :
     fun updateLabUiState(newState: LabUiState) {
         _labUiState.value = newState
     }
-
-    fun frequencyIsValid(value: String): Boolean {
-        val isValid = FreqUtils.frequencyIsValid(value)
-        if (isValid){
-            daysBetweenReminders = freqStrToDays(value)
-        }
-        return isValid
-    }
-
-    private fun freqStrToDays(freq: String): Long = FreqUtils.freqStrToDays(freq)
 
 }
 
