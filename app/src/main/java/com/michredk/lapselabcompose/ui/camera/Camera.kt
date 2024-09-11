@@ -12,6 +12,7 @@ import androidx.camera.view.CameraController
 import androidx.camera.view.LifecycleCameraController
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -25,7 +26,7 @@ import androidx.compose.material.icons.filled.PeopleAlt
 import androidx.compose.material.icons.filled.PhotoCamera
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.Scaffold
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -34,7 +35,9 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -43,6 +46,7 @@ import androidx.navigation.NavHostController
 import com.michredk.files.appPicturesDir
 import com.michredk.lapselab.files.MediaManagerFactory
 import com.michredk.lapselabcompose.ui.CameraGraph
+import com.michredk.lapselabcompose.ui.theme.LapseLabComposeTheme
 import com.michredk.video.TAG
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
@@ -77,92 +81,104 @@ fun CameraRoute(
     val scope = rememberCoroutineScope()
     val mediaManager = MediaManagerFactory(context)
 
-    CameraScreen(onPhotoTaken = { bitmap ->
-        scope.launch {
-            cameraViewModel.bitmap = bitmap
-            val uri = mediaManager.saveBitmap(
-                bitmap = bitmap, subfolder = "$appPicturesDir/${albumName}"
-            )
-        }
-        navController.navigate(PhotoPreviewDestination(navigatedFromAlbumDetails))
-    })
-}
-
-@Composable
-fun CameraScreen(onPhotoTaken: (Bitmap) -> Unit) {
-    val context = LocalContext.current
-    val controller = remember {
+    val cameraController = remember {
         LifecycleCameraController(context).apply {
             setEnabledUseCases(CameraController.IMAGE_CAPTURE)
         }
     }
+    CameraScreen(
+        cameraController = cameraController,
+        onTakePictureClicked = {
+            cameraController.takePicture(
+                ContextCompat.getMainExecutor(context),
+                object : ImageCapture.OnImageCapturedCallback() {
+                    override fun onCaptureSuccess(image: ImageProxy) {
+                        super.onCaptureSuccess(image)
+                        val finalBitmap = scaleCropRotateBitmap(image)
+                        scope.launch {
+                            cameraViewModel.bitmap = finalBitmap
+                            val uri = mediaManager.saveBitmap(
+                                bitmap = finalBitmap, subfolder = "$appPicturesDir/${albumName}"
+                            )
+                        }
+                        navController.navigate(PhotoPreviewDestination(navigatedFromAlbumDetails))
+
+                    }
+
+                    override fun onError(exception: ImageCaptureException) {
+                        super.onError(exception)
+                        Log.e("Camera", "Couldn't take photo: ", exception)
+                    }
+                }
+            )
+        },
+        onChangeCameraClicked = {
+            cameraController.cameraSelector =
+                if (cameraController.cameraSelector == CameraSelector.DEFAULT_BACK_CAMERA) {
+                    CameraSelector.DEFAULT_FRONT_CAMERA
+                } else CameraSelector.DEFAULT_BACK_CAMERA
+        }
+    )
+}
+
+@Composable
+fun CameraScreen(cameraController: LifecycleCameraController, onChangeCameraClicked: () -> Unit, onTakePictureClicked: () -> Unit) {
     Box(
         modifier = Modifier
             .fillMaxSize()
     ) {
-        CameraPreview(controller = controller, modifier = Modifier.fillMaxSize())
-        IconButton(
-            onClick = {
-                controller.cameraSelector =
-                    if (controller.cameraSelector == CameraSelector.DEFAULT_BACK_CAMERA) {
-                        CameraSelector.DEFAULT_FRONT_CAMERA
-                    } else CameraSelector.DEFAULT_BACK_CAMERA
-            }, modifier = Modifier.offset(16.dp, 16.dp)
-        ) {
-            Icon(imageVector = Icons.Default.Cameraswitch, contentDescription = "Switch camera")
-        }
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .align(Alignment.BottomCenter)
-                .padding(16.dp),
-            horizontalArrangement = Arrangement.SpaceAround
-        ) {
-            IconButton(onClick = {
+        CameraPreview(controller = cameraController, modifier = Modifier.fillMaxSize())
+        CameraButtons(onChangeCameraClicked, onTakePictureClicked)
+    }
+}
 
-            }) {
-                Icon(imageVector = Icons.Default.PeopleAlt, contentDescription = "Open gallery")
-            }
-            CaptureButton(controller, context, onPhotoTaken)
-            Spacer(modifier = Modifier.width(10.dp))
+@Composable
+private fun BoxScope.CameraButtons(
+    onChangeCameraClicked: () -> Unit,
+    onTakePictureClicked: () -> Unit,
+) {
+    IconButton(
+        onClick = onChangeCameraClicked, modifier = Modifier.offset(16.dp, 16.dp)
+    ) {
+        Icon(imageVector = Icons.Default.Cameraswitch, contentDescription = "Switch camera")
+    }
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .align(Alignment.BottomCenter)
+            .padding(32.dp),
+        horizontalArrangement = Arrangement.SpaceAround
+    ) {
+        IconButton(onClick = {
+
+        }) {
+            val primaryColor = MaterialTheme.colorScheme.primary
+            Icon(
+                imageVector = Icons.Default.PeopleAlt,
+                contentDescription = "Open gallery",
+                modifier = Modifier.drawBehind {
+                    drawCircle(color = primaryColor)
+                })
         }
+        CaptureButton(onTakePictureClicked)
+        Spacer(modifier = Modifier.width(10.dp))
     }
 }
 
 @Composable
 private fun CaptureButton(
-    controller: LifecycleCameraController, context: Context, onPhotoTaken: (Bitmap) -> Unit
+    onTakePictureClicked: () -> Unit
 ) {
     var captureButtonEnabled by remember {
         mutableStateOf(true)
     }
     IconButton(enabled = captureButtonEnabled, onClick = {
         captureButtonEnabled = false
-        takePhoto(controller, context, onPhotoTaken)
+        onTakePictureClicked()
         captureButtonEnabled = true
     }) {
         Icon(imageVector = Icons.Default.PhotoCamera, contentDescription = "Take photo")
     }
-}
-
-fun takePhoto(
-    cameraController: LifecycleCameraController, context: Context, onPhotoTaken: (Bitmap) -> Unit
-) {
-    cameraController.takePicture(
-        ContextCompat.getMainExecutor(context),
-        object : ImageCapture.OnImageCapturedCallback() {
-            override fun onCaptureSuccess(image: ImageProxy) {
-                super.onCaptureSuccess(image)
-                val finalBitmap = scaleCropRotateBitmap(image)
-                onPhotoTaken(finalBitmap)
-            }
-
-            override fun onError(exception: ImageCaptureException) {
-                super.onError(exception)
-                Log.e("Camera", "Couldn't take photo: ", exception)
-            }
-        }
-    )
 }
 
 fun scaleCropRotateBitmap(
