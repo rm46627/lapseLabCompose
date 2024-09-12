@@ -8,8 +8,6 @@ import android.os.Build
 import android.util.Log
 import androidx.camera.camera2.Camera2Config
 import androidx.camera.core.CameraXConfig
-import com.google.android.gms.ads.MobileAds
-import com.google.android.gms.ads.initialization.InitializationStatus
 import dagger.hilt.android.HiltAndroidApp
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
