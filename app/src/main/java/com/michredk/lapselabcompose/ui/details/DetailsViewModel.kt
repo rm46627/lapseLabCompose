@@ -82,11 +82,6 @@ class DetailsViewModel @Inject constructor(private val repository: Repository) :
                 bitrate = labUiState.value.bitrate
             )
             repository.updateAlbum(updatedAlbum)
-            if(days == 0L) {
-                // TODO: remove alarm if it exists
-            } else {
-                scheduler?.schedule(album.directoryName, days, notificationTime)
-            }
         }
     }
 
