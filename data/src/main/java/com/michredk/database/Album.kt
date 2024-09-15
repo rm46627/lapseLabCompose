@@ -14,6 +14,7 @@ data class Album (
     @ColumnInfo(name = "cover_photo_path") var coverPhotoPath: String = "",
     @ColumnInfo(name = "video_width") val videoWidth: Int? = null,
     @ColumnInfo(name = "video_height") val videoHeight: Int? = null,
+    @ColumnInfo(name = "photo_count") val photoCount: Int = 1,
     @ColumnInfo(name = "frames_per_image") val framesPerImage: Int = 30,
     @ColumnInfo(name = "bitrate") val bitrate: Int = 1500000,
     @ColumnInfo(name = "days_between_reminders") val daysBetweenReminders: Long = 0,

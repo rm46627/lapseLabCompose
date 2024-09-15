@@ -2,19 +2,25 @@ package com.michredk.lapselabcompose.ui.camera
 
 import android.graphics.Bitmap
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.Scaffold
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -50,7 +56,6 @@ fun PhotoPreviewRoute(
     PhotoPreviewScreen(
         bitmap = bitmap,
         onDiscardClicked = {
-
             navController.navigateUp()
         },
         onAcceptClicked = {
@@ -92,22 +97,53 @@ fun PhotoPreviewScreen(
             modifier = Modifier
                 .fillMaxWidth()
                 .align(Alignment.BottomCenter)
-                .padding(16.dp),
+                .padding(horizontal = 16.dp, vertical = 32.dp),
             horizontalArrangement = Arrangement.SpaceAround
         ) {
-            IconButton(onClick = onDiscardClicked) {
-                Icon(
-                    imageVector = Icons.Default.Delete,
-                    contentDescription = "Discard image button"
-                )
-            }
-            IconButton(onClick = { onAcceptClicked() }) {
-                Icon(
-                    imageVector = Icons.Default.Check,
-                    contentDescription = "Accept image button"
-                )
-            }
+            Buttons(onDiscardClicked, onAcceptClicked)
         }
     }
 
+}
+
+@Composable
+private fun Buttons(onDiscardClicked: () -> Unit, onAcceptClicked: () -> Unit) {
+    val backgroundColor = MaterialTheme.colorScheme.primaryContainer
+    val pressedBackgroundColor = MaterialTheme.colorScheme.primary
+    val iconSize = 30.dp
+    val btnSize = 40.dp
+
+    val dscInteractionSource = remember { MutableInteractionSource() }
+    val dscIsPressed by dscInteractionSource.collectIsPressedAsState()
+    val dscBackgroundColor =
+        if (dscIsPressed) pressedBackgroundColor else backgroundColor
+    IconButton(
+        interactionSource = dscInteractionSource,
+        onClick = onDiscardClicked,
+        modifier = Modifier.size(btnSize).background(dscBackgroundColor, shape = CircleShape),
+    ) {
+        Icon(
+            modifier = Modifier
+                .size(iconSize),
+            imageVector = Icons.Default.Delete,
+            contentDescription = "Discard image button"
+        )
+    }
+    val accInteractionSource = remember { MutableInteractionSource() }
+    val acceptIsPressed by accInteractionSource.collectIsPressedAsState()
+    val accBackgroundColor =
+        if (acceptIsPressed) pressedBackgroundColor else backgroundColor
+    IconButton(
+        interactionSource = accInteractionSource,
+        onClick = onAcceptClicked,
+        modifier = Modifier
+            .size(btnSize)
+            .background(accBackgroundColor, shape = CircleShape),
+    ) {
+        Icon(
+            modifier = Modifier.size(iconSize),
+            imageVector = Icons.Default.Check,
+            contentDescription = "Accept image button"
+        )
+    }
 }

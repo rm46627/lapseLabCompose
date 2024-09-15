@@ -3,23 +3,31 @@ package com.michredk.lapselabcompose.ui.camera
 import android.graphics.Bitmap
 import android.graphics.Matrix
 import android.util.Log
+import androidx.activity.compose.BackHandler
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.ImageCapture
 import androidx.camera.core.ImageCaptureException
 import androidx.camera.core.ImageProxy
 import androidx.camera.view.CameraController
 import androidx.camera.view.LifecycleCameraController
+import androidx.compose.foundation.background
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.windowInsetsTopHeight
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Cameraswitch
 import androidx.compose.material.icons.filled.PeopleAlt
@@ -37,11 +45,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
-import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.drawscope.draw
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
@@ -53,7 +58,9 @@ import coil.request.ImageRequest
 import com.michredk.files.appPicturesDir
 import com.michredk.lapselab.files.MediaManagerFactory
 import com.michredk.lapselabcompose.ui.CameraGraph
-import com.michredk.lapselabcompose.ui.theme.LapseLabComposeTheme
+import com.michredk.lapselabcompose.ui.DetailsGraph
+import com.michredk.lapselabcompose.ui.details.DetailsDestination
+import com.michredk.lapselabcompose.ui.setup.SetupPhotoDestination
 import com.michredk.video.TAG
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
@@ -145,7 +152,6 @@ fun CameraScreen(
     var showGhost by remember {
         mutableStateOf(false)
     }
-
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -158,18 +164,17 @@ fun CameraScreen(
                     .alpha(0.5f), ghostPath!!
             )
         }
-        val circleColor = MaterialTheme.colorScheme.primaryContainer
         CameraButtons(
-            35.dp,
-            50.dp,
-            circleColor,
+            30.dp,
+            40.dp,
+            btnBackgroundColor = MaterialTheme.colorScheme.primaryContainer,
+            pressedCaptureBackgroundColor = MaterialTheme.colorScheme.primary,
             onChangeCameraClicked,
             onTakePictureClicked,
             ghostBtnEnabled = ghostPath != null,
             onGhostImageClicked = {
                 showGhost = !showGhost
-                Log.d(TAG, "$showGhost, $ghostPath")
-            })
+        })
     }
 }
 
@@ -189,42 +194,63 @@ fun GhostImage(modifier: Modifier = Modifier, path: String) {
 private fun BoxScope.CameraButtons(
     iconSize: Dp,
     btnSize: Dp,
-    circleColor: Color,
+    btnBackgroundColor: Color,
+    pressedCaptureBackgroundColor: Color,
     onChangeCameraClicked: () -> Unit,
     onTakePictureClicked: () -> Unit,
     ghostBtnEnabled: Boolean,
     onGhostImageClicked: () -> Unit,
 ) {
     IconButton(
-        onClick = onChangeCameraClicked, modifier = Modifier.size(btnSize).offset(16.dp, 16.dp)
+        onClick = onChangeCameraClicked, modifier = Modifier
+            .size(btnSize)
+            .offset(16.dp, 32.dp)
+            .background(btnBackgroundColor, shape = CircleShape),
     ) {
-        Icon(modifier = Modifier.size(iconSize).drawBehind {
-            drawCircle(color = circleColor)
-        }, imageVector = Icons.Default.Cameraswitch, contentDescription = "Switch camera")
+        Icon(
+            modifier = Modifier
+                .size(iconSize),
+            imageVector = Icons.Default.Cameraswitch,
+            contentDescription = "Switch camera"
+        )
     }
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .align(Alignment.BottomCenter)
-            .padding(32.dp),
-        horizontalArrangement = Arrangement.SpaceBetween
+            .padding(bottom = 42.dp),
+        horizontalArrangement = Arrangement.SpaceAround,
+        verticalAlignment = Alignment.Bottom
     ) {
-        IconButton(modifier = Modifier.size(btnSize), enabled = ghostBtnEnabled, onClick = onGhostImageClicked) {
+        IconButton(
+            modifier = Modifier
+                .size(btnSize)
+                .background( if (ghostBtnEnabled) btnBackgroundColor else btnBackgroundColor.copy(alpha = 0.5f), shape = CircleShape),
+            enabled = ghostBtnEnabled,
+            onClick = onGhostImageClicked
+        ) {
             Icon(
                 imageVector = Icons.Default.PeopleAlt,
-                contentDescription = "Open gallery",
-                modifier = Modifier.size(iconSize).drawBehind {
-                    drawCircle(color = circleColor, radius = size.maxDimension)
-                })
+                contentDescription = "Ghost photo",
+                modifier = Modifier
+                    .size(iconSize)
+            )
         }
+
+        val interactionSource = remember { MutableInteractionSource() }
+        val captureIsPressed by interactionSource.collectIsPressedAsState()
+        val finalBackgroundColor =
+            if (captureIsPressed) pressedCaptureBackgroundColor else btnBackgroundColor
         CaptureButton(
-            btnModifier = Modifier.size(btnSize),
-            iconModifier = Modifier.size(iconSize).drawBehind {
-                drawCircle(color = circleColor, radius = size.maxDimension)
-            },
-            onTakePictureClicked
+            interactionSource = interactionSource,
+            btnModifier = Modifier
+                .size(btnSize + 15.dp)
+                .background(finalBackgroundColor, shape = CircleShape),
+            iconModifier = Modifier
+                .size(iconSize + 10.dp),
+            onTakePictureClicked = onTakePictureClicked
         )
-        Spacer(modifier = Modifier.width(10.dp))
+        Spacer(modifier = Modifier.width(iconSize))
     }
 }
 
@@ -232,16 +258,15 @@ private fun BoxScope.CameraButtons(
 private fun CaptureButton(
     btnModifier: Modifier,
     iconModifier: Modifier,
-    onTakePictureClicked: () -> Unit
+    onTakePictureClicked: () -> Unit,
+    interactionSource: MutableInteractionSource
 ) {
-    var captureButtonEnabled by remember {
-        mutableStateOf(true)
-    }
-    IconButton(modifier = btnModifier, enabled = captureButtonEnabled, onClick = {
-        captureButtonEnabled = false
-        onTakePictureClicked()
-        captureButtonEnabled = true
-    }) {
+    IconButton(
+        interactionSource = interactionSource,
+        modifier = btnModifier,
+        onClick = {
+            onTakePictureClicked()
+        }) {
         Icon(
             imageVector = Icons.Default.PhotoCamera,
             contentDescription = "Take photo",
@@ -294,24 +319,4 @@ fun scaleCropRotateBitmap(
 
     Log.d(TAG, "Final dimensions height = $finalHeight width = $finalWidth ")
     return croppedBitmap
-}
-
-@Preview
-@Composable
-private fun PreviewBtns() {
-    LapseLabComposeTheme {
-        Box(modifier = Modifier.fillMaxSize()) {
-            CameraButtons(
-                35.dp,
-                50.dp,
-                onChangeCameraClicked = { /*TODO*/ },
-                onTakePictureClicked = { /*TODO*/ },
-                circleColor = MaterialTheme.colorScheme.secondaryContainer,
-                ghostBtnEnabled = true
-            ) {
-
-            }
-        }
-    }
-
 }

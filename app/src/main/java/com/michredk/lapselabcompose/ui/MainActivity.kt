@@ -60,6 +60,8 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+// TODO: add longer AD if album has more than 10 photos
+
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
 

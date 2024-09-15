@@ -22,7 +22,12 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.TileMode
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -46,7 +51,6 @@ fun SetupAlbumRoute(
     backStackEntry: NavBackStackEntry, navController: NavHostController
 ) {
     val parentEntry = remember(backStackEntry) {
-        Log.d(TAG, "$$ albumSetup remember parent entry")
         navController.getBackStackEntry(SetupGraph)
     }
     val setupViewModel: SetupViewModel = hiltViewModel(parentEntry)
@@ -84,7 +88,7 @@ fun SetupAlbumScreen(
 ) {
     Column(
         modifier = Modifier
-            .padding(16.dp, 32.dp)
+            .padding(16.dp, 64.dp)
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background),
         horizontalAlignment = Alignment.CenterHorizontally
@@ -98,8 +102,23 @@ fun SetupAlbumScreen(
             }
         }
 
-        Text(text = stringResource(R.string.album_setup_title))
-        Spacer(modifier = Modifier.height(32.dp))
+        val offset = 400f
+        val titleBrush = Brush.linearGradient(
+            listOf(
+                MaterialTheme.colorScheme.onPrimaryContainer,
+                MaterialTheme.colorScheme.primary
+            ), tileMode = TileMode.Mirror, start = Offset(0f, 0f), end = Offset(offset, offset)
+        )
+        Text(
+            textAlign = TextAlign.Center,
+            style = TextStyle(
+                brush = titleBrush,
+                fontWeight = FontWeight.ExtraBold,
+                fontSize = MaterialTheme.typography.headlineLarge.fontSize
+            ),
+            text = stringResource(R.string.album_setup_title)
+        )
+        Spacer(modifier = Modifier.height(24.dp))
         NameTextField(
             checkForNameConflict = checkForNameConflict,
             onNameValidityChanged = { isValid -> nameIsValid = isValid }

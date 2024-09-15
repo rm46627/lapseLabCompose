@@ -3,9 +3,13 @@ package com.michredk.lapselabcompose.ui.details
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.statusBars
+import androidx.compose.foundation.layout.windowInsetsTopHeight
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBackIos
 import androidx.compose.material.icons.filled.ArrowForwardIos
@@ -21,6 +25,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavBackStackEntry
@@ -46,51 +51,62 @@ fun PhotoBrowserRoute(
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val parentEntry = remember(backStackEntry) {
+//        try{
+//            navController.getBackStackEntry(DetailsGraph)
+//        } catch (e: IllegalArgumentException){
+//            null
+//        }
         navController.getBackStackEntry(DetailsGraph)
     }
-    val viewModel: DetailsViewModel = hiltViewModel(parentEntry)
-    val albumNameState by viewModel.albumName.collectAsStateWithLifecycle()
-    val photosState by viewModel.photos.collectAsStateWithLifecycle()
-    val albumName = albumNameState ?: throw NullPointerException()
-    photosState?.let { photos ->
-        PhotoBrowserScreen(
-            onNextButtonClicked = {
-                navController.navigate(PhotoBrowserDestination(index + 1)) {
-                    popUpTo(PhotosGraph) {
-                        inclusive = true
-                    }
-                }
-            },
-            onPreviousButtonClicked = {
-                navController.navigate(PhotoBrowserDestination(index - 1)) {
-                    popUpTo(PhotosGraph) {
-                        inclusive = true
-                    }
-                }
-            },
-            onDeleteButtonClicked = {
-                scope.launch {
-                    MediaManagerFactory(context).deletePhoto(photos[index].absolutePath)
-                    val updatedPhotos = MediaManagerFactory(context).getPhotoFiles(albumName)
-                    viewModel.setPhotos(updatedPhotos)
+    if(parentEntry != null) {
+        val viewModel: DetailsViewModel = hiltViewModel(parentEntry)
+        val albumNameState by viewModel.albumName.collectAsStateWithLifecycle()
+        val photosState by viewModel.photos.collectAsStateWithLifecycle()
+        val albumName = albumNameState ?: throw NullPointerException()
 
-                    if (photos.size > 1) {
-                        val destIndex = if (index == 0) 0 else index - 1
-                        navController.navigate(PhotoBrowserDestination(destIndex)) {
-                            popUpTo(PhotosGraph) {
-                                inclusive = true
-                            }
+        photosState?.let { photos ->
+            PhotoBrowserScreen(
+                onNextButtonClicked = {
+                    navController.navigate(PhotoBrowserDestination(index + 1)) {
+                        popUpTo(PhotosGraph) {
+                            inclusive = true
                         }
-                    } else {
-                        navController.popBackStack()
                     }
-                }
-            },
-            photoPath = photos[index].absolutePath,
-            date = "01.01.2024 12:00",
-            index,
-            index == photos.size - 1
-        )
+                },
+                onPreviousButtonClicked = {
+                    navController.navigate(PhotoBrowserDestination(index - 1)) {
+                        popUpTo(PhotosGraph) {
+                            inclusive = true
+                        }
+                    }
+                },
+                onDeleteButtonClicked = {
+                    scope.launch {
+                        MediaManagerFactory(context).deletePhoto(photos[index].absolutePath)
+                        val updatedPhotos = MediaManagerFactory(context).getPhotoFiles(albumName)
+                        viewModel.setPhotos(updatedPhotos)
+
+                        if (photos.size > 1) {
+                            val destIndex = if (index == 0) 0 else index - 1
+                            navController.navigate(PhotoBrowserDestination(destIndex)) {
+                                popUpTo(PhotosGraph) {
+                                    inclusive = true
+                                }
+                            }
+                        } else {
+                            navController.popBackStack()
+                        }
+                    }
+                },
+                photoPath = photos[index].absolutePath,
+                date = "01.01.2024 12:00",
+                index,
+                index == photos.size - 1
+            )
+        }
+    }
+    else {
+        navController.popBackStack()
     }
 }
 
@@ -118,7 +134,9 @@ fun PhotoBrowserScreen(
             contentDescription = "Gallery photo",
             contentScale = ContentScale.Crop,
         )
-        Column(modifier = Modifier.fillMaxSize()) {
+        Column(modifier = Modifier
+            .fillMaxSize()
+            .padding(WindowInsets.statusBars.asPaddingValues())) {
             Text(text = date)
             Row(
                 modifier = Modifier.fillMaxWidth(),

@@ -2,8 +2,17 @@ package com.michredk.lapselabcompose.ui
 
 import android.annotation.SuppressLint
 import android.util.Log
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.safeDrawingPadding
+import androidx.compose.foundation.layout.statusBars
+import androidx.compose.foundation.layout.windowInsetsTopHeight
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Brush
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
@@ -57,17 +66,18 @@ class LapselabNavController(
         showInterstitialAd: () -> Unit
     ) {
 
-        navController.addOnDestinationChangedListener() { controller, _, _ ->
+        navController.addOnDestinationChangedListener { controller, dest, _ ->
             val routes = controller
                 .currentBackStack.value
                 .map { it.destination.route }
                 .joinToString(",\n\t")
 
-            Log.d("BackStackLog", "BackStack: $routes")
+            Log.d("BackStackLog", "BackStack: $routes\n\t${dest.route}")
         }
-
         NavHost(
-            modifier = modifier, navController = navController, startDestination = SplashScreenDestination
+            modifier = Modifier, navController = navController,
+//            startDestination = SplashScreenDestination
+            startDestination = GalleryDestination
         ) {
             composable<SplashScreenDestination> {
                 SplashScreenRoute(navController)

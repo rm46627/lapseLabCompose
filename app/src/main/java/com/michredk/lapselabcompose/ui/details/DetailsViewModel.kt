@@ -1,11 +1,9 @@
 package com.michredk.lapselabcompose.ui.details
 
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.michredk.database.Album
 import com.michredk.database.Repository
-import com.michredk.lapselabcompose.TAG
 import com.michredk.lapselabcompose.services.alarm.AlarmScheduler
 import com.michredk.lapselabcompose.ui.common.FreqUtils
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -85,9 +83,11 @@ class DetailsViewModel @Inject constructor(private val repository: Repository) :
         }
     }
 
-    fun updateCoverPhoto(path: String) {
+    fun updateCoverAndCounter(path: String) {
         viewModelScope.launch {
-            _albumName.value?.let { repository.updateCoverPhoto(it, path) }
+            album.value?.let {
+                repository.updateAlbum(it.copy(coverPhotoPath = path, photoCount = _photos.value?.size ?: 0))
+            }
         }
     }
 

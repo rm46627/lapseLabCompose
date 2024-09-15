@@ -34,11 +34,6 @@ class AlarmScheduler(
         val now = LocalDateTime.now()
         val notifyTime = LocalTime.of(time?.hour ?: now.hour, time?.minute ?: now.minute)
         val timeHasPassedToday = !now.isBefore(LocalDateTime.of(LocalDate.now(), notifyTime))
-//        Log.d(TAG, "now: $now, " +
-//                "\nnotifyTime: $notifyTime, " +
-//                "\nLocalDateTime.of(LocalDate.now(), notifyTime): ${LocalDateTime.of(LocalDate.now(), notifyTime)} " +
-//                "\nnow.isBefore(LocalDateTime.of(LocalDate.now(), notifyTime)): ${now.isBefore(LocalDateTime.of(LocalDate.now(), notifyTime))}" +
-//                "\ntimeHasPassed $timeHasPassedToday")
         val notifyDate = if (timeHasPassedToday){
             now.toLocalDate().plusDays(daysBetweenAlarms)
         } else {
