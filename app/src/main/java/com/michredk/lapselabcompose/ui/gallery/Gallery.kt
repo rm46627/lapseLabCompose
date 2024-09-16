@@ -3,6 +3,7 @@ package com.michredk.lapselabcompose.ui.gallery
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.LocalIndication
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.indication
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -10,17 +11,21 @@ import androidx.compose.foundation.interaction.PressInteraction
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.staggeredgrid.LazyVerticalStaggeredGrid
 import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridCells
 import androidx.compose.foundation.lazy.staggeredgrid.itemsIndexed
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.DeleteForever
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -77,7 +82,6 @@ import javax.inject.Inject
 
 // TODO: animate grid after deleting the album
 
-// TODO: taken photos counter
 // TODO: daily photos streak counter
 // TODO: different frames for better streak and stars for photos counter
 
@@ -110,9 +114,11 @@ fun GalleryRoute(navController: NavHostController) {
     val mediaManager = MediaManagerFactory(context)
     val coroutineScope = rememberCoroutineScope()
 
-    if (albums[0].id == Int.MIN_VALUE) {
-        CircularProgressIndicator()
-    } else {
+    var albumToRemove by remember {
+        mutableStateOf<String?>(null)
+    }
+
+    if (albums.isEmpty() || albums[0].id != Int.MIN_VALUE) {
         GalleryScreen(albums, onAlbumClick = { name ->
             navController.navigate(DetailsDestination(name))
         }, onCreateClick = {
@@ -122,19 +128,27 @@ fun GalleryRoute(navController: NavHostController) {
         ), onMenuItemClicked = { id, albumName ->
             when (id) {
                 "delete" -> {
-                    // TODO: add modal asking if user really want to do this
-                    galleryViewModel.deleteAlbum(albumName)
-                    coroutineScope.launch {
-                        mediaManager.deleteAlbum(albumName)
-                        AlarmScheduler(context).cancel(albumName)
-                    }
+                    albumToRemove = albumName
                 }
+
                 "move up" -> {
                     val firstId = albums.get(0).id
-                    galleryViewModel
                 }
             }
         })
+
+        if (albumToRemove != null) {
+            RemoveAlbumDialog {
+                galleryViewModel.deleteAlbum(albumToRemove!!)
+                coroutineScope.launch {
+                    mediaManager.deleteAlbum(albumToRemove!!)
+                    AlarmScheduler(context).cancel(albumToRemove!!)
+                }
+            }
+        }
+    }
+    else {
+        CircularProgressIndicator()
     }
 }
 
@@ -144,7 +158,7 @@ fun GalleryScreen(
     onAlbumClick: (String) -> Unit,
     onCreateClick: () -> Unit,
     dropDownItems: List<AlbumMenuItem>,
-    onMenuItemClicked: (String, String) -> Unit
+    onMenuItemClicked: (String, String) -> Unit,
 ) {
     // TODO: Add pager view mode
     // https://www.youtube.com/watch?v=V2Ke-JJDnrU&list=PLWz5rJ2EKKc9tgU26tbUAy01MzC2Yjztb&index=4
@@ -189,7 +203,6 @@ fun GalleryScreen(
             }
         }
     }
-
 }
 
 @Composable
@@ -328,6 +341,35 @@ class GalleryViewModel @Inject constructor(
         }
     }
 
+}
+
+@Composable
+fun RemoveAlbumDialog(removeAlbum: () -> Unit) {
+    var viewDialog by remember {
+        mutableStateOf(true)
+    }
+    if (viewDialog) {
+        AlertDialog(
+            title = { Text(text = "Remove album") },
+            text = { Text(text = "Do you really want to do this?") },
+            onDismissRequest = { viewDialog = false },
+            confirmButton = {
+                Row {
+                    Spacer(modifier = Modifier.width(16.dp))
+                    Text(text = "Yes",
+                        modifier = Modifier.clickable {
+                            removeAlbum()
+                            viewDialog = false
+                        })
+                }
+            },
+            dismissButton = {
+                Text(
+                    text = "No",
+                    modifier = Modifier.clickable { viewDialog = false })
+            }
+        )
+    }
 }
 
 @Preview
