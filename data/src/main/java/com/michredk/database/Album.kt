@@ -19,5 +19,6 @@ data class Album (
     @ColumnInfo(name = "bitrate") val bitrate: Int = 1500000,
     @ColumnInfo(name = "days_between_reminders") val daysBetweenReminders: Long = 0,
     @ColumnInfo(name = "reminder_time") val reminderTime: LocalTime = LocalTime.now(),
-    @ColumnInfo(name = "last_reminder_sent_on") val lastReminderSentOn: LocalDateTime = LocalDateTime.now()
+    @ColumnInfo(name = "last_reminder_sent_on") val lastReminderSentOn: LocalDateTime = LocalDateTime.now(),
+    @ColumnInfo(name = "streak") val streak: Int = 1
 )

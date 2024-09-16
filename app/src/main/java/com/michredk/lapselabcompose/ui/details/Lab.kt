@@ -24,6 +24,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Slider
+import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -162,7 +163,8 @@ fun LabRoute(
                     } catch (e: IllegalArgumentException) {
                         SnackbarController.sendEvent(
                             event = SnackbarEvent(
-                                message = "Need at least two pictures to generate video"
+                                message = "Need at least two pictures to generate video",
+                                duration = SnackbarDuration.Long
                             )
                         )
                     } finally {

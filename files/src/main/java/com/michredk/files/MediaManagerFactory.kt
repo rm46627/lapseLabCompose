@@ -42,7 +42,6 @@ class MediaManagerFactory(context: Context) : MediaManagerInterface {
     override suspend fun getPhotoFiles(albumName: String): List<File> =
         manager.getPhotoFiles(albumName)
 
-    // TODO: ask if user want to delete leftover photos
     override suspend fun removeLeftoverPhotosFromNewAlbum(albumName: String, firstPhotoPath: String) =
         manager.removeLeftoverPhotosFromNewAlbum(albumName, firstPhotoPath)
 

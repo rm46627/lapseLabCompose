@@ -1,10 +1,12 @@
 package com.michredk.lapselabcompose.services
 
+import androidx.compose.material3.SnackbarDuration
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.receiveAsFlow
 
 data class SnackbarEvent(
     val message: String,
+    val duration: SnackbarDuration,
     val actionObj: SnackbarAction? = null
 )
 

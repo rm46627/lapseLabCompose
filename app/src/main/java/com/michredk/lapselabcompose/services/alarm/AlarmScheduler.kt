@@ -12,7 +12,6 @@ import java.time.LocalDateTime
 import java.time.LocalTime
 import java.time.ZoneId
 
-// TODO: Schedule an alarm to go off at a time picked by the user.
 // TODO: Reschedule alarms after phone restart - save last notification time in entity
 
 class AlarmScheduler(

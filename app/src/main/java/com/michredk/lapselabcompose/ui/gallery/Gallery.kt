@@ -130,13 +130,11 @@ fun GalleryRoute(navController: NavHostController) {
                 "delete" -> {
                     albumToRemove = albumName
                 }
-
                 "move up" -> {
                     val firstId = albums.get(0).id
                 }
             }
         })
-
         if (albumToRemove != null) {
             RemoveAlbumDialog {
                 galleryViewModel.deleteAlbum(albumToRemove!!)

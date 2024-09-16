@@ -13,9 +13,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
-
-// TODO: notification service for albums
-// TODO: taken photos counter
 // TODO: daily photos streak counter
 // TODO: different frames for better streak and stars for photos counter and albums
 

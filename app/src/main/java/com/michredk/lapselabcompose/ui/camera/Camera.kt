@@ -32,9 +32,11 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Cameraswitch
 import androidx.compose.material.icons.filled.PeopleAlt
 import androidx.compose.material.icons.filled.PhotoCamera
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.SnackbarDuration
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -46,6 +48,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.modifier.modifierLocalConsumer
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -55,23 +59,25 @@ import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavHostController
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
+import coil.size.Scale
 import com.michredk.files.appPicturesDir
 import com.michredk.lapselab.files.MediaManagerFactory
+import com.michredk.lapselabcompose.services.SnackbarController
+import com.michredk.lapselabcompose.services.SnackbarEvent
 import com.michredk.lapselabcompose.ui.CameraGraph
 import com.michredk.lapselabcompose.ui.DetailsGraph
 import com.michredk.lapselabcompose.ui.details.DetailsDestination
 import com.michredk.lapselabcompose.ui.setup.SetupPhotoDestination
 import com.michredk.video.TAG
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 
-// TODO: Add ghost button
 //TODO: Display a modal explaining the ghost button usage
 // TODO: add slider to control transparency of the ghost image
 //TODO: Check if user trying to do next photo in different orientation and warn him about that
 // e.g. view black screen with text asking for rotating device
 // send proper orientation with args
-//TODO: series mode - taking photo without moving to photo fragment, updating ghost image immediately
 
 @Serializable
 data class CameraDestination(
@@ -100,11 +106,14 @@ fun CameraRoute(
             setEnabledUseCases(CameraController.IMAGE_CAPTURE)
         }
     }
+    var photosTaken by remember {
+        mutableStateOf(0)
+    }
 
     CameraScreen(
         cameraController = cameraController,
         albumName = albumName ?: throw NullPointerException(),
-        onTakePictureClicked = {
+        onTakePictureClicked = { shootSeries ->
             cameraController.takePicture(
                 ContextCompat.getMainExecutor(context),
                 object : ImageCapture.OnImageCapturedCallback() {
@@ -117,10 +126,20 @@ fun CameraRoute(
                                 bitmap = finalBitmap, subfolder = "$appPicturesDir/${albumName}"
                             )
                         }
-                        navController.navigate(PhotoPreviewDestination(navigatedFromAlbumDetails))
-
+                        if(shootSeries){
+                            photosTaken++
+                            scope.launch {
+                                SnackbarController.sendEvent(
+                                    event = SnackbarEvent(
+                                        message = "Picture taken",
+                                        duration = SnackbarDuration.Short
+                                    )
+                                )
+                            }
+                        } else {
+                            navController.navigate(PhotoPreviewDestination(navigatedFromAlbumDetails))
+                        }
                     }
-
                     override fun onError(exception: ImageCaptureException) {
                         super.onError(exception)
                         Log.e("Camera", "Couldn't take photo: ", exception)
@@ -133,7 +152,8 @@ fun CameraRoute(
                 if (cameraController.cameraSelector == CameraSelector.DEFAULT_BACK_CAMERA) {
                     CameraSelector.DEFAULT_FRONT_CAMERA
                 } else CameraSelector.DEFAULT_BACK_CAMERA
-        }
+        },
+        photosTaken = photosTaken
     )
 }
 
@@ -142,11 +162,13 @@ fun CameraScreen(
     cameraController: LifecycleCameraController,
     albumName: String,
     onChangeCameraClicked: () -> Unit,
-    onTakePictureClicked: () -> Unit
+    onTakePictureClicked: (Boolean) -> Unit,
+    photosTaken: Int
 ) {
     val context = LocalContext.current
     var ghostPath by remember { mutableStateOf<String?>(null) }
-    LaunchedEffect(Unit) {
+    LaunchedEffect(photosTaken) {
+        delay(150)
         ghostPath = MediaManagerFactory(context).getLatestPhotoFile(albumName)?.absolutePath
     }
     var showGhost by remember {
@@ -174,7 +196,8 @@ fun CameraScreen(
             ghostBtnEnabled = ghostPath != null,
             onGhostImageClicked = {
                 showGhost = !showGhost
-            })
+            }
+        )
     }
 }
 
@@ -185,6 +208,7 @@ fun GhostImage(modifier: Modifier = Modifier, path: String) {
         model = ImageRequest.Builder(LocalContext.current)
             .data(path)
             .build(),
+        contentScale = ContentScale.Crop,
         contentDescription = "Ghost image"
     )
 
@@ -197,22 +221,42 @@ private fun BoxScope.CameraButtons(
     btnBackgroundColor: Color,
     pressedCaptureBackgroundColor: Color,
     onChangeCameraClicked: () -> Unit,
-    onTakePictureClicked: () -> Unit,
+    onTakePictureClicked: (Boolean) -> Unit,
     ghostBtnEnabled: Boolean,
     onGhostImageClicked: () -> Unit,
 ) {
-    IconButton(
-        onClick = onChangeCameraClicked,
+    var shootSeries by remember {
+        mutableStateOf(false)
+    }
+    Row(
         modifier = Modifier
-            .size(btnSize)
-            .offset(16.dp, 32.dp)
-            .background(btnBackgroundColor, shape = CircleShape),
+            .padding(32.dp, 64.dp)
+            .fillMaxWidth()
+            .align(Alignment.TopCenter),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.Top
     ) {
-        Icon(
+        IconButton(
+            onClick = onChangeCameraClicked,
             modifier = Modifier
-                .size(iconSize),
-            imageVector = Icons.Default.Cameraswitch,
-            contentDescription = "Switch camera"
+                .size(btnSize)
+                .background(btnBackgroundColor, shape = CircleShape),
+        ) {
+            Icon(
+                modifier = Modifier
+                    .size(iconSize),
+                imageVector = Icons.Default.Cameraswitch,
+                contentDescription = "Switch camera"
+            )
+        }
+        Checkbox(
+            checked = shootSeries,
+            modifier = Modifier
+                .size(btnSize),
+//                .background(btnBackgroundColor, shape = CircleShape),
+            onCheckedChange = { isChecked ->
+                shootSeries = isChecked
+            }
         )
     }
     Row(
@@ -253,7 +297,8 @@ private fun BoxScope.CameraButtons(
                 .background(finalBackgroundColor, shape = CircleShape),
             iconModifier = Modifier
                 .size(iconSize + 10.dp),
-            onTakePictureClicked = onTakePictureClicked
+            onTakePictureClicked = onTakePictureClicked,
+            shootSeries = shootSeries
         )
         Spacer(modifier = Modifier.width(iconSize))
     }
@@ -263,14 +308,15 @@ private fun BoxScope.CameraButtons(
 private fun CaptureButton(
     btnModifier: Modifier,
     iconModifier: Modifier,
-    onTakePictureClicked: () -> Unit,
-    interactionSource: MutableInteractionSource
+    onTakePictureClicked: (Boolean) -> Unit,
+    interactionSource: MutableInteractionSource,
+    shootSeries: Boolean
 ) {
     IconButton(
         interactionSource = interactionSource,
         modifier = btnModifier,
         onClick = {
-            onTakePictureClicked()
+            onTakePictureClicked(shootSeries)
         }) {
         Icon(
             imageVector = Icons.Default.PhotoCamera,
