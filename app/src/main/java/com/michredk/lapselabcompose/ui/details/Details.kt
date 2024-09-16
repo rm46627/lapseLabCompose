@@ -1,5 +1,6 @@
 package com.michredk.lapselabcompose.ui.details
 
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -31,6 +32,7 @@ import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavHostController
 import com.michredk.database.Album
 import com.michredk.lapselab.files.MediaManagerFactory
+import com.michredk.lapselabcompose.TAG
 import com.michredk.lapselabcompose.services.alarm.AlarmScheduler
 import com.michredk.lapselabcompose.ui.PermissionViewModel
 import com.michredk.lapselabcompose.ui.DetailsGraph
@@ -118,12 +120,13 @@ fun DetailsScreen(
             .fillMaxSize()
     ) {
         val gridState = rememberLazyGridState()
-
         val expandedState by remember {
             derivedStateOf {
-                if (photos.size < 7) true
-                else if (!gridState.canScrollBackward)
+                if (photos.size < 7)
                     true
+                else if (!gridState.canScrollBackward && !gridState.isScrollInProgress){
+                    gridState.firstVisibleItemIndex <= 1
+                }
                 else
                     gridState.lastScrolledBackward && gridState.firstVisibleItemIndex == 0
             }

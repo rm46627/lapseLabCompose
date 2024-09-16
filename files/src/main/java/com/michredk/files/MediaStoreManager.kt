@@ -44,29 +44,44 @@ class MediaStoreMediaManager(private val context: Context) : MediaManagerInterfa
     private val mediaStoreVideoCollection: Uri? =
         MediaStore.Video.Media.getContentUri(MediaStore.VOLUME_EXTERNAL)
 
-    private fun createContentValues(name: String, subfolder: String, filetype: String): ContentValues =
+    private fun createContentValues(
+        name: String,
+        subfolder: String,
+        filetype: String
+    ): ContentValues =
         ContentValues().apply {
             Log.d(TAG, "createContentValues")
             put(MediaStore.MediaColumns.DISPLAY_NAME, name)
             put(MediaStore.MediaColumns.MIME_TYPE, filetype)
-            when(filetype) {
+            when (filetype) {
                 PHOTO_TYPE -> put(MediaStore.Images.Media.RELATIVE_PATH, subfolder)
                 VIDEO_TYPE -> put(MediaStore.Video.Media.RELATIVE_PATH, subfolder)
             }
         }
 
     override suspend fun deleteAlbum(albumName: String) {
-        // TODO: add video files to remove
-        val files = getPhotoFiles(albumName)
-        if (files.size == 0) {
-
+        //Photo
+        val photoFiles = getPhotoFiles(albumName)
+        if (photoFiles.size == 0) {
             return
         }
-        val albumFolder = files[0].parentFile
-        files.forEach { file ->
+        val photoAlbumFolder = photoFiles[0].parentFile
+        photoFiles.forEach { file ->
             file.delete()
         }
-        albumFolder!!.delete()
+        photoAlbumFolder!!.delete()
+        //Video
+        val videoFiles = getVideoFiles(albumName)
+        if (videoFiles.size == 0) {
+            return
+        }
+        val videoAlbumFolder = videoFiles[0].parentFile
+        videoFiles.forEach { file ->
+            file.delete()
+        }
+        videoAlbumFolder!!.delete()
+
+
     }
 
     ////
@@ -79,7 +94,10 @@ class MediaStoreMediaManager(private val context: Context) : MediaManagerInterfa
     ): Uri? =
         withContext(Dispatchers.IO) {
             val filename =
-                SimpleDateFormat(FILES_NAME_DATE_FORMAT, Locale.US).format(System.currentTimeMillis())
+                SimpleDateFormat(
+                    FILES_NAME_DATE_FORMAT,
+                    Locale.US
+                ).format(System.currentTimeMillis())
             val contentValues = createContentValues(filename, subfolder, PHOTO_TYPE)
             var uri: Uri? = null
             try {
@@ -198,17 +216,6 @@ class MediaStoreMediaManager(private val context: Context) : MediaManagerInterfa
             uri
         }
 
-// Show the names of media store entries
-//        getMediaStoreVideoCursor(mediaStoreVideoCollection, albumName).use { cursor ->
-//            if (cursor?.moveToFirst() != true) return null
-//            do {
-//                val videoDataColumn = cursor.getColumnIndexOrThrow(videoDataColumnIndex)
-//                val contentFilePath = cursor.getString(videoDataColumn)
-//                file = File(contentFilePath)
-//                Log.d(TAG, "file ${file!!.name}")
-//            }while (cursor.moveToNext())
-//        }
-
     override suspend fun getLatestVideoFile(albumName: String): File? {
         var file: File?
         if (mediaStoreVideoCollection == null) return null
@@ -220,7 +227,7 @@ class MediaStoreMediaManager(private val context: Context) : MediaManagerInterfa
                 val contentFilePath = cursor.getString(videoDataColumn)
                 file = File(contentFilePath)
                 Log.d(TAG, "file ${file!!.name}")
-            }while (cursor.moveToNext())
+            } while (cursor.moveToNext())
         }
         getMediaStoreVideoCursor(mediaStoreVideoCollection, albumName).use { cursor ->
             if (cursor?.moveToFirst() != true) return null
@@ -270,6 +277,26 @@ class MediaStoreMediaManager(private val context: Context) : MediaManagerInterfa
             )
         }
         return cursor
+    }
+
+    override suspend fun getVideoFiles(albumName: String): MutableList<File> {
+        val files = mutableListOf<File>()
+        if (mediaStoreVideoCollection == null) return files
+        if (albumName != null) {
+            getMediaStoreVideoCursor(mediaStoreVideoCollection, albumName)
+        } else {
+            getMediaStoreVideoCursor(mediaStoreVideoCollection)
+        }.use { cursor ->
+            val videoDataColumn = cursor?.getColumnIndexOrThrow(videoDataColumnIndex)
+            val videoIdColumn = cursor?.getColumnIndexOrThrow(videoIdColumnIndex)
+            if (cursor != null && videoDataColumn != null && videoIdColumn != null) {
+                while (cursor.moveToNext()) {
+                    val contentFilePath = cursor.getString(videoDataColumn)
+                    files.add(File(contentFilePath))
+                }
+            }
+        }
+        return files
     }
 
     override suspend fun getMoviesFolderFile(albumName: String): File? {

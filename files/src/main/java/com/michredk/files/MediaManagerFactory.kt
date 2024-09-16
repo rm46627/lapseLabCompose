@@ -56,6 +56,9 @@ class MediaManagerFactory(context: Context) : MediaManagerInterface {
     override suspend fun getAlbumFolderFile(albumName: String): File? =
         manager.getAlbumFolderFile(albumName)
 
+    override suspend fun getVideoFiles(albumName: String): MutableList<File> =
+        manager.getVideoFiles(albumName)
+
     override suspend fun getMoviesFolderFile(albumName: String): File? {
         TODO("Not yet implemented")
     }

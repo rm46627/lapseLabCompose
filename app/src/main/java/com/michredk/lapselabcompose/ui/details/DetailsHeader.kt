@@ -23,7 +23,11 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
@@ -54,6 +58,7 @@ fun DetailsHeader(
         targetValue = if (expanded) 1f else 0f, animationSpec = tween(durationMillis = 1000),
         label = ""
     )
+
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -67,7 +72,9 @@ fun DetailsHeader(
     ) {
         AlbumCoverPhoto(album.coverPhotoPath, scale)
         Text(
-            modifier = Modifier.alpha(scale).height(38.dp*scale),
+            modifier = Modifier
+                .alpha(scale)
+                .height(38.dp * scale),
             text = album.directoryName,
             style = MaterialTheme.typography.headlineLarge,
         )
@@ -77,7 +84,10 @@ fun DetailsHeader(
                 .padding(horizontal = 16.dp, vertical = 2.dp), verticalAlignment = Alignment.Bottom
         ) {
             Text(
-                modifier = Modifier.weight(3f).padding(vertical = 8.dp).alpha(1-scale),
+                modifier = Modifier
+                    .weight(3f)
+                    .padding(vertical = 8.dp)
+                    .alpha(1 - scale),
                 text = album.directoryName,
                 textAlign = TextAlign.Start,
                 style = MaterialTheme.typography.headlineSmall,

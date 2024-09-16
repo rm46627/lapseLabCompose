@@ -106,6 +106,10 @@ class FileMediaManager(private val context: Context) : MediaManagerInterface {
         )
     }
 
+    override suspend fun getVideoFiles(albumName: String): MutableList<File> {
+        TODO("Not yet implemented")
+    }
+
     override suspend fun getMoviesFolderFile(albumName: String): File? {
         TODO("Not yet implemented")
     }

@@ -7,27 +7,17 @@ import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.indication
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.PressInteraction
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.statusBars
-import androidx.compose.foundation.layout.windowInsetsTopHeight
 import androidx.compose.foundation.layout.wrapContentSize
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.GridItemSpan
-import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.itemsIndexed
 import androidx.compose.foundation.lazy.staggeredgrid.LazyVerticalStaggeredGrid
 import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridCells
-import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridItemSpan
 import androidx.compose.foundation.lazy.staggeredgrid.itemsIndexed
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.DeleteForever
@@ -38,7 +28,6 @@ import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.ShapeDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -58,7 +47,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.DpOffset
@@ -111,12 +99,18 @@ class AlbumMenuItem(
 @Composable
 fun GalleryRoute(navController: NavHostController) {
     val galleryViewModel: GalleryViewModel = hiltViewModel()
-    val albums by galleryViewModel.getAlbums.collectAsStateWithLifecycle(initialValue = listOf(Album(id = -1)))
+    val albums by galleryViewModel.getAlbums.collectAsStateWithLifecycle(
+        initialValue = listOf(
+            Album(
+                id = Int.MIN_VALUE
+            )
+        )
+    )
     val context = LocalContext.current
     val mediaManager = MediaManagerFactory(context)
     val coroutineScope = rememberCoroutineScope()
 
-    if (albums[0].id == -1){
+    if (albums[0].id == Int.MIN_VALUE) {
         CircularProgressIndicator()
     } else {
         GalleryScreen(albums, onAlbumClick = { name ->
@@ -135,7 +129,10 @@ fun GalleryRoute(navController: NavHostController) {
                         AlarmScheduler(context).cancel(albumName)
                     }
                 }
-                // TODO: move album to the top
+                "move up" -> {
+                    val firstId = albums.get(0).id
+                    galleryViewModel
+                }
             }
         })
     }
@@ -149,6 +146,12 @@ fun GalleryScreen(
     dropDownItems: List<AlbumMenuItem>,
     onMenuItemClicked: (String, String) -> Unit
 ) {
+    // TODO: Add pager view mode
+    // https://www.youtube.com/watch?v=V2Ke-JJDnrU&list=PLWz5rJ2EKKc9tgU26tbUAy01MzC2Yjztb&index=4
+    val pagerViewMode by remember {
+        mutableStateOf(false)
+    }
+
     // adds creating new album card
     val albumsWithExtras = albums.plus(Album())
     val backgroundColor = MaterialTheme.colorScheme.background
@@ -160,7 +163,8 @@ fun GalleryScreen(
     ) {
         Text(
             style = MaterialTheme.typography.titleLarge,
-            text = "My albums")
+            text = "My albums"
+        )
 
         LazyVerticalStaggeredGrid(
             modifier = Modifier.padding(top = 38.dp),
@@ -309,14 +313,18 @@ fun CreateCard(onCreateNewAlbumClick: () -> Unit) {
 class GalleryViewModel @Inject constructor(
     val repository: Repository
 ) : ViewModel() {
-    val getAlbums = repository.getAlbums()
 
-    // used to calculate span size in gallery recyclerView
-    var gallerySize: Int = 0
+    val getAlbums = repository.getAlbums()
 
     fun deleteAlbum(albumName: String) {
         viewModelScope.launch {
             repository.deleteAlbum(albumName)
+        }
+    }
+
+    fun updateAlbum(album: Album) {
+        viewModelScope.launch {
+            repository.updateAlbum(album)
         }
     }
 
