@@ -174,7 +174,7 @@ fun CameraScreen(
             ghostBtnEnabled = ghostPath != null,
             onGhostImageClicked = {
                 showGhost = !showGhost
-        })
+            })
     }
 }
 
@@ -202,7 +202,8 @@ private fun BoxScope.CameraButtons(
     onGhostImageClicked: () -> Unit,
 ) {
     IconButton(
-        onClick = onChangeCameraClicked, modifier = Modifier
+        onClick = onChangeCameraClicked,
+        modifier = Modifier
             .size(btnSize)
             .offset(16.dp, 32.dp)
             .background(btnBackgroundColor, shape = CircleShape),
@@ -225,7 +226,11 @@ private fun BoxScope.CameraButtons(
         IconButton(
             modifier = Modifier
                 .size(btnSize)
-                .background( if (ghostBtnEnabled) btnBackgroundColor else btnBackgroundColor.copy(alpha = 0.5f), shape = CircleShape),
+                .background(
+                    if (ghostBtnEnabled) btnBackgroundColor else btnBackgroundColor.copy(
+                        alpha = 0.5f
+                    ), shape = CircleShape
+                ),
             enabled = ghostBtnEnabled,
             onClick = onGhostImageClicked
         ) {

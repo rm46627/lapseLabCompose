@@ -110,8 +110,10 @@ fun AlbumCoverPhoto(photo: String, scale: Float) {
     // TODO: if it is possible view video
     AsyncImage(
         modifier = Modifier
-            .width(200.dp * scale)
+//            .width(200.dp * scale)
+            .width(200.dp)
             .height(300.dp * scale)
+            .alpha(scale)
             .padding(8.dp),
         model = ImageRequest.Builder(LocalContext.current)
             .data(photo)

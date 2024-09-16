@@ -33,6 +33,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.DeleteForever
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
@@ -110,30 +111,34 @@ class AlbumMenuItem(
 @Composable
 fun GalleryRoute(navController: NavHostController) {
     val galleryViewModel: GalleryViewModel = hiltViewModel()
-    val albums by galleryViewModel.getAlbums.collectAsStateWithLifecycle(initialValue = emptyList())
+    val albums by galleryViewModel.getAlbums.collectAsStateWithLifecycle(initialValue = listOf(Album(id = -1)))
     val context = LocalContext.current
     val mediaManager = MediaManagerFactory(context)
     val coroutineScope = rememberCoroutineScope()
 
-    GalleryScreen(albums, onAlbumClick = { name ->
-        navController.navigate(DetailsDestination(name))
-    }, onCreateClick = {
-        navController.navigate(SetupAlbumDestination)
-    }, dropDownItems = listOf(
-        AlbumMenuItem(id = "delete", text = "Delete album", Icons.Default.DeleteForever)
-    ), onMenuItemClicked = { id, albumName ->
-        when (id) {
-            "delete" -> {
-                // TODO: add modal asking if user really want to do this
-                galleryViewModel.deleteAlbum(albumName)
-                coroutineScope.launch {
-                    mediaManager.deleteAlbum(albumName)
-                    AlarmScheduler(context).cancel(albumName)
+    if (albums[0].id == -1){
+        CircularProgressIndicator()
+    } else {
+        GalleryScreen(albums, onAlbumClick = { name ->
+            navController.navigate(DetailsDestination(name))
+        }, onCreateClick = {
+            navController.navigate(SetupAlbumDestination)
+        }, dropDownItems = listOf(
+            AlbumMenuItem(id = "delete", text = "Delete album", Icons.Default.DeleteForever)
+        ), onMenuItemClicked = { id, albumName ->
+            when (id) {
+                "delete" -> {
+                    // TODO: add modal asking if user really want to do this
+                    galleryViewModel.deleteAlbum(albumName)
+                    coroutineScope.launch {
+                        mediaManager.deleteAlbum(albumName)
+                        AlarmScheduler(context).cancel(albumName)
+                    }
                 }
+                // TODO: move album to the top
             }
-            // TODO: move album to the top
-        }
-    })
+        })
+    }
 }
 
 @Composable
