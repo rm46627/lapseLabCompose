@@ -21,6 +21,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.michredk.database.Album
 import com.michredk.lapselabcompose.ui.common.DropDownMenu
@@ -59,7 +60,7 @@ fun ConfigureNotificationsDialog(
     if (showDialog) {
         AlertDialog(title = { Text(text = "Configure your notifications") }, text = {
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                Text(text = currentConfig, modifier = Modifier.padding(bottom = 4.dp))
+                Text(textAlign = TextAlign.Start, text = currentConfig, modifier = Modifier.fillMaxWidth().padding(bottom = 4.dp))
                 DropDownMenu(
                     items = listOf(
                         "I don't need a reminder",

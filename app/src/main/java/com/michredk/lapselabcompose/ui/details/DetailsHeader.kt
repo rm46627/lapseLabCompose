@@ -36,6 +36,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
@@ -74,8 +75,12 @@ fun DetailsHeader(
         Text(
             modifier = Modifier
                 .alpha(scale)
-                .height(38.dp * scale),
+                .height(38.dp * scale)
+                .fillMaxWidth(),
+            textAlign = TextAlign.Center,
             text = album.directoryName,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
             style = MaterialTheme.typography.headlineLarge,
         )
         Row(
@@ -87,12 +92,14 @@ fun DetailsHeader(
                 modifier = Modifier
                     .weight(3f)
                     .padding(vertical = 8.dp)
+                    .fillMaxWidth()
                     .alpha(1 - scale),
                 text = album.directoryName,
                 textAlign = TextAlign.Start,
+                overflow = TextOverflow.Ellipsis,
                 style = MaterialTheme.typography.headlineSmall,
             )
-            Spacer(modifier = Modifier.weight(2f))
+
             IconButton(onClick = onNotificationIconClicked) {
                 Icon(
                     imageVector = if (album.daysBetweenReminders == 0L) Icons.Outlined.Notifications else Icons.Default.Notifications,

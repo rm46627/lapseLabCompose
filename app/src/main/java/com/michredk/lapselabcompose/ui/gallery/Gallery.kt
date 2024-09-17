@@ -53,6 +53,7 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
@@ -82,6 +83,7 @@ import javax.inject.Inject
 
 // TODO: animate grid after deleting the album
 
+// TODO: taken photos counter
 // TODO: daily photos streak counter
 // TODO: different frames for better streak and stars for photos counter
 
@@ -132,6 +134,7 @@ fun GalleryRoute(navController: NavHostController) {
                 }
                 "move up" -> {
                     val firstId = albums.get(0).id
+                    galleryViewModel
                 }
             }
         })
@@ -156,7 +159,7 @@ fun GalleryScreen(
     onAlbumClick: (String) -> Unit,
     onCreateClick: () -> Unit,
     dropDownItems: List<AlbumMenuItem>,
-    onMenuItemClicked: (String, String) -> Unit,
+    onMenuItemClicked: (String, String) -> Unit
 ) {
     // TODO: Add pager view mode
     // https://www.youtube.com/watch?v=V2Ke-JJDnrU&list=PLWz5rJ2EKKc9tgU26tbUAy01MzC2Yjztb&index=4
@@ -201,6 +204,7 @@ fun GalleryScreen(
             }
         }
     }
+
 }
 
 @Composable
@@ -252,7 +256,9 @@ fun GalleryItem(
         Text(
             modifier = Modifier.padding(start = 8.dp),
             text = album.directoryName,
-            textAlign = TextAlign.Center
+            textAlign = TextAlign.Start,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis
         )
         Text(
             style = TextStyle(color = MaterialTheme.colorScheme.primary),

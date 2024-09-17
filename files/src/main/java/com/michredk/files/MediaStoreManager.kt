@@ -228,6 +228,10 @@ class MediaStoreMediaManager(private val context: Context) : MediaManagerInterfa
                 file = File(contentFilePath)
                 Log.d(TAG, "file ${file!!.name}")
             } while (cursor.moveToNext())
+            // TODO: try to scan and remove duplicated entries of videos
+            MediaScannerConnection.scanFile(
+                context, arrayOf(), null, null
+            )
         }
         getMediaStoreVideoCursor(mediaStoreVideoCollection, albumName).use { cursor ->
             if (cursor?.moveToFirst() != true) return null

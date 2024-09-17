@@ -46,6 +46,7 @@ import androidx.compose.ui.viewinterop.AndroidView
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.media3.common.MediaItem
+import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.ui.PlayerView
@@ -95,9 +96,17 @@ fun LabRoute(
 
     val context = LocalContext.current
     val exoPlayer = ExoPlayer.Builder(context).build().apply {
-        repeatMode = ExoPlayer.REPEAT_MODE_ONE
         playWhenReady = true
     }
+//    exoPlayer.addListener(object : Player.Listener{
+//        override fun onPlaybackStateChanged(playbackState: Int) {
+//            super.onPlaybackStateChanged(playbackState)
+//            if(playbackState == Player.STATE_ENDED) {
+//                exoPlayer.seekTo(0)
+//            }
+//        }
+//    })
+
     val mediaManager = MediaManagerFactory(context)
 
     var showScreen by remember { mutableStateOf(true) }
@@ -112,7 +121,7 @@ fun LabRoute(
         )?.absolutePath
     }
 
-    var mediaSource = remember(videoUriState) {
+    val mediaSource = remember(videoUriState) {
         val newUri = videoUriState
         Log.d(TAG, "newUri: $newUri")
         if (newUri != null) MediaItem.fromUri(newUri) else null
@@ -135,7 +144,6 @@ fun LabRoute(
                 isLoading = true
                 showInterstitialAd()
                 scope.launch(Dispatchers.IO) {
-                    Log.d(TAG, "After Scope running on thread: ${Thread.currentThread().name}")
                     try {
                         val photosSafe = photos ?: throw NullPointerException()
                         if (photosSafe.size < 2) throw IllegalArgumentException()
@@ -204,7 +212,8 @@ fun LabScreen(
 ) {
     Column(
         Modifier
-            .fillMaxSize().padding(top = 32.dp),
+            .fillMaxSize()
+            .padding(top = 32.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.SpaceBetween
     ) {
@@ -238,7 +247,12 @@ fun LabScreen(
                 contentScale = ContentScale.Crop,
             )
         }
-        Button(modifier = Modifier.padding(top = 8.dp), onClick = onGenerateVideoBtnClicked, enabled = uiState != videoProperties) {
+        Button(
+            modifier = Modifier.padding(top = 8.dp),
+            onClick = onGenerateVideoBtnClicked,
+//            enabled = uiState != videoProperties
+            enabled = true
+        ) {
             Text(text = "generate video")
         }
         PeaceSlider(uiState.framesPerImage, peaceOnValueChange = peaceOnValueChange)

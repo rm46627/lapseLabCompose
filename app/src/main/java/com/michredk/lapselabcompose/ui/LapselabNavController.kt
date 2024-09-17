@@ -76,8 +76,7 @@ class LapselabNavController(
         }
         NavHost(
             modifier = Modifier, navController = navController,
-//            startDestination = SplashScreenDestination
-            startDestination = GalleryDestination
+            startDestination = SplashScreenDestination
         ) {
             composable<SplashScreenDestination> {
                 SplashScreenRoute(navController)

@@ -9,4 +9,5 @@ import javax.inject.Inject
 class CameraViewModel @Inject constructor(): ViewModel(){
     var albumName: String? = null
     var bitmap: Bitmap? = null
+
 }

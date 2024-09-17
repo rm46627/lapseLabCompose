@@ -51,11 +51,6 @@ fun PhotoBrowserRoute(
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val parentEntry = remember(backStackEntry) {
-//        try{
-//            navController.getBackStackEntry(DetailsGraph)
-//        } catch (e: IllegalArgumentException){
-//            null
-//        }
         navController.getBackStackEntry(DetailsGraph)
     }
     if(parentEntry != null) {

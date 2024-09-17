@@ -17,7 +17,10 @@ import androidx.media3.transformer.Effects
 import androidx.media3.transformer.ExportException
 import androidx.media3.transformer.ExportResult
 import androidx.media3.transformer.Transformer
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import java.io.File
 import java.io.IOException
 
@@ -33,7 +36,7 @@ class MediaProcessor(private val context: Context, private val file: File) {
     private var encodingProgressListener: EncodingProgressListener? = null
 
     @OptIn(androidx.media3.common.util.UnstableApi::class)
-    suspend fun encodeMp4(
+    fun encodeMp4(
         imageList: List<File>, width: Int, height: Int, effects: List<Effect> = listOf()
     ): EncodingResult {
         val videoEncoder: VideoEncoder?
@@ -58,8 +61,10 @@ class MediaProcessor(private val context: Context, private val file: File) {
         }
 
         videoEncoder.release()
-
-        transformVideo(effects)
+        val mainScope = CoroutineScope(Dispatchers.Main)
+        mainScope.launch {
+            transformVideo(effects)
+        }
 
         return EncodingSuccess(file)
     }
@@ -78,7 +83,6 @@ class MediaProcessor(private val context: Context, private val file: File) {
             }
         }
         val mediaItem = MediaItem.fromUri(file.absolutePath)
-        Looper.prepare()
         val transformer = Transformer.Builder(context).addListener(transformerListener).build()
         val editedMediaItem = EditedMediaItem.Builder(mediaItem).setEffects(
                 Effects(

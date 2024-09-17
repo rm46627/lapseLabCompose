@@ -26,10 +26,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavHostController
+import com.michredk.lapselab.files.MediaManagerFactory
 import com.michredk.lapselabcompose.ui.details.DetailsDestination
 import com.michredk.lapselabcompose.ui.CameraGraph
 import com.michredk.lapselabcompose.ui.DetailsGraph
@@ -53,10 +55,13 @@ fun PhotoPreviewRoute(
     }
     val viewModel: CameraViewModel = hiltViewModel(parentEntry)
     val bitmap = viewModel.bitmap ?: throw NullPointerException()
+    val context = LocalContext.current
 
     PhotoPreviewScreen(
         bitmap = bitmap,
         onDiscardClicked = {
+            // TODO: create delete latest photo
+//            MediaManagerFactory(context).getLatestPhotoFile(viewModel.albumName).delete()
             navController.navigateUp()
         },
         onAcceptClicked = {

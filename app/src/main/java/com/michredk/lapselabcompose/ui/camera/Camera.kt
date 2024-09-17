@@ -3,7 +3,6 @@ package com.michredk.lapselabcompose.ui.camera
 import android.graphics.Bitmap
 import android.graphics.Matrix
 import android.util.Log
-import androidx.activity.compose.BackHandler
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.ImageCapture
 import androidx.camera.core.ImageCaptureException
@@ -18,15 +17,11 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.windowInsetsTopHeight
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Cameraswitch
@@ -40,6 +35,7 @@ import androidx.compose.material3.SnackbarDuration
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -49,7 +45,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.modifier.modifierLocalConsumer
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -59,15 +54,11 @@ import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavHostController
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
-import coil.size.Scale
 import com.michredk.files.appPicturesDir
 import com.michredk.lapselab.files.MediaManagerFactory
 import com.michredk.lapselabcompose.services.SnackbarController
 import com.michredk.lapselabcompose.services.SnackbarEvent
 import com.michredk.lapselabcompose.ui.CameraGraph
-import com.michredk.lapselabcompose.ui.DetailsGraph
-import com.michredk.lapselabcompose.ui.details.DetailsDestination
-import com.michredk.lapselabcompose.ui.setup.SetupPhotoDestination
 import com.michredk.video.TAG
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -107,45 +98,36 @@ fun CameraRoute(
         }
     }
     var photosTaken by remember {
-        mutableStateOf(0)
+        mutableIntStateOf(0)
     }
 
     CameraScreen(
         cameraController = cameraController,
         albumName = albumName ?: throw NullPointerException(),
         onTakePictureClicked = { shootSeries ->
-            cameraController.takePicture(
-                ContextCompat.getMainExecutor(context),
+            cameraController.takePicture(ContextCompat.getMainExecutor(context),
                 object : ImageCapture.OnImageCapturedCallback() {
                     override fun onCaptureSuccess(image: ImageProxy) {
                         super.onCaptureSuccess(image)
                         val finalBitmap = scaleCropRotateBitmap(image)
+                        cameraViewModel.bitmap = finalBitmap
                         scope.launch {
-                            cameraViewModel.bitmap = finalBitmap
-                            val uri = mediaManager.saveBitmap(
+                            mediaManager.saveBitmap(
                                 bitmap = finalBitmap, subfolder = "$appPicturesDir/${albumName}"
                             )
                         }
-                        if(shootSeries){
+                        if (shootSeries) {
                             photosTaken++
-                            scope.launch {
-                                SnackbarController.sendEvent(
-                                    event = SnackbarEvent(
-                                        message = "Picture taken",
-                                        duration = SnackbarDuration.Short
-                                    )
-                                )
-                            }
                         } else {
                             navController.navigate(PhotoPreviewDestination(navigatedFromAlbumDetails))
                         }
                     }
+
                     override fun onError(exception: ImageCaptureException) {
                         super.onError(exception)
-                        Log.e("Camera", "Couldn't take photo: ", exception)
+                        Log.e(TAG, "HERE !!!!!!!! Couldn't take photo: ", exception)
                     }
-                }
-            )
+                })
         },
         onChangeCameraClicked = {
             cameraController.cameraSelector =
@@ -153,7 +135,8 @@ fun CameraRoute(
                     CameraSelector.DEFAULT_FRONT_CAMERA
                 } else CameraSelector.DEFAULT_BACK_CAMERA
         },
-        photosTaken = photosTaken
+        photosTaken = photosTaken,
+        ghostBitmap = cameraViewModel.bitmap
     )
 }
 
@@ -163,51 +146,64 @@ fun CameraScreen(
     albumName: String,
     onChangeCameraClicked: () -> Unit,
     onTakePictureClicked: (Boolean) -> Unit,
-    photosTaken: Int
+    photosTaken: Int,
+    ghostBitmap: Bitmap?
 ) {
     val context = LocalContext.current
     var ghostPath by remember { mutableStateOf<String?>(null) }
-    LaunchedEffect(photosTaken) {
-        delay(150)
-        ghostPath = MediaManagerFactory(context).getLatestPhotoFile(albumName)?.absolutePath
+    var showFlash by remember {
+        mutableStateOf(false)
     }
     var showGhost by remember {
         mutableStateOf(false)
     }
+    LaunchedEffect(photosTaken) {
+        if (photosTaken > 0) {
+            showFlash = true
+        }
+        if (ghostBitmap == null) ghostPath =
+            MediaManagerFactory(context).getLatestPhotoFile(albumName)?.absolutePath
+        delay(100)
+        showFlash = false
+    }
     Box(
-        modifier = Modifier
-            .fillMaxSize()
+        modifier = Modifier.fillMaxSize()
     ) {
         CameraPreview(controller = cameraController, modifier = Modifier.fillMaxSize())
         if (showGhost) {
+            val data = ghostBitmap ?: ghostPath!!
+            Log.d(TAG, "data: ${data}")
             GhostImage(
-                Modifier
+                modifier = Modifier
                     .fillMaxSize()
-                    .alpha(0.5f), ghostPath!!
+                    .alpha(0.5f), data = data
             )
         }
-        CameraButtons(
-            30.dp,
+        if (showFlash) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Color.White)
+            )
+        }
+        CameraButtons(30.dp,
             40.dp,
             btnBackgroundColor = MaterialTheme.colorScheme.primaryContainer,
             pressedCaptureBackgroundColor = MaterialTheme.colorScheme.primary,
             onChangeCameraClicked,
             onTakePictureClicked,
-            ghostBtnEnabled = ghostPath != null,
+            ghostBtnEnabled = ghostPath != null || ghostBitmap != null,
             onGhostImageClicked = {
                 showGhost = !showGhost
-            }
-        )
+            })
     }
 }
 
 @Composable
-fun GhostImage(modifier: Modifier = Modifier, path: String) {
+fun GhostImage(modifier: Modifier = Modifier, data: Any) {
     AsyncImage(
         modifier = modifier,
-        model = ImageRequest.Builder(LocalContext.current)
-            .data(path)
-            .build(),
+        model = ImageRequest.Builder(LocalContext.current).data(data).build(),
         contentScale = ContentScale.Crop,
         contentDescription = "Ghost image"
     )
@@ -243,21 +239,16 @@ private fun BoxScope.CameraButtons(
                 .background(btnBackgroundColor, shape = CircleShape),
         ) {
             Icon(
-                modifier = Modifier
-                    .size(iconSize),
+                modifier = Modifier.size(iconSize),
                 imageVector = Icons.Default.Cameraswitch,
                 contentDescription = "Switch camera"
             )
         }
-        Checkbox(
-            checked = shootSeries,
-            modifier = Modifier
-                .size(btnSize),
+        Checkbox(checked = shootSeries, modifier = Modifier.size(btnSize),
 //                .background(btnBackgroundColor, shape = CircleShape),
             onCheckedChange = { isChecked ->
                 shootSeries = isChecked
-            }
-        )
+            })
     }
     Row(
         modifier = Modifier
@@ -274,15 +265,12 @@ private fun BoxScope.CameraButtons(
                     if (ghostBtnEnabled) btnBackgroundColor else btnBackgroundColor.copy(
                         alpha = 0.5f
                     ), shape = CircleShape
-                ),
-            enabled = ghostBtnEnabled,
-            onClick = onGhostImageClicked
+                ), enabled = ghostBtnEnabled, onClick = onGhostImageClicked
         ) {
             Icon(
                 imageVector = Icons.Default.PeopleAlt,
                 contentDescription = "Ghost photo",
-                modifier = Modifier
-                    .size(iconSize)
+                modifier = Modifier.size(iconSize)
             )
         }
 
@@ -295,8 +283,7 @@ private fun BoxScope.CameraButtons(
             btnModifier = Modifier
                 .size(btnSize + 15.dp)
                 .background(finalBackgroundColor, shape = CircleShape),
-            iconModifier = Modifier
-                .size(iconSize + 10.dp),
+            iconModifier = Modifier.size(iconSize + 10.dp),
             onTakePictureClicked = onTakePictureClicked,
             shootSeries = shootSeries
         )
@@ -312,12 +299,9 @@ private fun CaptureButton(
     interactionSource: MutableInteractionSource,
     shootSeries: Boolean
 ) {
-    IconButton(
-        interactionSource = interactionSource,
-        modifier = btnModifier,
-        onClick = {
-            onTakePictureClicked(shootSeries)
-        }) {
+    IconButton(interactionSource = interactionSource, modifier = btnModifier, onClick = {
+        onTakePictureClicked(shootSeries)
+    }) {
         Icon(
             imageVector = Icons.Default.PhotoCamera,
             contentDescription = "Take photo",
@@ -359,13 +343,11 @@ fun scaleCropRotateBitmap(
 
     // Create the cropped bitmap centered on the original image
     val croppedBitmap = Bitmap.createBitmap(
-        bitmap,
-        x,             // X coordinate to start the crop
+        bitmap, x,             // X coordinate to start the crop
         y,             // Y coordinate to start the crop
         finalWidth,    // Width of the cropped image
         finalHeight,   // Height of the cropped image
-        matrix,
-        true
+        matrix, true
     )
 
     Log.d(TAG, "Final dimensions height = $finalHeight width = $finalWidth ")
