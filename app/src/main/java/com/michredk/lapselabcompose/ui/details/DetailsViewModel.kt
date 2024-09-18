@@ -48,10 +48,9 @@ class DetailsViewModel @Inject constructor(private val repository: Repository) :
         viewModelScope.launch {
             _album.collect { album ->
                 album?.let {
-                    val state = LabUiState(
-                        framesPerImage = it.videoFramesPerImage, bitrate = it.videoBitrate
+                    _labUiState.value = LabUiState(
+                        framesPerImage = 5, bitrate = 2000000
                     )
-                    _labUiState.value = state
                 }
             }
         }
@@ -75,8 +74,6 @@ class DetailsViewModel @Inject constructor(private val repository: Repository) :
             val updatedAlbum = album.copy(
                 reminderTime = notificationTime ?: album.reminderTime,
                 daysBetweenReminders = days,
-                videoFramesPerImage = labUiState.value.framesPerImage,
-                videoBitrate = labUiState.value.bitrate
             )
             repository.updateAlbum(updatedAlbum)
         }
