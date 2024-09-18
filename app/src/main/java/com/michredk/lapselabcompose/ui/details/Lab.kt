@@ -8,29 +8,18 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Pause
-import androidx.compose.material.icons.filled.PlayCircle
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Slider
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -46,6 +35,7 @@ import androidx.compose.ui.viewinterop.AndroidView
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.media3.common.MediaItem
+import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.ExoPlayer
@@ -67,7 +57,6 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.Serializable
 import java.lang.NullPointerException
-import kotlin.math.roundToInt
 
 // TODO: make screen animate alpha to 0f in BackHandler and on generate video btn click with showScreen
 // TODO: add bitmap overlay with lapseLab logo
@@ -98,20 +87,19 @@ fun LabRoute(
     val exoPlayer = ExoPlayer.Builder(context).build().apply {
         playWhenReady = true
     }
-//    exoPlayer.addListener(object : Player.Listener{
-//        override fun onPlaybackStateChanged(playbackState: Int) {
-//            super.onPlaybackStateChanged(playbackState)
-//            if(playbackState == Player.STATE_ENDED) {
-//                exoPlayer.seekTo(0)
-//            }
-//        }
-//    })
+
+    exoPlayer.addListener(object : Player.Listener{
+        override fun onPlayerError(error: PlaybackException) {
+            super.onPlayerError(error)
+            Log.d(TAG, "error: $error")
+        }
+    })
 
     val mediaManager = MediaManagerFactory(context)
-
     var showScreen by remember { mutableStateOf(true) }
     BackHandler {
         showScreen = false
+        detailsViewModel.updateVideoProperties(LabUiState())
         navController.popBackStack()
     }
     var videoUriState by remember { mutableStateOf<String?>(null) }
@@ -149,7 +137,6 @@ fun LabRoute(
                         if (photosSafe.size < 2) throw IllegalArgumentException()
 
                         val lab = LapseCreator(context, album!!)
-                        Log.d(TAG, "${uiState.toString()}")
                         val filename = lab.createVideo(
                             photos = photosSafe,
                             framesPerImage = uiState.framesPerImage,
@@ -177,6 +164,7 @@ fun LabRoute(
                         )
                     } finally {
                         isLoading = false
+                        detailsViewModel.updateVideoProperties(uiState.copy())
                     }
                 }
             },
@@ -250,8 +238,7 @@ fun LabScreen(
         Button(
             modifier = Modifier.padding(top = 8.dp),
             onClick = onGenerateVideoBtnClicked,
-//            enabled = uiState != videoProperties
-            enabled = true
+            enabled = uiState != videoProperties
         ) {
             Text(text = "generate video")
         }

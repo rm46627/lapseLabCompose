@@ -149,7 +149,9 @@ fun GalleryRoute(navController: NavHostController) {
         }
     }
     else {
-        CircularProgressIndicator()
+        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center){
+            CircularProgressIndicator(modifier = Modifier.size(400.dp))
+        }
     }
 }
 

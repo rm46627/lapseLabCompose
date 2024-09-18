@@ -35,9 +35,9 @@ class DetailsViewModel @Inject constructor(private val repository: Repository) :
     val videoProperties: StateFlow<LabUiState> = _videoProperties.asStateFlow()
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    private val _album = _albumName.flatMapLatest { albumId ->
-        if (albumId != null) {
-            repository.getAlbum(albumId)
+    private val _album = _albumName.flatMapLatest { albumName ->
+        if (albumName != null) {
+            repository.getAlbum(albumName)
         } else {
             flowOf(null)
         }
@@ -49,10 +49,9 @@ class DetailsViewModel @Inject constructor(private val repository: Repository) :
             _album.collect { album ->
                 album?.let {
                     val state = LabUiState(
-                        framesPerImage = it.framesPerImage, bitrate = it.bitrate
+                        framesPerImage = it.videoFramesPerImage, bitrate = it.videoBitrate
                     )
                     _labUiState.value = state
-                    _videoProperties.value = state
                 }
             }
         }
@@ -66,7 +65,7 @@ class DetailsViewModel @Inject constructor(private val repository: Repository) :
         _photos.value = files
     }
 
-    fun updateAlbum(album: Album, freq: String? = null, notificationTime: LocalTime? = null, scheduler: AlarmScheduler? = null) {
+    fun updateAlbum(album: Album, freq: String? = null, notificationTime: LocalTime? = null, scheduler: AlarmScheduler? = null, newPhotoTaken: Boolean? = null) {
         viewModelScope.launch {
             val days = if(freq != null)
                 FreqUtils.freqStrToDays(freq)
@@ -76,8 +75,8 @@ class DetailsViewModel @Inject constructor(private val repository: Repository) :
             val updatedAlbum = album.copy(
                 reminderTime = notificationTime ?: album.reminderTime,
                 daysBetweenReminders = days,
-                framesPerImage = labUiState.value.framesPerImage,
-                bitrate = labUiState.value.bitrate
+                videoFramesPerImage = labUiState.value.framesPerImage,
+                videoBitrate = labUiState.value.bitrate
             )
             repository.updateAlbum(updatedAlbum)
         }
@@ -95,9 +94,13 @@ class DetailsViewModel @Inject constructor(private val repository: Repository) :
         _labUiState.value = newState
     }
 
+    fun updateVideoProperties(newState: LabUiState) {
+        _videoProperties.value = newState
+    }
+
 }
 
 data class LabUiState(
-    val framesPerImage: Int = 10,
-    val bitrate: Int = 1500000
+    val framesPerImage: Int = 0,
+    val bitrate: Int = 0
 )

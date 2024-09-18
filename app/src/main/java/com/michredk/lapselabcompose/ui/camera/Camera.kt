@@ -122,7 +122,6 @@ fun CameraRoute(
                             navController.navigate(PhotoPreviewDestination(navigatedFromAlbumDetails))
                         }
                     }
-
                     override fun onError(exception: ImageCaptureException) {
                         super.onError(exception)
                         Log.e(TAG, "HERE !!!!!!!! Couldn't take photo: ", exception)

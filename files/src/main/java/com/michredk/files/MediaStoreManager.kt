@@ -217,34 +217,27 @@ class MediaStoreMediaManager(private val context: Context) : MediaManagerInterfa
         }
 
     override suspend fun getLatestVideoFile(albumName: String): File? {
-        var file: File?
+        var file: File? = null
+        var paths: Array<String> = arrayOf()
         if (mediaStoreVideoCollection == null) return null
-        // Show the names of media store entries
         getMediaStoreVideoCursor(mediaStoreVideoCollection, albumName).use { cursor ->
             if (cursor?.moveToFirst() != true) return null
             do {
                 val videoDataColumn = cursor.getColumnIndexOrThrow(videoDataColumnIndex)
                 val contentFilePath = cursor.getString(videoDataColumn)
-                file = File(contentFilePath)
-                Log.d(TAG, "file ${file!!.name}")
+                Log.d(TAG, "FILE FOUND $contentFilePath")
+                if (contentFilePath.takeLast(7).contains("(1)")) {
+                    paths += contentFilePath
+                } else {
+                    file = File(contentFilePath)
+                    break
+                }
             } while (cursor.moveToNext())
-            // TODO: try to scan and remove duplicated entries of videos
-            MediaScannerConnection.scanFile(
-                context, arrayOf(), null, null
-            )
         }
-        getMediaStoreVideoCursor(mediaStoreVideoCollection, albumName).use { cursor ->
-            if (cursor?.moveToFirst() != true) return null
-            var videoDataColumn = cursor.getColumnIndexOrThrow(videoDataColumnIndex)
-            var contentFilePath = cursor.getString(videoDataColumn)
-            // MEDIA STORE CREATES DUPLICATED ENTRIES WITH (1) AT THE END OF FILENAME
-            while (contentFilePath.takeLast(5)[0] == ')') {
-                cursor.moveToNext()
-                videoDataColumn = cursor.getColumnIndexOrThrow(videoDataColumnIndex)
-                contentFilePath = cursor.getString(videoDataColumn)
-            }
-            file = File(contentFilePath)
-        }
+        MediaScannerConnection.scanFile(
+            context, paths, null, null
+        )
+
         return file
     }
 
