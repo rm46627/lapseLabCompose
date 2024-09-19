@@ -26,6 +26,7 @@ interface MediaManagerInterface {
     suspend fun deleteAlbum(albumName: String)
 
     suspend fun deletePhoto(photoUri: String)
+    suspend fun deleteLatestPhoto(albumName: String?)
 
     suspend fun getAlbumFolderFile(albumName: String): File?
     suspend fun getVideoFiles(albumName: String): MutableList<File>

@@ -152,6 +152,12 @@ class MediaStoreMediaManager(private val context: Context) : MediaManagerInterfa
         return file
     }
 
+    override suspend fun deleteLatestPhoto(albumName: String?) {
+        val albumNameSafe = albumName ?: return
+        val file = getLatestPhotoFile(albumNameSafe) ?: return
+        deletePhoto(file.absolutePath)
+    }
+
     override suspend fun getPhotoFiles(albumName: String): MutableList<File> {
         val files = mutableListOf<File>()
         if (mediaStoreImageCollection == null) return files

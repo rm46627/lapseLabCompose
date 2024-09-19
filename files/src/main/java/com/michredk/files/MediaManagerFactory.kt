@@ -52,6 +52,10 @@ class MediaManagerFactory(context: Context) : MediaManagerInterface {
         manager.deletePhoto(photoUri)
     }
 
+    override suspend fun deleteLatestPhoto(albumName: String?) {
+        manager.deleteLatestPhoto(albumName)
+    }
+
     override suspend fun getAlbumFolderFile(albumName: String): File? =
         manager.getAlbumFolderFile(albumName)
 

@@ -99,6 +99,10 @@ class FileMediaManager(private val context: Context) : MediaManagerInterface {
         File(photoUri).delete()
     }
 
+    override suspend fun deleteLatestPhoto(albumName: String?) {
+        TODO("Not yet implemented")
+    }
+
     override suspend fun getAlbumFolderFile(albumName: String): File {
         return File(
             Environment.getExternalStorageDirectory(),

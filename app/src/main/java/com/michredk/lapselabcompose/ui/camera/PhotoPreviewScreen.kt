@@ -22,6 +22,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.asImageBitmap
@@ -36,6 +37,8 @@ import com.michredk.lapselabcompose.ui.details.DetailsDestination
 import com.michredk.lapselabcompose.ui.CameraGraph
 import com.michredk.lapselabcompose.ui.DetailsGraph
 import com.michredk.lapselabcompose.ui.setup.SetupPhotoDestination
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 
 // TODO: Add some loading screen after taking new photo and accepting it
@@ -56,12 +59,15 @@ fun PhotoPreviewRoute(
     val viewModel: CameraViewModel = hiltViewModel(parentEntry)
     val bitmap = viewModel.bitmap ?: throw NullPointerException()
     val context = LocalContext.current
+    val scope = rememberCoroutineScope()
 
     PhotoPreviewScreen(
         bitmap = bitmap,
         onDiscardClicked = {
             // TODO: create delete latest photo
-//            MediaManagerFactory(context).getLatestPhotoFile(viewModel.albumName).delete()
+            scope.launch(Dispatchers.IO) {
+                MediaManagerFactory(context).deleteLatestPhoto(viewModel.albumName)
+            }
             navController.navigateUp()
         },
         onAcceptClicked = {
@@ -127,7 +133,9 @@ private fun Buttons(onDiscardClicked: () -> Unit, onAcceptClicked: () -> Unit) {
     IconButton(
         interactionSource = dscInteractionSource,
         onClick = onDiscardClicked,
-        modifier = Modifier.size(btnSize).background(dscBackgroundColor, shape = CircleShape),
+        modifier = Modifier
+            .size(btnSize)
+            .background(dscBackgroundColor, shape = CircleShape),
     ) {
         Icon(
             modifier = Modifier
