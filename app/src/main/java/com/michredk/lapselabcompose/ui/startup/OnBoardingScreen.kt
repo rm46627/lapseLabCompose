@@ -20,9 +20,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.util.lerp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import com.michredk.database.dataStore
 import com.michredk.lapselabcompose.ui.gallery.GalleryDestination
 import kotlinx.serialization.Serializable
 import kotlin.math.absoluteValue
@@ -32,8 +35,12 @@ object OnBoardingDestination
 
 @Composable
 fun OnBoardingRoute(navController: NavController) {
+
+    val startupViewModel: StartupViewModel = hiltViewModel()
+
     OnBoardingScreen(
         onProceedClicked = {
+            startupViewModel.saveOnBoardingState(true)
             navController.navigate(GalleryDestination) {
                 popUpTo(navController.graph.startDestinationId) {
                     inclusive = true

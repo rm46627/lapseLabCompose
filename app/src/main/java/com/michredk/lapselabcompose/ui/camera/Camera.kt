@@ -64,6 +64,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavHostController
 import coil.compose.AsyncImage
@@ -81,7 +82,6 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 
-//TODO: Display a modal explaining the ghost button usage
 // TODO: add slider to control transparency of the ghost image
 //TODO: Check if user trying to do next photo in different orientation and warn him about that
 // e.g. view black screen with text asking for rotating device
@@ -108,6 +108,11 @@ fun CameraRoute(
     val mediaManager = MediaManagerFactory(context)
     val scope = rememberCoroutineScope()
     cameraViewModel.albumName = albumName
+    val isGhostBtnTipCompleted by cameraViewModel.isGhostBtnTipCompleted.collectAsStateWithLifecycle(
+        initialValue = true
+    )
+
+    Log.d(TAG, "tip completed: $isGhostBtnTipCompleted")
 
     val cameraController = remember {
         LifecycleCameraController(context).apply {
@@ -117,8 +122,15 @@ fun CameraRoute(
     var photosTaken by remember {
         mutableIntStateOf(0)
     }
-    TipDialog(title ="View ghost of previous photo", text = "Lorem ipsum tip", shouldViewTip = true) {
-        // TODO: shared preferences for tip dialog
+    if (navigatedFromAlbumDetails && !isGhostBtnTipCompleted) {
+        TipDialog(
+            title = "View ghost of previous photo",
+            text = "Lorem ipsum tip",
+            shouldViewTip = true,
+            saveTipViewed = {
+                cameraViewModel.updateGhostBtnTipValue(true)
+            }
+        )
     }
     CameraScreen(
         cameraController = cameraController,

@@ -10,10 +10,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.State
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
@@ -21,28 +18,20 @@ import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavController
-import com.michredk.database.DataStoreRepository
 import com.michredk.lapselabcompose.R
-import com.michredk.lapselabcompose.ui.gallery.GalleryDestination
-import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
-import javax.inject.Inject
 
 @Serializable
 object SplashScreenDestination
 
 @Composable
 fun SplashScreenRoute(navController: NavController) {
-    val splashViewModel: SplashViewModel = hiltViewModel()
+    val startupViewModel: StartupViewModel = hiltViewModel()
 
     SplashScreen(
         navigateAfterAnimation = {
-            val nextScreen by splashViewModel.startDestination
+            val nextScreen by startupViewModel.startDestination
             navController.navigate(nextScreen) {
                 popUpTo(navController.graph.startDestinationId) {
                     inclusive = true
@@ -80,36 +69,4 @@ fun SplashScreen(navigateAfterAnimation: () -> Unit) {
         )
         Spacer(modifier = Modifier.weight(1f))
     }
-}
-
-@HiltViewModel
-class SplashViewModel @Inject constructor(
-    private val repository: DataStoreRepository
-) : ViewModel() {
-
-    private val _isLoading: MutableState<Boolean> = mutableStateOf(true)
-    val isLoading: State<Boolean> = _isLoading
-
-    private val _startDestination: MutableState<Any> = mutableStateOf(SplashScreenDestination)
-    val startDestination: State<Any> = _startDestination
-
-    init {
-        viewModelScope.launch {
-            repository.readOnBoardingState().collect { completed ->
-                if (completed) {
-                    _startDestination.value = GalleryDestination
-                } else {
-                    _startDestination.value = OnBoardingDestination
-                }
-            }
-            _isLoading.value = false
-        }
-    }
-
-    fun saveOnBoardingState(completed: Boolean) {
-        viewModelScope.launch(Dispatchers.IO) {
-            repository.saveOnBoardingState(completed = completed)
-        }
-    }
-
 }
