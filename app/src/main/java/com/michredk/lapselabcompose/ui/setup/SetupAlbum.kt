@@ -40,8 +40,6 @@ import com.michredk.lapselabcompose.ui.common.BackHandlingDialog
 import com.michredk.lapselabcompose.ui.common.DropDownMenu
 import kotlinx.serialization.Serializable
 
-// TODO: Prevent creating album with forbidden names like 9:12
-
 @Serializable
 object SetupAlbumDestination
 

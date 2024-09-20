@@ -69,6 +69,7 @@ import com.michredk.database.Repository
 import com.michredk.lapselab.files.MediaManagerFactory
 import com.michredk.lapselabcompose.R
 import com.michredk.lapselabcompose.services.alarm.AlarmScheduler
+import com.michredk.lapselabcompose.ui.common.TipDialog
 import com.michredk.lapselabcompose.ui.details.DetailsDestination
 import com.michredk.lapselabcompose.ui.setup.SetupAlbumDestination
 import com.michredk.lapselabcompose.ui.theme.LapseLabComposeTheme
@@ -120,6 +121,9 @@ fun GalleryRoute(navController: NavHostController) {
     }
 
     if (albums.isEmpty() || albums[0].id != Int.MIN_VALUE) {
+        TipDialog(title = "Context menu", text = "Longpress on album to view context menu", shouldViewTip = true) {
+            // TODO: implement shared preferences
+        }
         GalleryScreen(albums, onAlbumClick = { name ->
             navController.navigate(DetailsDestination(name))
         }, onCreateClick = {
