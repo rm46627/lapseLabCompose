@@ -107,7 +107,7 @@ fun GalleryRoute(navController: NavHostController) {
             TipDialog(
                 title = "Context menu",
                 text = "Use long press on album card to view context menu.",
-                shouldViewTip = !isContextMenuTipCompleted,
+                viewTipDialog = !isContextMenuTipCompleted,
                 saveTipViewed = {
                     galleryViewModel.updateContextMenuTipValue(isCompleted = true)
                 }

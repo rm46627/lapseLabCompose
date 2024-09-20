@@ -9,11 +9,7 @@ import androidx.camera.core.ImageCaptureException
 import androidx.camera.core.ImageProxy
 import androidx.camera.view.CameraController
 import androidx.camera.view.LifecycleCameraController
-import androidx.compose.animation.core.FastOutSlowInEasing
-import androidx.compose.animation.core.RepeatMode
-import androidx.compose.animation.core.StartOffset
 import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.repeatable
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -23,10 +19,8 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -37,11 +31,9 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Cameraswitch
 import androidx.compose.material.icons.filled.PeopleAlt
 import androidx.compose.material.icons.filled.PhotoCamera
-import androidx.compose.material3.Checkbox
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -72,8 +64,6 @@ import coil.request.ImageRequest
 import com.michredk.files.appPicturesDir
 import com.michredk.lapselab.files.MediaManagerFactory
 import com.michredk.lapselabcompose.R
-import com.michredk.lapselabcompose.services.SnackbarController
-import com.michredk.lapselabcompose.services.SnackbarEvent
 import com.michredk.lapselabcompose.ui.CameraGraph
 import com.michredk.lapselabcompose.ui.common.TipDialog
 import com.michredk.lapselabcompose.ui.theme.LapseLabComposeTheme
@@ -111,6 +101,9 @@ fun CameraRoute(
     val isGhostBtnTipCompleted by cameraViewModel.isGhostBtnTipCompleted.collectAsStateWithLifecycle(
         initialValue = true
     )
+    var viewTip by remember {
+        mutableStateOf(false)
+    }
 
     Log.d(TAG, "tip completed: $isGhostBtnTipCompleted")
 
@@ -122,13 +115,17 @@ fun CameraRoute(
     var photosTaken by remember {
         mutableIntStateOf(0)
     }
-    if (navigatedFromAlbumDetails && !isGhostBtnTipCompleted) {
+    LaunchedEffect(key1 = isGhostBtnTipCompleted) {
+        viewTip = true
+    }
+    if (viewTip) {
         TipDialog(
             title = "View ghost of previous photo",
             text = "Lorem ipsum tip",
-            shouldViewTip = true,
+            viewTipDialog = !isGhostBtnTipCompleted,
             saveTipViewed = {
                 cameraViewModel.updateGhostBtnTipValue(true)
+                viewTip = false
             }
         )
     }

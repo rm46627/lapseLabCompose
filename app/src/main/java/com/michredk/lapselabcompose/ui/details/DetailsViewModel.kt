@@ -3,6 +3,7 @@ package com.michredk.lapselabcompose.ui.details
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.michredk.database.Album
+import com.michredk.database.DataStoreRepository
 import com.michredk.database.Repository
 import com.michredk.lapselabcompose.services.alarm.AlarmScheduler
 import com.michredk.lapselabcompose.ui.common.FreqUtils
@@ -21,7 +22,7 @@ import java.time.LocalTime
 import javax.inject.Inject
 
 @HiltViewModel
-class DetailsViewModel @Inject constructor(private val repository: Repository) : ViewModel() {
+class DetailsViewModel @Inject constructor(private val repository: Repository, private val dataStore: DataStoreRepository) : ViewModel() {
     private val _albumName = MutableStateFlow<String?>(null)
     val albumName: StateFlow<String?> = _albumName.asStateFlow()
 
@@ -46,6 +47,7 @@ class DetailsViewModel @Inject constructor(private val repository: Repository) :
 
     init {
         viewModelScope.launch {
+            dataStore.resetAllTips()
             _album.collect { album ->
                 album?.let {
                     _labUiState.value = LabUiState(
