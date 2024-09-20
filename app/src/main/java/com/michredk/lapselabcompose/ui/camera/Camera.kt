@@ -9,6 +9,12 @@ import androidx.camera.core.ImageCaptureException
 import androidx.camera.core.ImageProxy
 import androidx.camera.view.CameraController
 import androidx.camera.view.LifecycleCameraController
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.StartOffset
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.repeatable
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
@@ -237,6 +243,18 @@ private fun BoxScope.CameraButtons(
     var modeIcon by remember {
         mutableStateOf(R.drawable.image_mode)
     }
+    var animateModeText by remember {
+        mutableStateOf(false)
+    }
+
+    val modeAlpha by animateFloatAsState(
+        finishedListener = { _ ->
+            animateModeText = false
+        },
+        targetValue = if (animateModeText) 1f else 0f,
+        animationSpec = tween(durationMillis = 500)
+    )
+
 
     Row(
         modifier = Modifier
@@ -267,7 +285,10 @@ private fun BoxScope.CameraButtons(
         horizontalArrangement = Arrangement.SpaceAround,
         verticalAlignment = Alignment.Bottom
     ) {
-        Column(modifier = Modifier.width(100.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+        Column(
+            modifier = Modifier.width(100.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
             IconButton(
                 modifier = Modifier
                     .size(btnSize)
@@ -289,7 +310,10 @@ private fun BoxScope.CameraButtons(
         val captureIsPressed by interactionSource.collectIsPressedAsState()
         val finalBackgroundColor =
             if (captureIsPressed) pressedCaptureBackgroundColor else btnBackgroundColor
-        Column(modifier = Modifier.width(100.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+        Column(
+            modifier = Modifier.width(100.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
             CaptureButton(
                 interactionSource = interactionSource,
                 btnModifier = Modifier
@@ -303,12 +327,12 @@ private fun BoxScope.CameraButtons(
 
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Text(
-                text = if(shootSeries) "Series Mode" else "Photo Mode",
+                text = if (shootSeries) "Series Mode" else "Photo Mode",
                 color = Color.Black,
                 textAlign = TextAlign.Center,
                 modifier = Modifier
                     .width(100.dp)
-//                    .alpha(0f)
+                    .alpha(modeAlpha)
                     .padding(bottom = 8.dp)
                     .background(
                         btnBackgroundColor.copy(alpha = 0.7f), shape = RoundedCornerShape(
@@ -322,6 +346,7 @@ private fun BoxScope.CameraButtons(
                 onClick = {
                     shootSeries = !shootSeries
                     modeIcon = if (shootSeries) R.drawable.bursts_mode else R.drawable.image_mode
+                    animateModeText = true
                 }) {
                 Icon(
                     painter = painterResource(id = modeIcon),
