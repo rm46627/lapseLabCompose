@@ -24,6 +24,7 @@ import androidx.compose.foundation.lazy.staggeredgrid.LazyVerticalStaggeredGrid
 import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridCells
 import androidx.compose.foundation.lazy.staggeredgrid.itemsIndexed
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowUpward
 import androidx.compose.material.icons.filled.DeleteForever
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
@@ -78,7 +79,7 @@ import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 import javax.inject.Inject
 
-// TODO: tip modal about longpress on gallery item for context menu
+// TODO: tip modal about long press on gallery item for context menu
 // TODO: Display graphic encouraging to create a new album - display as small cell when
 //  gallerySize is odd and large cell when gallerySize % 2 == 0
 
@@ -129,6 +130,7 @@ fun GalleryRoute(navController: NavHostController) {
         }, onCreateClick = {
             navController.navigate(SetupAlbumDestination)
         }, dropDownItems = listOf(
+            AlbumMenuItem(id = "move up", text = "Move album up", Icons.Default.ArrowUpward),
             AlbumMenuItem(id = "delete", text = "Delete album", Icons.Default.DeleteForever)
         ), onMenuItemClicked = { id, albumName ->
             when (id) {
@@ -136,8 +138,12 @@ fun GalleryRoute(navController: NavHostController) {
                     albumToRemove = albumName
                 }
                 "move up" -> {
-                    val firstId = albums.get(0).id
-                    galleryViewModel
+                    val orderNum = albums[0].order
+                    val album = albums.find { it.directoryName == albumName }
+                    if (album != null)
+                    galleryViewModel.updateAlbum(
+                        album.copy(order = orderNum - 1)
+                    )
                 }
             }
         })
@@ -147,6 +153,7 @@ fun GalleryRoute(navController: NavHostController) {
                 coroutineScope.launch {
                     mediaManager.deleteAlbum(albumToRemove!!)
                     AlarmScheduler(context).cancel(albumToRemove!!)
+                    albumToRemove = null
                 }
             }
         }
@@ -278,7 +285,7 @@ fun GalleryItem(
             onDismissRequest = { isContextMenuVisible = false }) {
             dropDownItems.forEach { item ->
                 DropdownMenuItem(
-                    text = { Text(text = "Remove album") },
+                    text = { Text(text = item.text) },
                     leadingIcon = { Icon(imageVector = item.icon, contentDescription = item.text) },
                     onClick = {
                         onMenuItemClicked(item.id, album.directoryName)

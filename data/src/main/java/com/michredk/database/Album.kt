@@ -9,6 +9,7 @@ import java.time.LocalTime
 @Entity
 data class Album (
     @PrimaryKey(autoGenerate = true) val id: Int = 0,
+    @ColumnInfo(name = "order") val order: Int = id,
     @ColumnInfo(name = "directory_name") val directoryName: String = "",
     @ColumnInfo(name = "cover_photo_path") var coverPhotoPath: String = "",
     @ColumnInfo(name = "video_width") val videoWidth: Int? = null,

@@ -74,6 +74,7 @@ import com.michredk.lapselabcompose.R
 import com.michredk.lapselabcompose.services.SnackbarController
 import com.michredk.lapselabcompose.services.SnackbarEvent
 import com.michredk.lapselabcompose.ui.CameraGraph
+import com.michredk.lapselabcompose.ui.common.TipDialog
 import com.michredk.lapselabcompose.ui.theme.LapseLabComposeTheme
 import com.michredk.video.TAG
 import kotlinx.coroutines.delay
@@ -116,7 +117,9 @@ fun CameraRoute(
     var photosTaken by remember {
         mutableIntStateOf(0)
     }
-
+    TipDialog(title ="View ghost of previous photo", text = "Lorem ipsum tip", shouldViewTip = true) {
+        // TODO: shared preferences for tip dialog
+    }
     CameraScreen(
         cameraController = cameraController,
         albumName = albumName ?: throw NullPointerException(),
