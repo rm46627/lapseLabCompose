@@ -44,7 +44,6 @@ import com.michredk.database.Album
 
 // TODO: Streak counter ( progress bar? )
 // TODO: Date of the next notification / planned photo
-// TODO: Check if header should appear collapsed on entering the screen
 
 @Composable
 fun DetailsHeader(

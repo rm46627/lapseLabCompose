@@ -11,7 +11,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.derivedStateOf
@@ -178,17 +177,32 @@ fun NameTextField(
     var text by rememberSaveable { mutableStateOf("") }
     val errorText = "Must be at least 3 characters long"
     val conflictText = "Album name already taken"
+    val forbiddenText = "Album name must contain only letters and numbers"
     var isError by rememberSaveable { mutableStateOf(false) }
     var isConflict by rememberSaveable { mutableStateOf(false) }
-    OutlinedTextField(isError = isError || isConflict,
-        supportingText = { if (isError) Text(text = errorText) else if (isConflict) Text(text = conflictText) },
+    var isForbidden by remember { mutableStateOf(false) }
+    OutlinedTextField(isError = isError || isConflict || isForbidden,
+        supportingText = {
+            if (isForbidden) Text(text = forbiddenText) else if (isError) Text(text = errorText) else if (isConflict) Text(
+                text = conflictText
+            )
+        },
         value = text,
         label = { Text("Album name") },
         onValueChange = { newText ->
             text = newText
             isConflict = checkForNameConflict(newText)
             isError = text.length < 3
-            onNameValidityChanged(!isError && !isConflict)
+            isForbidden =
+                text.fold(initial = false) { flag, char ->
+                    Log.d(
+                        TAG,
+                        "char: '$char', flag: $flag, isLetter: ${!char.isLetterOrDigit()}, isWhite: ${!char.isWhitespace()}, lettDigitWhite: ${((!char.isLetterOrDigit() || !char.isWhitespace()))}, comb:${(flag || (!char.isLetterOrDigit() || !char.isWhitespace()))}"
+                    )
+                    (flag || (!char.isLetterOrDigit() && !char.isWhitespace()))
+                }
+            Log.d(TAG, "isForbidden: $isForbidden")
+            onNameValidityChanged(!isError && !isConflict && !isForbidden)
         }
     )
 }

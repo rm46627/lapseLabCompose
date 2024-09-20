@@ -41,8 +41,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 
-// TODO: Add some loading screen after taking new photo and accepting it
-
 @Serializable
 data class PhotoPreviewDestination(val navigatedFromAlbumDetails: Boolean = false)
 
@@ -64,7 +62,6 @@ fun PhotoPreviewRoute(
     PhotoPreviewScreen(
         bitmap = bitmap,
         onDiscardClicked = {
-            // TODO: create delete latest photo
             scope.launch(Dispatchers.IO) {
                 MediaManagerFactory(context).deleteLatestPhoto(viewModel.albumName)
             }

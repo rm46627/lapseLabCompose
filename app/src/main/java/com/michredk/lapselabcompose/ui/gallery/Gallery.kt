@@ -83,7 +83,6 @@ import javax.inject.Inject
 
 // TODO: animate grid after deleting the album
 
-// TODO: taken photos counter
 // TODO: daily photos streak counter
 // TODO: different frames for better streak and stars for photos counter
 
