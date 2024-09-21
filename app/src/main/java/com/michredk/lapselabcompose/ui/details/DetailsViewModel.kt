@@ -45,18 +45,18 @@ class DetailsViewModel @Inject constructor(private val repository: Repository, p
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
     val album = _album
 
-    init {
-        viewModelScope.launch {
-            dataStore.resetAllTips()
-            _album.collect { album ->
-                album?.let {
-                    _labUiState.value = LabUiState(
-                        framesPerImage = 5, bitrate = 2000000
-                    )
-                }
-            }
-        }
-    }
+//    init {
+//        viewModelScope.launch {
+//            dataStore.resetAllTips()
+//            _album.collect { album ->
+//                album?.let {
+//                    _labUiState.value = LabUiState(
+//                        framesPerImage = 5, bitrate = 2000000
+//                    )
+//                }
+//            }
+//        }
+//    }
 
     fun setAlbumName(name: String) {
         _albumName.value = name

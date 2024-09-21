@@ -13,23 +13,21 @@ import androidx.compose.ui.Modifier
 // TODO: add gif to visualize usage
 
 @Composable
-fun TipDialog(title: String, text: String, viewTipDialog: Boolean, saveTipViewed: () -> Unit) {
-    var viewDialog by remember { mutableStateOf(viewTipDialog) }
-    if (viewDialog) {
+fun TipDialog(
+    title: String, text: String, viewTipDialog: Boolean,
+    saveTipViewed: () -> Unit
+) {
+    if (viewTipDialog) {
         AlertDialog(
             title = { Text(text = title) },
             text = { Text(text = text) },
             onDismissRequest = {
                 saveTipViewed()
-                viewDialog = false
             },
             confirmButton = {
-                Text(text = "Ok",
-                    modifier = Modifier.clickable {
-                        saveTipViewed()
-                        viewDialog = false
-                    }
-                )
+                Text(text = "Ok", modifier = Modifier.clickable {
+                    saveTipViewed()
+                })
             },
         )
     }

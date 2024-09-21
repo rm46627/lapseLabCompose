@@ -209,7 +209,6 @@ fun GalleryScreen(
                 DropdownMenu(
                     modifier = Modifier.background(color = MaterialTheme.colorScheme.secondaryContainer),
                     expanded = isMenuVisible,
-//                    offset = pressOffset.copy(y = pressOffset.y - itemHeight),
                     onDismissRequest = { isMenuVisible = false }) {
                     galleryDropDownItems.forEach { item ->
                         DropdownMenuItem(

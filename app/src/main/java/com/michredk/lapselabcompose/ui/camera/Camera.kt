@@ -101,9 +101,6 @@ fun CameraRoute(
     val isGhostBtnTipCompleted by cameraViewModel.isGhostBtnTipCompleted.collectAsStateWithLifecycle(
         initialValue = true
     )
-    var viewTip by remember {
-        mutableStateOf(false)
-    }
 
     Log.d(TAG, "tip completed: $isGhostBtnTipCompleted")
 
@@ -115,20 +112,7 @@ fun CameraRoute(
     var photosTaken by remember {
         mutableIntStateOf(0)
     }
-    LaunchedEffect(key1 = isGhostBtnTipCompleted) {
-        viewTip = true
-    }
-    if (viewTip) {
-        TipDialog(
-            title = "View ghost of previous photo",
-            text = "Lorem ipsum tip",
-            viewTipDialog = !isGhostBtnTipCompleted,
-            saveTipViewed = {
-                cameraViewModel.updateGhostBtnTipValue(true)
-                viewTip = false
-            }
-        )
-    }
+
     CameraScreen(
         cameraController = cameraController,
         albumName = albumName ?: throw NullPointerException(),
@@ -164,7 +148,12 @@ fun CameraRoute(
                 } else CameraSelector.DEFAULT_BACK_CAMERA
         },
         photosTaken = photosTaken,
-        ghostBitmap = cameraViewModel.bitmap
+        ghostBitmap = cameraViewModel.bitmap,
+        isGhostBtnTipCompleted = isGhostBtnTipCompleted,
+        updateGhostBtnTipValue = {
+            cameraViewModel.updateGhostBtnTipValue(true)
+        },
+        navigatedFromAlbumDetails = navigatedFromAlbumDetails
     )
 }
 
@@ -175,7 +164,10 @@ fun CameraScreen(
     onChangeCameraClicked: () -> Unit,
     onTakePictureClicked: (Boolean) -> Unit,
     photosTaken: Int,
-    ghostBitmap: Bitmap?
+    ghostBitmap: Bitmap?,
+    isGhostBtnTipCompleted: Boolean,
+    updateGhostBtnTipValue: () -> Unit,
+    navigatedFromAlbumDetails: Boolean
 ) {
     val context = LocalContext.current
     var ghostPath by remember { mutableStateOf<String?>(null) }
@@ -194,13 +186,23 @@ fun CameraScreen(
         delay(100)
         showFlash = false
     }
+    val modeButtonsEnabled = ghostPath != null || ghostBitmap != null
+    if (modeButtonsEnabled && navigatedFromAlbumDetails){
+        TipDialog(
+            title = "View ghost of previous photo",
+            text = "Lorem ipsum tip",
+            viewTipDialog = !isGhostBtnTipCompleted,
+            saveTipViewed = updateGhostBtnTipValue
+        )
+    }
+
     Box(
         modifier = Modifier.fillMaxSize()
     ) {
         CameraPreview(controller = cameraController, modifier = Modifier.fillMaxSize())
         if (showGhost) {
             val data = ghostBitmap ?: ghostPath!!
-            Log.d(TAG, "data: ${data}")
+            Log.d(TAG, "data: $data")
             GhostImage(
                 modifier = Modifier
                     .fillMaxSize()
@@ -220,7 +222,7 @@ fun CameraScreen(
             pressedCaptureBackgroundColor = MaterialTheme.colorScheme.primary,
             onChangeCameraClicked,
             onTakePictureClicked,
-            modeButtonsEnabled = ghostPath != null || ghostBitmap != null,
+            modeButtonsEnabled = modeButtonsEnabled,
             onGhostImageClicked = {
                 showGhost = !showGhost
             })
