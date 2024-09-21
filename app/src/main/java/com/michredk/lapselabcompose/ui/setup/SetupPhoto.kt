@@ -158,6 +158,7 @@ fun SetupPhotoScreen(
             )
             AsyncImage(
                 modifier = Modifier
+                    .padding(8.dp)
                     .width(300.dp)
                     .height(400.dp)
                     .clickable { onFirstImagePreviewClicked(albumName) },

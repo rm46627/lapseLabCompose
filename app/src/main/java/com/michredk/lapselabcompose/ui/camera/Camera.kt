@@ -220,7 +220,7 @@ fun CameraScreen(
             pressedCaptureBackgroundColor = MaterialTheme.colorScheme.primary,
             onChangeCameraClicked,
             onTakePictureClicked,
-            ghostBtnEnabled = ghostPath != null || ghostBitmap != null,
+            modeButtonsEnabled = ghostPath != null || ghostBitmap != null,
             onGhostImageClicked = {
                 showGhost = !showGhost
             })
@@ -246,7 +246,7 @@ private fun BoxScope.CameraButtons(
     pressedCaptureBackgroundColor: Color,
     onChangeCameraClicked: () -> Unit,
     onTakePictureClicked: (Boolean) -> Unit,
-    ghostBtnEnabled: Boolean,
+    modeButtonsEnabled: Boolean,
     onGhostImageClicked: () -> Unit
 ) {
     var shootSeries by remember {
@@ -305,10 +305,10 @@ private fun BoxScope.CameraButtons(
                 modifier = Modifier
                     .size(btnSize)
                     .background(
-                        if (ghostBtnEnabled) btnBackgroundColor else btnBackgroundColor.copy(
+                        if (modeButtonsEnabled) btnBackgroundColor else btnBackgroundColor.copy(
                             alpha = 0.5f
                         ), shape = CircleShape
-                    ), enabled = ghostBtnEnabled, onClick = onGhostImageClicked
+                    ), enabled = modeButtonsEnabled, onClick = onGhostImageClicked
             ) {
                 Icon(
                     imageVector = Icons.Default.PeopleAlt,
@@ -347,19 +347,24 @@ private fun BoxScope.CameraButtons(
                     .alpha(modeAlpha)
                     .padding(bottom = 8.dp)
                     .background(
-                        btnBackgroundColor.copy(alpha = 0.7f), shape = RoundedCornerShape(
+                        btnBackgroundColor, shape = RoundedCornerShape(
                             corner = CornerSize(8.dp)
                         )
                     )
             )
             IconButton(modifier = Modifier
                 .size(btnSize)
-                .background(btnBackgroundColor, shape = CircleShape),
+                .background(
+                    if (modeButtonsEnabled) btnBackgroundColor else btnBackgroundColor.copy(
+                        alpha = 0.5f
+                    ), shape = CircleShape
+                ),
                 onClick = {
                     shootSeries = !shootSeries
                     modeIcon = if (shootSeries) R.drawable.bursts_mode else R.drawable.image_mode
                     animateModeText = true
-                }) {
+                }, enabled = modeButtonsEnabled
+            ) {
                 Icon(
                     painter = painterResource(id = modeIcon),
                     contentDescription = "Ghost photo",
@@ -444,7 +449,7 @@ fun previewButtons() {
                 pressedCaptureBackgroundColor = MaterialTheme.colorScheme.primary,
                 { },
                 { },
-                ghostBtnEnabled = true,
+                modeButtonsEnabled = true,
                 onGhostImageClicked = {
 
                 })

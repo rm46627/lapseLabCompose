@@ -1,6 +1,7 @@
 package com.michredk.lapselabcompose.ui.camera
 
 import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -55,35 +56,43 @@ fun PhotoPreviewRoute(
         navController.getBackStackEntry(CameraGraph)
     }
     val viewModel: CameraViewModel = hiltViewModel(parentEntry)
-    val bitmap = viewModel.bitmap ?: throw NullPointerException()
+
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
+    val mediaManager = MediaManagerFactory(context)
 
-    PhotoPreviewScreen(
-        bitmap = bitmap,
-        onDiscardClicked = {
-            scope.launch(Dispatchers.IO) {
-                MediaManagerFactory(context).deleteLatestPhoto(viewModel.albumName)
-            }
-            navController.navigateUp()
-        },
-        onAcceptClicked = {
-            val navFromDest: Any
-            val popUpToDest: Any
-            if (navigatedFromAlbumDetails) {
-                navFromDest = DetailsDestination(viewModel.albumName)
-                popUpToDest = DetailsGraph
-            } else {
-                navFromDest = SetupPhotoDestination(viewModel.albumName)
-                popUpToDest = CameraGraph
-            }
-            navController.navigate(navFromDest) {
-                popUpTo(popUpToDest) {
-                    inclusive = true
+    viewModel.bitmap?.let { bitmap ->
+        PhotoPreviewScreen(
+            bitmap = bitmap,
+            onDiscardClicked = {
+                scope.launch(Dispatchers.IO) {
+                    mediaManager.deleteLatestPhoto(viewModel.albumName)
+                    viewModel.bitmap = BitmapFactory.decodeFile(mediaManager.getLatestPhotoFile(viewModel.albumName!!)?.path)
+                }
+                navController.navigate(CameraDestination(viewModel.albumName, navigatedFromAlbumDetails)) {
+                    popUpTo(CameraDestination(viewModel.albumName, navigatedFromAlbumDetails)) {
+                        inclusive = true
+                    }
+                }
+            },
+            onAcceptClicked = {
+                val navFromDest: Any
+                val popUpToDest: Any
+                if (navigatedFromAlbumDetails) {
+                    navFromDest = DetailsDestination(viewModel.albumName)
+                    popUpToDest = DetailsGraph
+                } else {
+                    navFromDest = SetupPhotoDestination(viewModel.albumName)
+                    popUpToDest = CameraGraph
+                }
+                navController.navigate(navFromDest) {
+                    popUpTo(popUpToDest) {
+                        inclusive = true
+                    }
                 }
             }
-        }
-    )
+        )
+    }
 }
 
 @Composable
