@@ -91,10 +91,6 @@ fun GalleryRoute(navController: NavHostController) {
             )
         )
     )
-    
-    Log.d(TAG, "albums:\n")
-    albums.forEach { Log.d(TAG, "${it.order}, ${it.directoryName}") }
-
 
     val isContextMenuTipCompleted by galleryViewModel.isContextMenuTipCompleted.collectAsStateWithLifecycle(
         initialValue = true
@@ -160,14 +156,17 @@ fun GalleryRoute(navController: NavHostController) {
                 }
             })
         if (albumToRemove != null) {
-            RemoveAlbumDialog {
-                galleryViewModel.deleteAlbum(albumToRemove!!)
-                coroutineScope.launch {
-                    mediaManager.deleteAlbum(albumToRemove!!)
-                    AlarmScheduler(context).cancel(albumToRemove!!)
-                    albumToRemove = null
-                }
-            }
+            RemoveAlbumDialog(
+                removeAlbum = {
+                    galleryViewModel.deleteAlbum(albumToRemove!!)
+                    coroutineScope.launch {
+                        mediaManager.deleteAlbum(albumToRemove!!)
+                        AlarmScheduler(context).cancel(albumToRemove!!)
+                        albumToRemove = null
+                    }
+                },
+                hideDialog = { albumToRemove = null }
+            )
         }
     } else {
         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
@@ -269,32 +268,28 @@ fun GalleryScreen(
 }
 
 @Composable
-fun RemoveAlbumDialog(removeAlbum: () -> Unit) {
-    var viewDialog by remember {
-        mutableStateOf(true)
-    }
-    if (viewDialog) {
-        AlertDialog(
-            title = { Text(text = "Remove album") },
-            text = { Text(text = "Do you really want to do this?") },
-            onDismissRequest = { viewDialog = false },
-            confirmButton = {
-                Row {
-                    Spacer(modifier = Modifier.width(16.dp))
-                    Text(text = "Yes",
-                        modifier = Modifier.clickable {
-                            removeAlbum()
-                            viewDialog = false
-                        })
-                }
-            },
-            dismissButton = {
-                Text(
-                    text = "No",
-                    modifier = Modifier.clickable { viewDialog = false })
+fun RemoveAlbumDialog(removeAlbum: () -> Unit, hideDialog: () -> Unit) {
+    AlertDialog(
+        title = { Text(text = "Remove album") },
+        text = { Text(text = "Do you really want to do this?") },
+        onDismissRequest = hideDialog,
+        confirmButton = {
+            Row {
+                Spacer(modifier = Modifier.width(16.dp))
+                Text(text = "Yes",
+                    modifier = Modifier.clickable {
+                        removeAlbum()
+                        hideDialog()
+                    })
             }
-        )
-    }
+        },
+        dismissButton = {
+            Text(
+                text = "No",
+                modifier = Modifier.clickable { hideDialog() })
+        }
+    )
+
 }
 
 @Preview
