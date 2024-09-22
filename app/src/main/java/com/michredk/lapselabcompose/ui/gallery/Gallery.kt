@@ -1,5 +1,6 @@
 package com.michredk.lapselabcompose.ui.gallery
 
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -46,6 +47,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
 import com.michredk.database.Album
 import com.michredk.lapselab.files.MediaManagerFactory
+import com.michredk.lapselabcompose.TAG
 import com.michredk.lapselabcompose.services.alarm.AlarmScheduler
 import com.michredk.lapselabcompose.ui.common.TipDialog
 import com.michredk.lapselabcompose.ui.details.DetailsDestination
@@ -89,6 +91,10 @@ fun GalleryRoute(navController: NavHostController) {
             )
         )
     )
+    
+    Log.d(TAG, "albums:\n")
+    albums.forEach { Log.d(TAG, "${it.order}, ${it.directoryName}") }
+
 
     val isContextMenuTipCompleted by galleryViewModel.isContextMenuTipCompleted.collectAsStateWithLifecycle(
         initialValue = true
@@ -197,7 +203,11 @@ fun GalleryScreen(
             .padding(start = 8.dp, top = 32.dp)
             .background(backgroundColor)
     ) {
-        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
             Text(
                 style = MaterialTheme.typography.titleLarge,
                 text = "My albums"
@@ -213,7 +223,12 @@ fun GalleryScreen(
                     galleryDropDownItems.forEach { item ->
                         DropdownMenuItem(
                             text = { Text(text = item.text) },
-                            leadingIcon = { Icon(imageVector = item.icon, contentDescription = item.text) },
+                            leadingIcon = {
+                                Icon(
+                                    imageVector = item.icon,
+                                    contentDescription = item.text
+                                )
+                            },
                             onClick = {
                                 onGalleryMenuItemClicked(item.id)
                                 isMenuVisible = false
@@ -235,7 +250,7 @@ fun GalleryScreen(
             verticalItemSpacing = 8.dp
         ) {
             itemsIndexed(items = albumsWithExtras, key = { index, album ->
-                album.id
+                "${album.id}_$index"
             }) { index, album ->
                 if (index == albums.size) {
                     CreateCard(onCreateClick)
