@@ -73,11 +73,14 @@ fun CreateCard(onCreateNewAlbumClick: () -> Unit) {
 }
 
 @Composable
-fun GalleryItem(
+fun GalleryGridItem(
     album: Album,
     onGalleryItemClick: (String) -> Unit,
     dropDownItems: List<GalleryMenuItem>,
-    onMenuItemClicked: (String, String) -> Unit
+    onMenuItemClicked: (String, String) -> Unit,
+    coverPhotoModifier: Modifier = Modifier
+        .fillMaxWidth()
+        .height(200.dp)
 ) {
     var isContextMenuVisible by rememberSaveable {
         mutableStateOf(false)
@@ -116,7 +119,7 @@ fun GalleryItem(
             defaultElevation = 8.dp
         ), shape = ShapeDefaults.Medium
         ) {
-            ItemCoverPhoto(album.coverPhotoPath)
+            ItemCoverPhoto(album.coverPhotoPath, coverPhotoModifier)
         }
         Text(
             modifier = Modifier.padding(start = 8.dp),
@@ -144,19 +147,48 @@ fun GalleryItem(
                         onMenuItemClicked(item.id, album.directoryName)
                         isContextMenuVisible = false
                     },
-
-                    )
+                )
             }
         }
     }
 }
 
+// https://www.youtube.com/watch?v=V2Ke-JJDnrU&list=PLWz5rJ2EKKc9tgU26tbUAy01MzC2Yjztb&index=5
+// TODO: make pager looks cool
+
 @Composable
-fun ItemCoverPhoto(photo: String) {
+fun GalleryPagerItem(
+    album: Album,
+    coverPhotoModifier: Modifier = Modifier
+) {
+
+    Card(modifier = Modifier
+        .wrapContentSize()
+        .padding(16.dp),
+        shape = ShapeDefaults.Medium
+    ) {
+        ItemCoverPhoto(album.coverPhotoPath, coverPhotoModifier)
+    }
+    Text(
+        modifier = Modifier.padding(start = 8.dp),
+        text = album.directoryName,
+        textAlign = TextAlign.Start,
+        maxLines = 1,
+        overflow = TextOverflow.Ellipsis
+    )
+    Text(
+        style = TextStyle(color = MaterialTheme.colorScheme.primary),
+        modifier = Modifier.padding(start = 8.dp),
+        text = album.photoCount.toString(),
+        textAlign = TextAlign.Start
+    )
+}
+
+
+@Composable
+fun ItemCoverPhoto(photo: String, modifier: Modifier) {
     AsyncImage(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(200.dp),
+        modifier = modifier,
         model = ImageRequest.Builder(LocalContext.current).data(photo).crossfade(1000)
             .transformations().build(),
         contentDescription = "Album cover photo",

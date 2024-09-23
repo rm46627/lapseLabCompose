@@ -18,6 +18,7 @@ class GalleryViewModel @Inject constructor(
 
     val getAlbums = repository.getAlbums()
     val isContextMenuTipCompleted = dataStore.readContextMenuTipState()
+    val isPagerViewModeOn = dataStore.readGalleryViewMode()
 
     fun deleteAlbum(albumName: String) {
         viewModelScope.launch {
@@ -40,6 +41,12 @@ class GalleryViewModel @Inject constructor(
     fun resetAllTipsValues() {
         viewModelScope.launch(Dispatchers.IO) {
             dataStore.resetAllTips()
+        }
+    }
+
+    fun switchGalleryViewMode(mode: Boolean) {
+        viewModelScope.launch(Dispatchers.IO) {
+            dataStore.savePagerViewModeState(mode)
         }
     }
 }

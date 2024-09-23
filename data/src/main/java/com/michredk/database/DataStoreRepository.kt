@@ -20,6 +20,7 @@ class DataStoreRepository(context: Context) {
         val onBoardingKey = booleanPreferencesKey(name = "on_boarding_completed")
         val contextMenuTipKey = booleanPreferencesKey(name = "context_menu_tip_completed")
         val ghostBtnTipKey = booleanPreferencesKey(name = "ghost_btn_tip_completed")
+        val pagerViewMode = booleanPreferencesKey(name = "pager_view_mode")
     }
 
     private val dataStore = context.dataStore
@@ -42,6 +43,12 @@ class DataStoreRepository(context: Context) {
         }
     }
 
+    suspend fun savePagerViewModeState(pagerMode: Boolean) {
+        dataStore.edit { preferences ->
+            preferences[PreferencesKey.pagerViewMode] = pagerMode
+        }
+    }
+
     suspend fun resetAllTips() {
         dataStore.edit { preferences ->
             preferences[PreferencesKey.onBoardingKey] = false
@@ -60,7 +67,7 @@ class DataStoreRepository(context: Context) {
                 }
             }
             .map { preferences ->
-                val onBoardingState = preferences[PreferencesKey.onBoardingKey] ?: false
+                val onBoardingState = preferences[PreferencesKey.onBoardingKey] ?: true
                 onBoardingState
             }
     }
@@ -75,7 +82,7 @@ class DataStoreRepository(context: Context) {
                 }
             }
             .map { preferences ->
-                val contextMenuTipState = preferences[PreferencesKey.contextMenuTipKey] ?: false
+                val contextMenuTipState = preferences[PreferencesKey.contextMenuTipKey] ?: true
                 contextMenuTipState
             }
     }
@@ -90,9 +97,25 @@ class DataStoreRepository(context: Context) {
                 }
             }
             .map { preferences ->
-                val ghostBtnTipState = preferences[PreferencesKey.ghostBtnTipKey] ?: false
+                val ghostBtnTipState = preferences[PreferencesKey.ghostBtnTipKey] ?: true
                 ghostBtnTipState
             }
     }
+
+    fun readGalleryViewMode(): Flow<Boolean> {
+        return dataStore.data
+            .catch { exception ->
+                if (exception is IOException) {
+                    emit(emptyPreferences())
+                } else {
+                    throw exception
+                }
+            }
+            .map { preferences ->
+                val pagerViewModeState = preferences[PreferencesKey.pagerViewMode] ?: true
+                pagerViewModeState
+            }
+    }
+
 
 }
