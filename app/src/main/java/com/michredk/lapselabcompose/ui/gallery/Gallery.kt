@@ -1,5 +1,7 @@
 package com.michredk.lapselabcompose.ui.gallery
 
+import android.graphics.BitmapFactory
+import android.util.Log
 import androidx.compose.foundation.LocalIndication
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -58,14 +60,17 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.util.lerp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
+import androidx.palette.graphics.Palette
 import com.michredk.database.Album
 import com.michredk.lapselab.files.MediaManagerFactory
+import com.michredk.lapselabcompose.TAG
 import com.michredk.lapselabcompose.services.alarm.AlarmScheduler
 import com.michredk.lapselabcompose.ui.common.TipDialog
 import com.michredk.lapselabcompose.ui.details.DetailsDestination
@@ -89,6 +94,8 @@ import kotlin.math.absoluteValue
 //  kids growing up,
 //  gym progress,
 //  time lapse movie with clay set
+
+// TODO: add daily streak counter
 
 @Serializable
 object GalleryDestination
@@ -232,11 +239,13 @@ private fun GalleryScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(start = 8.dp, top = 32.dp)
+            .padding(top = 32.dp)
             .background(backgroundColor)
     ) {
         Row(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(start = 8.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
@@ -315,7 +324,7 @@ private fun PagerGallery(
     val pagerState = rememberPagerState(pageCount = { albumsWithExtras.size })
     val fling = PagerDefaults.flingBehavior(
         state = pagerState,
-        pagerSnapDistance = PagerSnapDistance.atMost(albumsWithExtras.size)
+        pagerSnapDistance = PagerSnapDistance.atMost(2)
     )
     HorizontalPager(
         state = pagerState,
@@ -327,7 +336,7 @@ private fun PagerGallery(
             vertical = 8.dp
         )
     ) { page ->
-        val album = albumsWithExtras[page]
+        val album = remember {albumsWithExtras[page]}
         val pageOffset = pagerState.getOffsetDistanceInPages(page).absoluteValue
         Column(
             modifier = Modifier
@@ -336,21 +345,19 @@ private fun PagerGallery(
         ) {
             Card(
                 modifier = Modifier
-                    .height(600.dp * (1 - (pageOffset * 0.3f)))
+                    .height(500.dp * (1 - (pageOffset * 0.3f)))
                     .onSizeChanged { itemHeight = with(density) { it.height.toDp() } }
                     .indication(interactionSource, LocalIndication.current)
                     .pointerInput(true) {
                         detectTapGestures(
-                            onTap = { onAlbumClick(album.directoryName) },
+                            onTap = {
+                                if (page == albumsWithExtras.size - 1) onCreateClick() else onAlbumClick(
+                                    album.directoryName
+                                )
+                            },
                             onLongPress = {
                                 isContextMenuVisible = true
                                 pressOffset = DpOffset(it.x.toDp(), it.y.toDp())
-                            },
-                            onPress = {
-                                val press = PressInteraction.Press(it)
-                                interactionSource.emit(press)
-                                tryAwaitRelease()
-                                interactionSource.emit(PressInteraction.Release(press))
                             })
                     },
                 elevation = CardDefaults.cardElevation(
@@ -359,7 +366,15 @@ private fun PagerGallery(
                 shape = ShapeDefaults.Medium,
             ) {
                 if (page == albumsWithExtras.size - 1) {
-                    CreateCard(onCreateClick)
+                    CreateCard()
+                    Text(style = TextStyle(color = MaterialTheme.colorScheme.primary), modifier = Modifier.padding(top = 8.dp), text = "New album ideas!", )
+                    val ideas = remember {
+                        listOf("Cityscapes – traffic flow, pedestrians, day/night transitions", "Sunrise or Sunset – sky color changes", "Nature in Bloom – flowers blooming, seasonal changes", "Sky & Clouds – clouds, weather, stars", "Construction Projects – building progress", "Food Preparation – dish creation", "Plants Growing – seed sprouting to bloom", "Crowds in Action – movement at events", "Changing Seasons – landscape transformations", "Art Creation – from blank canvas to final piece", "Kids growing up over months or years", "Family photos taken annually", "Gym progress showing body transformation", "Stop-motion with LEGO or toys", "Painting a mural or wall art", "Seasonal changes in your backyard garden")
+                    }
+                    // TODO: album ideas examples - maybe only one?
+                    for(i in 0..1) {
+                        Text(text = ideas[i])
+                    }
                 } else {
                     GalleryPagerItem(album,
                         coverPhotoModifier = Modifier
@@ -408,7 +423,7 @@ private fun GalleryGrid(
 ) {
     LazyVerticalStaggeredGrid(
         columns = StaggeredGridCells.Fixed(2), contentPadding = PaddingValues(
-            start = 0.dp, top = 8.dp, end = 8.dp, bottom = 8.dp
+            start = 8.dp, top = 8.dp, end = 8.dp, bottom = 8.dp
         ),
         verticalItemSpacing = 8.dp
     ) {
@@ -441,7 +456,6 @@ fun RemoveAlbumDialog(removeAlbum: () -> Unit, hideDialog: () -> Unit) {
                 Text(text = "Yes",
                     modifier = Modifier.clickable {
                         removeAlbum()
-                        hideDialog()
                     })
             }
         },

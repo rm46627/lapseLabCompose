@@ -37,6 +37,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.media3.common.MediaItem
 import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
+import androidx.media3.common.Player.REPEAT_MODE_ONE
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.ui.PlayerView
@@ -84,18 +85,15 @@ fun LabRoute(
     val videoProperties by detailsViewModel.videoProperties.collectAsStateWithLifecycle()
 
     val context = LocalContext.current
-    val exoPlayer = ExoPlayer.Builder(context).build().apply {
-        playWhenReady = true
-    }
-
-    exoPlayer.addListener(object : Player.Listener{
-        override fun onPlayerError(error: PlaybackException) {
-            super.onPlayerError(error)
-            Log.d(TAG, "error: $error")
+    val exoPlayer = remember {
+        ExoPlayer.Builder(context).build().apply {
+            playWhenReady = true
+            repeatMode = REPEAT_MODE_ONE
         }
-    })
-
-    val mediaManager = MediaManagerFactory(context)
+    }
+    val mediaManager = remember {
+        MediaManagerFactory(context)
+    }
     var showScreen by remember { mutableStateOf(true) }
     BackHandler {
         showScreen = false

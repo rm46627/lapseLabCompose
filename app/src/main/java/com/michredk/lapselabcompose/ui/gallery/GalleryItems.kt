@@ -7,7 +7,9 @@ import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.indication
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.PressInteraction
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -29,6 +31,11 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.drawWithCache
+import androidx.compose.ui.graphics.BlendMode
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.CompositingStrategy
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.onSizeChanged
@@ -40,14 +47,15 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.michredk.database.Album
 import com.michredk.lapselabcompose.R
-
+import com.michredk.lapselabcompose.ui.common.fireColors
 
 @Composable
-fun CreateCard(onCreateNewAlbumClick: () -> Unit) {
+fun CreateCard(onCreateNewAlbumClick: () -> Unit = {}) {
     Column {
         Card(
             modifier = Modifier
@@ -153,35 +161,74 @@ fun GalleryGridItem(
     }
 }
 
-// https://www.youtube.com/watch?v=V2Ke-JJDnrU&list=PLWz5rJ2EKKc9tgU26tbUAy01MzC2Yjztb&index=5
-// TODO: make pager looks cool
-
 @Composable
 fun GalleryPagerItem(
     album: Album,
     coverPhotoModifier: Modifier = Modifier
 ) {
-
-    Card(modifier = Modifier
-        .wrapContentSize()
-        .padding(16.dp),
+    Card(
+        modifier = Modifier
+            .wrapContentSize()
+            .padding(16.dp),
         shape = ShapeDefaults.Medium
     ) {
         ItemCoverPhoto(album.coverPhotoPath, coverPhotoModifier)
     }
     Text(
-        modifier = Modifier.padding(start = 8.dp),
+        style = MaterialTheme.typography.headlineLarge,
+        modifier = Modifier
+            .padding(start = 8.dp)
+            .fillMaxWidth(),
         text = album.directoryName,
-        textAlign = TextAlign.Start,
+        textAlign = TextAlign.Center,
         maxLines = 1,
         overflow = TextOverflow.Ellipsis
     )
     Text(
         style = TextStyle(color = MaterialTheme.colorScheme.primary),
-        modifier = Modifier.padding(start = 8.dp),
-        text = album.photoCount.toString(),
-        textAlign = TextAlign.Start
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(top = 16.dp),
+        text = "Number of photos",
+        textAlign = TextAlign.Center
     )
+    val primaryContainerColor = MaterialTheme.colorScheme.primaryContainer
+    val primaryColor = MaterialTheme.colorScheme.primary
+    val fireColors = remember {
+        fireColors(
+            album.photoCount, primaryContainerColor, primaryColor
+        )
+    }
+    val fireBrush = Brush.verticalGradient(colorStops = fireColors)
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.Center,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Icon(
+            modifier = Modifier
+                .size(50.dp)
+                .graphicsLayer { compositingStrategy = CompositingStrategy.Offscreen }
+                .drawWithCache {
+                    onDrawWithContent {
+                        drawContent()
+                        drawRect(fireBrush, blendMode = BlendMode.SrcAtop)
+                    }
+                },
+            // TODO: make usage of other fire icons
+            painter = painterResource(id = R.drawable.small_fire),
+            contentDescription = "photo counter icon"
+        )
+        Text(
+            fontSize = 50.sp,
+            modifier = Modifier
+                .padding(top = 4.dp),
+            text = album.photoCount.toString(),
+            textAlign = TextAlign.Center,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis
+        )
+    }
 }
 
 

@@ -3,6 +3,7 @@ package com.michredk.database
 import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.PrimaryKey
+import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.LocalTime
 
@@ -18,5 +19,6 @@ data class Album (
     @ColumnInfo(name = "days_between_reminders") val daysBetweenReminders: Long = 0,
     @ColumnInfo(name = "reminder_time") val reminderTime: LocalTime = LocalTime.now(),
     @ColumnInfo(name = "last_reminder_sent_on") val lastReminderSentOn: LocalDateTime = LocalDateTime.now(),
-    @ColumnInfo(name = "streak") val streak: Int = 1
+    @ColumnInfo(name = "streak") val streak: Int = 1,
+//    @ColumnInfo(name = "last_photo_taken_on") val lastPhotoSentOn: LocalDate = LocalDate.now()
 )
