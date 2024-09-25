@@ -1,14 +1,11 @@
 package com.michredk.lapselabcompose.ui.gallery
 
-import android.graphics.BitmapFactory
-import android.util.Log
 import androidx.compose.foundation.LocalIndication
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.indication
 import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.interaction.PressInteraction
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -53,24 +50,20 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.util.lerp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
-import androidx.palette.graphics.Palette
 import com.michredk.database.Album
 import com.michredk.lapselab.files.MediaManagerFactory
-import com.michredk.lapselabcompose.TAG
 import com.michredk.lapselabcompose.services.alarm.AlarmScheduler
 import com.michredk.lapselabcompose.ui.common.TipDialog
 import com.michredk.lapselabcompose.ui.details.DetailsDestination
@@ -328,15 +321,16 @@ private fun PagerGallery(
     )
     HorizontalPager(
         state = pagerState,
-        pageSpacing = 32.dp,
+        pageSpacing = 18.dp,
         beyondViewportPageCount = 1,
         flingBehavior = fling,
         contentPadding = PaddingValues(
-            horizontal = 32.dp,
+            horizontal = 38.dp,
             vertical = 8.dp
         )
     ) { page ->
-        val album = remember {albumsWithExtras[page]}
+        val isCreateCard = page == albumsWithExtras.size - 1
+        val album = remember { albumsWithExtras[page] }
         val pageOffset = pagerState.getOffsetDistanceInPages(page).absoluteValue
         Column(
             modifier = Modifier
@@ -345,7 +339,7 @@ private fun PagerGallery(
         ) {
             Card(
                 modifier = Modifier
-                    .height(500.dp * (1 - (pageOffset * 0.3f)))
+                    .height((if(isCreateCard) 430.dp else 530.dp) * (1 - (pageOffset * 0.3f)))
                     .onSizeChanged { itemHeight = with(density) { it.height.toDp() } }
                     .indication(interactionSource, LocalIndication.current)
                     .pointerInput(true) {
@@ -365,16 +359,8 @@ private fun PagerGallery(
                 ),
                 shape = ShapeDefaults.Medium,
             ) {
-                if (page == albumsWithExtras.size - 1) {
-                    CreateCard()
-                    Text(style = TextStyle(color = MaterialTheme.colorScheme.primary), modifier = Modifier.padding(top = 8.dp), text = "New album ideas!", )
-                    val ideas = remember {
-                        listOf("Cityscapes – traffic flow, pedestrians, day/night transitions", "Sunrise or Sunset – sky color changes", "Nature in Bloom – flowers blooming, seasonal changes", "Sky & Clouds – clouds, weather, stars", "Construction Projects – building progress", "Food Preparation – dish creation", "Plants Growing – seed sprouting to bloom", "Crowds in Action – movement at events", "Changing Seasons – landscape transformations", "Art Creation – from blank canvas to final piece", "Kids growing up over months or years", "Family photos taken annually", "Gym progress showing body transformation", "Stop-motion with LEGO or toys", "Painting a mural or wall art", "Seasonal changes in your backyard garden")
-                    }
-                    // TODO: album ideas examples - maybe only one?
-                    for(i in 0..1) {
-                        Text(text = ideas[i])
-                    }
+                if (isCreateCard) {
+                    PagerCreateCard()
                 } else {
                     GalleryPagerItem(album,
                         coverPhotoModifier = Modifier
@@ -431,7 +417,7 @@ private fun GalleryGrid(
             "${album.id}_$index"
         }) { index, album ->
             if (index == albumsWithExtras.size - 1) {
-                CreateCard(onCreateClick)
+                GridCreateCard(onCreateClick)
             } else {
                 GalleryGridItem(
                     album = album,

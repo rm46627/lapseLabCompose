@@ -10,6 +10,7 @@ import androidx.compose.foundation.interaction.PressInteraction
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -21,10 +22,12 @@ import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.ShapeDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -42,6 +45,8 @@ import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.pluralStringResource
+import androidx.compose.ui.res.stringArrayResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -52,10 +57,12 @@ import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.michredk.database.Album
 import com.michredk.lapselabcompose.R
+import com.michredk.lapselabcompose.ui.common.FreqUtils
 import com.michredk.lapselabcompose.ui.common.fireColors
+import kotlin.random.Random
 
 @Composable
-fun CreateCard(onCreateNewAlbumClick: () -> Unit = {}) {
+fun GridCreateCard(onCreateNewAlbumClick: () -> Unit = {}) {
     Column {
         Card(
             modifier = Modifier
@@ -216,7 +223,7 @@ fun GalleryPagerItem(
                     }
                 },
             // TODO: make usage of other fire icons
-            painter = painterResource(id = R.drawable.small_fire),
+            painter = painterResource(id = if(album.photoCount > 49) R.drawable.big_fire else R.drawable.small_fire),
             contentDescription = "photo counter icon"
         )
         Text(
@@ -228,6 +235,63 @@ fun GalleryPagerItem(
             maxLines = 1,
             overflow = TextOverflow.Ellipsis
         )
+    }
+    val daysPassed = remember {
+        val lastPhotoDate = FreqUtils.filePathToLocalDate(album.coverPhotoPath)
+        FreqUtils.localDateToDaysPassed(lastPhotoDate).toInt()
+    }
+    Text(
+        style = TextStyle(color = MaterialTheme.colorScheme.primary, fontSize = MaterialTheme.typography.bodyLarge.fontSize),
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(top = 16.dp),
+        text = "Latest photo was taken " + pluralStringResource(id = R.plurals.numberOfDaysAgo, count = daysPassed, daysPassed),
+        textAlign = TextAlign.Center,
+        maxLines = 1,
+        overflow = TextOverflow.Ellipsis
+    )
+}
+
+// TODO: add alpha animation for idea text
+@Composable
+fun PagerCreateCard() {
+    GridCreateCard()
+    Column(
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = Modifier
+            .padding(8.dp)
+            .fillMaxSize()
+    ) {
+        Text(
+            style = TextStyle(color = MaterialTheme.colorScheme.primary),
+            modifier = Modifier
+                .padding(top = 16.dp)
+                .fillMaxWidth(),
+            textAlign = TextAlign.Center,
+            text = "What about a new souvenir? Maybe...",
+        )
+        val ideasArray: Array<String> =
+            stringArrayResource(id = R.array.album_ideas)
+        var randIndex by remember {
+            mutableIntStateOf(Random.nextInt(0, ideasArray.size))
+        }
+        Text(
+            modifier = Modifier.padding(top = 8.dp),
+            style = TextStyle(fontSize = MaterialTheme.typography.titleLarge.fontSize),
+            text = ideasArray[randIndex],
+            textAlign = TextAlign.Center
+        )
+        OutlinedButton(
+            modifier = Modifier.padding(top = 8.dp),
+            onClick = {
+                randIndex++
+                if (randIndex >= ideasArray.size) randIndex = 0
+            }) {
+            Text(
+                text = "Next idea"
+            )
+        }
     }
 }
 

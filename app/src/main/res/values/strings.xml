@@ -4,4 +4,53 @@
     <string name="album_name_info">Info about storing photos in device memory and system gallery app.</string>
     <string name="notifications_options_label">Receive reminders to take another photo for your album</string>
     <string name="share_where">Udostępnij za pomocą</string>
+
+    <plurals name="numberOfDaysAgo">
+        <item quantity="zero">today.</item>
+        <item quantity="one">yesterday.</item>
+        <item quantity="two">%d days ago.</item>
+        <item quantity="few">%d days ago.</item>
+        <item quantity="many">%d days ago.</item>
+        <item quantity="other">today.</item>
+    </plurals>
+
+    <string-array name="album_ideas">
+        <item>Cityscapes – traffic flow, pedestrians, day/night transitions</item>
+        <item>Sunrise or Sunset – sky color changes</item>
+        <item>Nature in Bloom – flowers blooming, seasonal changes</item>
+        <item>Sky &amp; Clouds – clouds, weather, stars</item>
+        <item>Construction Projects – building progress</item>
+        <item>Food Preparation – dish creation</item>
+        <item>Plants Growing – seed sprouting to bloom</item>
+        <item>Crowds in Action – movement at events</item>
+        <item>Changing Seasons – landscape transformations</item>
+        <item>Art Creation – from blank canvas to final piece</item>
+        <item>Kids growing up over months or years</item>
+        <item>Family photos taken annually</item>
+        <item>Gym progress showing body transformation</item>
+        <item>Stop-motion with LEGO or toys</item>
+        <item>Painting a mural or wall art</item>
+        <item>Seasonal changes in your backyard garden</item>
+        <item>Hiking Adventures – scenic landscapes and wildlife</item>
+        <item>Holiday Celebrations – decorations and family moments</item>
+        <item>City Landmarks – famous buildings and street art</item>
+        <item>Road Trip Memories – scenic drives and discoveries</item>
+        <item>Beach Day – sunsets and sandcastles</item>
+        <item>Mountain Climbing – breathtaking views and summit moments</item>
+        <item>Amusement Park Fun – rides and cotton candy</item>
+        <item>Weekend Getaway – cozy lodges and local cuisine</item>
+        <item>Cultural Festivals – parades and colorful costumes</item>
+        <item>Camping Under the Stars – campfires and stargazing</item>
+        <item>Zoo or Safari Visits – animals and exhibits</item>
+        <item>Historic Sites Tour – ruins and museums</item>
+        <item>Foodie Journey – local dishes and street food</item>
+        <item>Museum Visits – art galleries and exhibits</item>
+        <item>Night Out – city lights and nightlife vibes</item>
+        <item>Garden Walks – botanical gardens and rare plants</item>
+        <item>Farm or Vineyard Tour – harvests and countryside views</item>
+        <item>Winter Wonderland – snow landscapes and ice skating</item>
+        <item>Biking Trails – scenic routes and picnic stops</item>
+        <item>Urban Exploration – graffiti art and hidden gems</item>
+    </string-array>
+
 </resources>
