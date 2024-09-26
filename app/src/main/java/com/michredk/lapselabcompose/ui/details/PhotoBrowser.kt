@@ -1,5 +1,6 @@
 package com.michredk.lapselabcompose.ui.details
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -8,23 +9,28 @@ import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.windowInsetsTopHeight
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBackIos
 import androidx.compose.material.icons.filled.ArrowForwardIos
 import androidx.compose.material.icons.filled.DeleteForever
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -33,6 +39,7 @@ import androidx.navigation.NavHostController
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.michredk.lapselab.files.MediaManagerFactory
+import com.michredk.lapselabcompose.R
 import com.michredk.lapselabcompose.ui.DetailsGraph
 import com.michredk.lapselabcompose.ui.PhotosGraph
 import kotlinx.coroutines.launch
@@ -53,7 +60,7 @@ fun PhotoBrowserRoute(
     val parentEntry = remember(backStackEntry) {
         navController.getBackStackEntry(DetailsGraph)
     }
-    if(parentEntry != null) {
+    if (parentEntry != null) {
         val viewModel: DetailsViewModel = hiltViewModel(parentEntry)
         val albumNameState by viewModel.albumName.collectAsStateWithLifecycle()
         val photosState by viewModel.photos.collectAsStateWithLifecycle()
@@ -99,8 +106,7 @@ fun PhotoBrowserRoute(
                 index == photos.size - 1
             )
         }
-    }
-    else {
+    } else {
         navController.popBackStack()
     }
 }
@@ -129,29 +135,46 @@ fun PhotoBrowserScreen(
             contentDescription = "Gallery photo",
             contentScale = ContentScale.Crop,
         )
-        Column(modifier = Modifier
-            .fillMaxSize()
-            .padding(WindowInsets.statusBars.asPaddingValues())) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .align(Alignment.BottomCenter)
+                .padding(WindowInsets.statusBars.asPaddingValues())
+        ) {
             Text(text = date)
             Row(
                 modifier = Modifier.fillMaxWidth(),
             ) {
-                if (index != 0) {
-                    IconButton(onClick = onPreviousButtonClicked) {
-                        Icon(imageVector = Icons.Default.ArrowBackIos, contentDescription = "")
-                    }
+                val prevEnabled = index != 0
+                val btnBackgroundColor =
+                    MaterialTheme.colorScheme.primaryContainer
+                IconButton(
+                    modifier = Modifier.background(
+                        if (prevEnabled) btnBackgroundColor else btnBackgroundColor.copy(
+                            alpha = 0.5f
+                        ), shape = CircleShape
+                    ),
+                    onClick = onPreviousButtonClicked
+                ) {
+                    Icon(imageVector = Icons.Default.ArrowBackIos, contentDescription = "")
                 }
                 IconButton(onClick = onDeleteButtonClicked) {
                     Icon(imageVector = Icons.Default.DeleteForever, contentDescription = "")
                 }
-                if (!isLastPhoto) {
-                    IconButton(onClick = onNextButtonClicked) {
-                        Icon(
-                            imageVector = Icons.Default.ArrowForwardIos,
-                            contentDescription = ""
-                        )
-                    }
+                IconButton(
+                    modifier = Modifier.background(
+                        if (!isLastPhoto) btnBackgroundColor else btnBackgroundColor.copy(
+                            alpha = 0.5f
+                        ), shape = CircleShape
+                    ),
+                    onClick = onNextButtonClicked
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.ArrowForwardIos,
+                        contentDescription = ""
+                    )
                 }
+
             }
         }
     }

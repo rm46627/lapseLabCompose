@@ -1,8 +1,8 @@
 package com.michredk.lapselabcompose.ui.common
 
 import com.michredk.lapselab.files.FILES_NAME_DATE_FORMAT
-import java.text.SimpleDateFormat
 import java.time.LocalDate
+import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
 import java.util.Locale
@@ -55,14 +55,14 @@ object FreqUtils {
         }
     }
 
-    fun filePathToLocalDate(photoPath: String): LocalDate {
+    fun filePathToLocalDateTime(photoPath: String): LocalDateTime {
         val dateFormat = DateTimeFormatter.ofPattern(FILES_NAME_DATE_FORMAT, Locale.US)
         val filename = photoPath.dropLast(4).substring(photoPath.lastIndexOf('/')+1) // Example of a file name representing a date
-        val localDate = LocalDate.parse(filename, dateFormat)
-        return localDate
+        val localDateTime = LocalDateTime.parse(filename, dateFormat)
+        return localDateTime
     }
 
-    fun localDateToDaysPassed(date: LocalDate): Long {
-        return ChronoUnit.DAYS.between(date, LocalDate.now())
+    fun localDateToDaysPassed(date: LocalDateTime): Long {
+        return ChronoUnit.DAYS.between(date, LocalDateTime.now())
     }
 }

@@ -22,6 +22,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeContentPadding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
@@ -76,6 +77,8 @@ import kotlinx.serialization.Serializable
 //TODO: Check if user trying to do next photo in different orientation and warn him about that
 // e.g. view black screen with text asking for rotating device
 // send proper orientation with args
+
+// TODO: block camera rotation
 
 @Serializable
 data class CameraDestination(

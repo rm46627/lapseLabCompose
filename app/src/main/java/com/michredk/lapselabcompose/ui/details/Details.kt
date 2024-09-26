@@ -45,6 +45,7 @@ import java.time.LocalTime
 data class DetailsDestination(val albumName: String? = null)
 
 // TODO: Add option to import (copy) a photo from the gallery
+// TODO: add share latest video and specific photo
 
 @Composable
 fun DetailsRoute(

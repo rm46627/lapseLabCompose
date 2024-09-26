@@ -18,7 +18,5 @@ data class Album (
     @ColumnInfo(name = "photo_count") val photoCount: Int = 1,
     @ColumnInfo(name = "days_between_reminders") val daysBetweenReminders: Long = 0,
     @ColumnInfo(name = "reminder_time") val reminderTime: LocalTime = LocalTime.now(),
-    @ColumnInfo(name = "last_reminder_sent_on") val lastReminderSentOn: LocalDateTime = LocalDateTime.now(),
-    @ColumnInfo(name = "streak") val streak: Int = 1,
-//    @ColumnInfo(name = "last_photo_taken_on") val lastPhotoSentOn: LocalDate = LocalDate.now()
+    @ColumnInfo(name = "last_reminder_sent_on") val lastReminderSentOn: LocalDateTime = LocalDateTime.now()
 )

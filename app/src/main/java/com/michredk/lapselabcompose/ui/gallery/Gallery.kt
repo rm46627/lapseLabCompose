@@ -72,23 +72,13 @@ import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 import kotlin.math.absoluteValue
 
-// TODO: tip modal about long press on gallery item for context menu
-// TODO: Display graphic encouraging to create a new album - display as small cell when
-//  gallerySize is odd and large cell when gallerySize % 2 == 0
-
 // TODO: animate grid after deleting the album
 // TODO: fix bug with list not updating changed albums order
 
-// TODO: daily photos streak counter
 // TODO: different frames for better streak and stars for photos counter
 
-// TODO: new ideas for albums:
-//  plants,
-//  kids growing up,
-//  gym progress,
-//  time lapse movie with clay set
-
 // TODO: add daily streak counter
+// TODO: add click animation for photos in cards in pager
 
 @Serializable
 object GalleryDestination
@@ -360,7 +350,7 @@ private fun PagerGallery(
                 shape = ShapeDefaults.Medium,
             ) {
                 if (isCreateCard) {
-                    PagerCreateCard()
+                    PagerCreateCard(onCreateClick)
                 } else {
                     GalleryPagerItem(album,
                         coverPhotoModifier = Modifier

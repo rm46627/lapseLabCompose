@@ -51,6 +51,7 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.DpOffset
+import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
@@ -62,7 +63,7 @@ import com.michredk.lapselabcompose.ui.common.fireColors
 import kotlin.random.Random
 
 @Composable
-fun GridCreateCard(onCreateNewAlbumClick: () -> Unit = {}) {
+fun GridCreateCard(onCreateNewAlbumClick: () -> Unit, textSize: TextUnit = MaterialTheme.typography.bodyLarge.fontSize ) {
     Column {
         Card(
             modifier = Modifier
@@ -82,7 +83,8 @@ fun GridCreateCard(onCreateNewAlbumClick: () -> Unit = {}) {
         Text(
             text = "Create new album!",
             textAlign = TextAlign.Center,
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.fillMaxWidth(),
+            fontSize = textSize
         )
     }
 }
@@ -237,7 +239,7 @@ fun GalleryPagerItem(
         )
     }
     val daysPassed = remember {
-        val lastPhotoDate = FreqUtils.filePathToLocalDate(album.coverPhotoPath)
+        val lastPhotoDate = FreqUtils.filePathToLocalDateTime(album.coverPhotoPath)
         FreqUtils.localDateToDaysPassed(lastPhotoDate).toInt()
     }
     Text(
@@ -254,10 +256,10 @@ fun GalleryPagerItem(
 
 // TODO: add alpha animation for idea text
 @Composable
-fun PagerCreateCard() {
-    GridCreateCard()
+fun PagerCreateCard(onCreateNewAlbumClick: () -> Unit) {
+    GridCreateCard(onCreateNewAlbumClick, MaterialTheme.typography.headlineSmall.fontSize)
     Column(
-        verticalArrangement = Arrangement.Center,
+        verticalArrangement = Arrangement.Bottom,
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = Modifier
             .padding(8.dp)
@@ -269,7 +271,7 @@ fun PagerCreateCard() {
                 .padding(top = 16.dp)
                 .fillMaxWidth(),
             textAlign = TextAlign.Center,
-            text = "What about a new souvenir? Maybe...",
+            text = "Ready to capture something new? How about...?",
         )
         val ideasArray: Array<String> =
             stringArrayResource(id = R.array.album_ideas)
@@ -278,12 +280,14 @@ fun PagerCreateCard() {
         }
         Text(
             modifier = Modifier.padding(top = 8.dp),
-            style = TextStyle(fontSize = MaterialTheme.typography.titleLarge.fontSize),
+            style = TextStyle(fontSize = MaterialTheme.typography.titleMedium.fontSize),
             text = ideasArray[randIndex],
-            textAlign = TextAlign.Center
+            textAlign = TextAlign.Center,
+            minLines = 2,
+            maxLines = 2
         )
         OutlinedButton(
-            modifier = Modifier.padding(top = 8.dp),
+            modifier = Modifier.padding(top = 8.dp, bottom = 4.dp),
             onClick = {
                 randIndex++
                 if (randIndex >= ideasArray.size) randIndex = 0
