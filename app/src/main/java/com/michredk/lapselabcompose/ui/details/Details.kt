@@ -1,6 +1,5 @@
 package com.michredk.lapselabcompose.ui.details
 
-import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -32,7 +31,6 @@ import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavHostController
 import com.michredk.database.Album
 import com.michredk.lapselab.files.MediaManagerFactory
-import com.michredk.lapselabcompose.TAG
 import com.michredk.lapselabcompose.services.alarm.AlarmScheduler
 import com.michredk.lapselabcompose.ui.PermissionViewModel
 import com.michredk.lapselabcompose.ui.DetailsGraph
@@ -71,6 +69,7 @@ fun DetailsRoute(
         photos?.let { detailsViewModel.setPhotos(it) }
     }
     val photos by detailsViewModel.photos.collectAsStateWithLifecycle()
+    var showVideo by remember { mutableStateOf(false) }
     photos?.let {
         val albumSafe = album ?: throw IllegalArgumentException()
         if (it.isNotEmpty()) {
@@ -81,22 +80,33 @@ fun DetailsRoute(
             photos = it,
             onAddPhotoClicked = {
                 if (granted) {
+                    showVideo = false
                     navController.navigate(CameraDestination(albumName, true))
                 } else {
                     permissionsResultLaunch()
                 }
             },
             onEditVideoClicked = {
+                showVideo = false
                 navController.navigate(LabDestination(albumName))
             },
             onPhotoClicked = { index ->
+                showVideo = false
                 navController.navigate(PhotoBrowserDestination(index))
             },
             onApplyNotificationDialogClicked = { time, freq ->
+                if(!granted){
+                    permissionsResultLaunch()
+                }
                 detailsViewModel.updateAlbum(albumSafe, freq, time, AlarmScheduler(context))
             },
             popBackStack = {
+                showVideo = false
                 navController.popBackStack()
+            },
+            showVideo = showVideo,
+            toggleShowVideo = { value ->
+                showVideo = value
             }
         )
     }
@@ -110,7 +120,9 @@ fun DetailsScreen(
     onEditVideoClicked: () -> Unit,
     onPhotoClicked: (Int) -> Unit,
     onApplyNotificationDialogClicked: (LocalTime, String) -> Unit,
-    popBackStack: () -> Unit
+    popBackStack: () -> Unit,
+    showVideo: Boolean,
+    toggleShowVideo: (Boolean) -> Unit
 ) {
     var showNotificationDialog by remember {
         mutableStateOf(false)
@@ -152,7 +164,9 @@ fun DetailsScreen(
                 showNotificationDialog = true
             },
             topBackgroundColor,
-            popBackStack = popBackStack
+            popBackStack = popBackStack,
+            showVideo = showVideo,
+            setShowVideo = toggleShowVideo
         )
 
         LazyVerticalGrid(

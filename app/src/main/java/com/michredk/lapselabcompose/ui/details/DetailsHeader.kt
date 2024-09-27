@@ -3,6 +3,7 @@ package com.michredk.lapselabcompose.ui.details
 import android.util.Log
 import androidx.activity.compose.BackHandler
 import androidx.annotation.OptIn
+import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
@@ -28,6 +29,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -49,10 +51,9 @@ import coil.request.ImageRequest
 import com.michredk.database.Album
 import com.michredk.lapselab.files.MediaManagerFactory
 import com.michredk.lapselabcompose.TAG
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import kotlin.coroutines.cancellation.CancellationException
-
-// TODO: Streak counter ( progress bar? )
-// TODO: Date of the next notification / planned photo
 
 @OptIn(UnstableApi::class)
 @Composable
@@ -63,7 +64,9 @@ fun DetailsHeader(
     onEditVideoClicked: () -> Unit,
     onNotificationIconClicked: () -> Unit,
     backgroundColor: Brush,
-    popBackStack: () -> Unit
+    popBackStack: () -> Unit,
+    showVideo: Boolean,
+    setShowVideo: (Boolean) -> Unit
 ) {
     val context = LocalContext.current
     val exoPlayer = remember {
@@ -72,12 +75,11 @@ fun DetailsHeader(
             repeatMode = REPEAT_MODE_ONE
         }
     }
+
     val mediaManager = remember {
         MediaManagerFactory(context)
     }
-    var showVideo by remember { mutableStateOf(true) }
     BackHandler {
-        showVideo = false
         popBackStack()
     }
     var videoUriState by remember { mutableStateOf<String?>(null) }
@@ -102,7 +104,7 @@ fun DetailsHeader(
         targetValue = if (expanded) 1f else 0f, animationSpec = tween(durationMillis = 1000),
         label = ""
     )
-
+    val scope = rememberCoroutineScope()
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -114,6 +116,17 @@ fun DetailsHeader(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.SpaceBetween
     ) {
+        // TODO: show video properly
+//        val alpha = remember { Animatable(initialValue = 0f) }
+//        LaunchedEffect(key1 = mediaSource) {
+//            setShowVideo(true)
+//            delay(500)
+//            alpha.animateTo(
+//                1f, animationSpec = tween(
+//                    durationMillis = 1500
+//                )
+//            )
+//        }
         if (mediaSource != null && showVideo) {
             AndroidView(
                 factory = { ctx ->
@@ -124,10 +137,11 @@ fun DetailsHeader(
                 },
                 modifier = Modifier
                     .fillMaxWidth()
+//                    .alpha(alpha.value)
                     .height(300.dp * scale)
             )
         }
-//        AlbumCoverPhoto(album.coverPhotoPath, scale)
+        // TODO: fancy progressbar to 100 photos
         Text(
             modifier = Modifier
                 .alpha(scale)
