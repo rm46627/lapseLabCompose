@@ -38,6 +38,7 @@ import com.michredk.lapselab.files.MediaManagerFactory
 import com.michredk.lapselabcompose.ui.details.DetailsDestination
 import com.michredk.lapselabcompose.ui.CameraGraph
 import com.michredk.lapselabcompose.ui.DetailsGraph
+import com.michredk.lapselabcompose.ui.SetupGraph
 import com.michredk.lapselabcompose.ui.setup.SetupPhotoDestination
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -84,7 +85,7 @@ fun PhotoPreviewRoute(
                     popUpToDest = DetailsGraph
                 } else {
                     navFromDest = SetupPhotoDestination(viewModel.albumName)
-                    popUpToDest = CameraGraph
+                    popUpToDest = SetupGraph
                 }
                 navController.navigate(navFromDest) {
                     popUpTo(popUpToDest) {

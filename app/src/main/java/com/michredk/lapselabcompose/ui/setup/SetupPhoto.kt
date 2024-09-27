@@ -138,7 +138,7 @@ fun SetupPhotoScreen(
                 .weight(3f)
                 .padding(32.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
+            verticalArrangement = Arrangement.SpaceEvenly
         ) {
             val offset = 400f
             val titleBrush = Brush.linearGradient(
