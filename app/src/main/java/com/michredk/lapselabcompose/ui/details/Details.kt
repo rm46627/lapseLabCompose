@@ -49,7 +49,8 @@ data class DetailsDestination(val albumName: String? = null)
 
 @Composable
 fun DetailsRoute(
-    backStackEntry: NavBackStackEntry, navController: NavHostController, albumName: String?,
+    backStackEntry: NavBackStackEntry,
+    navController: NavHostController, albumName: String?,
     permissionsResultLaunch: () -> Unit,
     permissionViewModel: PermissionViewModel,
 ) {
@@ -93,6 +94,9 @@ fun DetailsRoute(
             },
             onApplyNotificationDialogClicked = { time, freq ->
                 detailsViewModel.updateAlbum(albumSafe, freq, time, AlarmScheduler(context))
+            },
+            popBackStack = {
+                navController.popBackStack()
             }
         )
     }
@@ -105,7 +109,8 @@ fun DetailsScreen(
     onAddPhotoClicked: () -> Unit,
     onEditVideoClicked: () -> Unit,
     onPhotoClicked: (Int) -> Unit,
-    onApplyNotificationDialogClicked: (LocalTime, String) -> Unit
+    onApplyNotificationDialogClicked: (LocalTime, String) -> Unit,
+    popBackStack: () -> Unit
 ) {
     var showNotificationDialog by remember {
         mutableStateOf(false)
@@ -146,7 +151,8 @@ fun DetailsScreen(
             onNotificationIconClicked = {
                 showNotificationDialog = true
             },
-            topBackgroundColor
+            topBackgroundColor,
+            popBackStack = popBackStack
         )
 
         LazyVerticalGrid(

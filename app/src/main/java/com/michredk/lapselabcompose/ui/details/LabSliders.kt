@@ -29,7 +29,7 @@ fun PeaceSlider(currentValue: Int, peaceOnValueChange: (Int) -> Unit) {
     val selectedValue = strValues[currentIndex]
 
     Column(
-        modifier = Modifier.padding(horizontal = 32.dp, vertical = 16.dp),
+        modifier = Modifier.padding(horizontal = 32.dp, vertical = 8.dp),
         horizontalAlignment = Alignment.Start
     ) {
         Text(text = "Video Peace", style = MaterialTheme.typography.titleMedium)
@@ -62,7 +62,7 @@ fun BitrateSlider(currentValue: Int, bitrateOnValueChange: (Int) -> Unit) {
     val selectedValue = values[currentIndex]
 
     Column(
-        modifier = Modifier.padding(horizontal = 32.dp, vertical = 16.dp),
+        modifier = Modifier.padding(horizontal = 32.dp, vertical = 8.dp),
         horizontalAlignment = Alignment.Start
     ) {
         Text(text = "Bitrate", style = MaterialTheme.typography.titleMedium)

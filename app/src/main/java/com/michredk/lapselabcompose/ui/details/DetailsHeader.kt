@@ -1,13 +1,14 @@
 package com.michredk.lapselabcompose.ui.details
 
+import android.util.Log
+import androidx.activity.compose.BackHandler
+import androidx.annotation.OptIn
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -32,19 +33,28 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.viewinterop.AndroidView
+import androidx.media3.common.MediaItem
+import androidx.media3.common.Player.REPEAT_MODE_ONE
+import androidx.media3.common.util.UnstableApi
+import androidx.media3.exoplayer.ExoPlayer
+import androidx.media3.ui.PlayerView
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.michredk.database.Album
+import com.michredk.lapselab.files.MediaManagerFactory
+import com.michredk.lapselabcompose.TAG
+import kotlin.coroutines.cancellation.CancellationException
 
 // TODO: Streak counter ( progress bar? )
 // TODO: Date of the next notification / planned photo
 
+@OptIn(UnstableApi::class)
 @Composable
 fun DetailsHeader(
     expanded: Boolean,
@@ -52,8 +62,42 @@ fun DetailsHeader(
     onAddPhotoClicked: () -> Unit,
     onEditVideoClicked: () -> Unit,
     onNotificationIconClicked: () -> Unit,
-    backgroundColor: Brush
+    backgroundColor: Brush,
+    popBackStack: () -> Unit
 ) {
+    val context = LocalContext.current
+    val exoPlayer = remember {
+        ExoPlayer.Builder(context).build().apply {
+            playWhenReady = true
+            repeatMode = REPEAT_MODE_ONE
+        }
+    }
+    val mediaManager = remember {
+        MediaManagerFactory(context)
+    }
+    var showVideo by remember { mutableStateOf(true) }
+    BackHandler {
+        showVideo = false
+        popBackStack()
+    }
+    var videoUriState by remember { mutableStateOf<String?>(null) }
+    LaunchedEffect(Unit) {
+        videoUriState = mediaManager.getLatestVideoFile(
+            album.directoryName
+        )?.absolutePath
+    }
+
+    val mediaSource = remember(videoUriState) {
+        val newUri = videoUriState
+        Log.d(TAG, "newUri: $newUri")
+        if (newUri != null) MediaItem.fromUri(newUri) else null
+    }
+    LaunchedEffect(mediaSource) {
+        val ms = mediaSource ?: throw CancellationException()
+        exoPlayer.setMediaItem(ms)
+        exoPlayer.prepare()
+    }
+
     val scale by animateFloatAsState(
         targetValue = if (expanded) 1f else 0f, animationSpec = tween(durationMillis = 1000),
         label = ""
@@ -68,9 +112,22 @@ fun DetailsHeader(
                 RoundedCornerShape(bottomEnd = 16.dp, bottomStart = 16.dp)
             ),
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.SpaceAround
+        verticalArrangement = Arrangement.SpaceBetween
     ) {
-        AlbumCoverPhoto(album.coverPhotoPath, scale)
+        if (mediaSource != null && showVideo) {
+            AndroidView(
+                factory = { ctx ->
+                    PlayerView(ctx).apply {
+                        useController = false
+                        player = exoPlayer
+                    }
+                },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(300.dp * scale)
+            )
+        }
+//        AlbumCoverPhoto(album.coverPhotoPath, scale)
         Text(
             modifier = Modifier
                 .alpha(scale)
