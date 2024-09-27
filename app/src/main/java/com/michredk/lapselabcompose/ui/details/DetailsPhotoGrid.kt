@@ -16,6 +16,8 @@ import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 
+// TODO: context menu photo removing option
+
 @Composable
 fun GridPhotoItem(photo: String, onPhotoClicked: () -> Unit) {
     Card(

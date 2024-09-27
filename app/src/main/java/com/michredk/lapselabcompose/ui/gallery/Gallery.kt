@@ -56,6 +56,7 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.util.lerp
@@ -64,6 +65,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
 import com.michredk.database.Album
 import com.michredk.lapselab.files.MediaManagerFactory
+import com.michredk.lapselabcompose.R
 import com.michredk.lapselabcompose.services.alarm.AlarmScheduler
 import com.michredk.lapselabcompose.ui.common.TipDialog
 import com.michredk.lapselabcompose.ui.details.DetailsDestination
@@ -238,7 +240,7 @@ private fun GalleryScreen(
             )
             Box {
                 IconButton(onClick = { isMenuVisible = true }) {
-                    Icon(imageVector = Icons.Default.Menu, contentDescription = "Menu")
+                    Icon(painter = painterResource(id = R.drawable.three_dots), contentDescription = "Menu")
                 }
                 DropdownMenu(
                     modifier = Modifier.background(color = MaterialTheme.colorScheme.secondaryContainer),
@@ -329,7 +331,7 @@ private fun PagerGallery(
         ) {
             Card(
                 modifier = Modifier
-                    .height((if(isCreateCard) 430.dp else 530.dp) * (1 - (pageOffset * 0.3f)))
+                    .height((if (isCreateCard) 430.dp else 530.dp) * (1 - (pageOffset * 0.3f)))
                     .onSizeChanged { itemHeight = with(density) { it.height.toDp() } }
                     .indication(interactionSource, LocalIndication.current)
                     .pointerInput(true) {
