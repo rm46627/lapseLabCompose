@@ -20,7 +20,7 @@ class SetupViewModel @Inject constructor(
 
     val albums: Flow<List<Album>> = repository.getAlbums()
     var albumName: String? = null
-    var notificationFrequency: String? = null
+    private var notificationFrequency: String? = null
 
     fun createNewAlbum(imagePath: String, alarmScheduler: AlarmScheduler) {
         viewModelScope.launch {
@@ -44,6 +44,7 @@ class SetupViewModel @Inject constructor(
 
     fun frequencyIsValid(value: String): Boolean {
         val isValid = FreqUtils.frequencyIsValid(value)
+        Log.d(TAG, "isValid $isValid")
         if (isValid){
             notificationFrequency = value
         }

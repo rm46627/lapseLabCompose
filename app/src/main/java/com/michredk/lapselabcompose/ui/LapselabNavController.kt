@@ -2,6 +2,8 @@ package com.michredk.lapselabcompose.ui
 
 import android.annotation.SuppressLint
 import android.util.Log
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.WindowInsets
@@ -11,8 +13,15 @@ import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.windowInsetsTopHeight
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.platform.LocalContext
+import androidx.media3.common.Player
+import androidx.media3.common.Player.REPEAT_MODE_ONE
+import androidx.media3.exoplayer.ExoPlayer
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
@@ -39,6 +48,7 @@ import com.michredk.lapselabcompose.ui.setup.SetupAlbumDestination
 import com.michredk.lapselabcompose.ui.setup.SetupAlbumRoute
 import com.michredk.lapselabcompose.ui.setup.SetupPhotoDestination
 import com.michredk.lapselabcompose.ui.setup.SetupPhotoRoute
+import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 
 @Serializable
@@ -89,7 +99,12 @@ class LapselabNavController(
             }
             setupGraph(navController, permissionsResultLaunch, permissionViewModel)
             cameraGraph(navController)
-            detailsGraph(navController, permissionsResultLaunch, permissionViewModel, showInterstitialAd)
+            detailsGraph(
+                navController,
+                permissionsResultLaunch,
+                permissionViewModel,
+                showInterstitialAd
+            )
             photosGraph(navController)
         }
     }
@@ -144,10 +159,11 @@ class LapselabNavController(
         navigation<DetailsGraph>(startDestination = DetailsDestination()) {
             composable<DetailsDestination> { backStackEntry ->
                 val args = backStackEntry.toRoute<DetailsDestination>()
+
                 DetailsRoute(
                     backStackEntry, navController, args.albumName,
                     permissionsResultLaunch,
-                    permissionViewModel,
+                    permissionViewModel
                 )
             }
             composable<LabDestination> { backStackEntry ->

@@ -3,9 +3,10 @@ package com.michredk.lapselabcompose.ui.details
 import android.util.Log
 import androidx.activity.compose.BackHandler
 import androidx.annotation.OptIn
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -27,6 +28,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
@@ -36,7 +38,6 @@ import androidx.compose.ui.viewinterop.AndroidView
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.media3.common.MediaItem
-import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
 import androidx.media3.common.Player.REPEAT_MODE_ONE
 import androidx.media3.common.util.UnstableApi
@@ -84,23 +85,43 @@ fun LabRoute(
     val photos by detailsViewModel.photos.collectAsStateWithLifecycle()
     val uiState by detailsViewModel.labUiState.collectAsStateWithLifecycle()
     val videoProperties by detailsViewModel.videoProperties.collectAsStateWithLifecycle()
-
     val context = LocalContext.current
+
     val exoPlayer = remember {
         ExoPlayer.Builder(context).build().apply {
-            playWhenReady = true
             repeatMode = REPEAT_MODE_ONE
         }
     }
+    val scope = rememberCoroutineScope()
+    val alpha = remember {
+        Animatable(initialValue = 0f)
+    }
+    LaunchedEffect(Unit) {
+        exoPlayer.addListener(object : Player.Listener {
+            override fun onRenderedFirstFrame() {
+                super.onRenderedFirstFrame()
+                scope.launch {
+                    alpha.animateTo(1f, animationSpec = tween(durationMillis = 1000))
+                }
+            }
+        })
+    }
+
     val mediaManager = remember {
         MediaManagerFactory(context)
     }
-    var showScreen by remember { mutableStateOf(true) }
     BackHandler {
-        showScreen = false
-        detailsViewModel.updateVideoProperties(LabUiState())
-        navController.popBackStack()
+        scope.launch {
+            alpha.animateTo(
+                0f, animationSpec = tween(
+                    durationMillis = 300
+                )
+            )
+            detailsViewModel.updateVideoProperties(LabUiState())
+            navController.popBackStack()
+        }
     }
+
     var videoUriState by remember { mutableStateOf<String?>(null) }
     LaunchedEffect(Unit) {
         videoUriState = mediaManager.getLatestVideoFile(
@@ -120,64 +141,70 @@ fun LabRoute(
         exoPlayer.prepare()
     }
 
-    val scope = rememberCoroutineScope()
-    var isLoading by remember { mutableStateOf(false) }
+    var isVideoInProgress by remember { mutableStateOf(false) }
+    LaunchedEffect(Unit) {
+        scope.launch {
+            alpha.animateTo(
+                1f, animationSpec = tween(
+                    durationMillis = 300
+                )
+            )
+        }
+    }
+    LabScreen(
+        alpha.value,
+        exoPlayer,
+        mediaSource,
+        onGenerateVideoBtnClicked = {
+            isVideoInProgress = true
+            showInterstitialAd()
+            scope.launch(Dispatchers.IO) {
+                try {
+                    val photosSafe = photos ?: throw NullPointerException()
+                    if (photosSafe.size < 2) throw IllegalArgumentException()
 
-    if (showScreen) {
-        LabScreen(
-            exoPlayer,
-            mediaSource,
-            onGenerateVideoBtnClicked = {
-                isLoading = true
-                showInterstitialAd()
-                scope.launch(Dispatchers.IO) {
-                    try {
-                        val photosSafe = photos ?: throw NullPointerException()
-                        if (photosSafe.size < 2) throw IllegalArgumentException()
+                    val lab = LapseCreator(context, album!!)
+                    val filename = lab.createVideo(
+                        photos = photosSafe,
+                        framesPerImage = uiState.framesPerImage,
+                        bitrate = uiState.bitrate
+                    )
+                    MediaManagerFactory(context).saveVideo(
+                        filename,
+                        "$appMoviesDir/${album!!.directoryName}"
+                    )
+                    detailsViewModel.updateAlbum(album ?: throw NullPointerException())
 
-                        val lab = LapseCreator(context, album!!)
-                        val filename = lab.createVideo(
-                            photos = photosSafe,
-                            framesPerImage = uiState.framesPerImage,
-                            bitrate = uiState.bitrate
-                        )
-                        MediaManagerFactory(context).saveVideo(
-                            filename,
-                            "$appMoviesDir/${album!!.directoryName}"
-                        )
-                        detailsViewModel.updateAlbum(album ?: throw NullPointerException())
-
-                        withContext(Dispatchers.Main) {
-                            navController.navigate(LabDestination(albumName)) {
-                                popUpTo(LabDestination(albumName)) {
-                                    inclusive = true
-                                }
+                    withContext(Dispatchers.Main) {
+                        navController.navigate(LabDestination(albumName)) {
+                            popUpTo(LabDestination(albumName)) {
+                                inclusive = true
                             }
                         }
-                    } catch (e: IllegalArgumentException) {
-                        SnackbarController.sendEvent(
-                            event = SnackbarEvent(
-                                message = "Need at least two pictures to generate video",
-                                duration = SnackbarDuration.Long
-                            )
-                        )
-                    } finally {
-                        isLoading = false
-                        detailsViewModel.updateVideoProperties(uiState.copy())
                     }
+                } catch (e: IllegalArgumentException) {
+                    SnackbarController.sendEvent(
+                        event = SnackbarEvent(
+                            message = "Need at least two pictures to generate video",
+                            duration = SnackbarDuration.Long
+                        )
+                    )
+                } finally {
+                    isVideoInProgress = false
+                    detailsViewModel.updateVideoProperties(uiState.copy())
                 }
-            },
-            isLoading = isLoading,
-            uiState = uiState,
-            videoProperties = videoProperties,
-            peaceOnValueChange = { selectedValue ->
-                detailsViewModel.updateLabUiState(uiState.copy(framesPerImage = selectedValue))
-            },
-            bitrateOnValueChange = { selectedValue ->
-                detailsViewModel.updateLabUiState(uiState.copy(bitrate = selectedValue))
             }
-        )
-    }
+        },
+        isLoading = isVideoInProgress,
+        uiState = uiState,
+        videoProperties = videoProperties,
+        peaceOnValueChange = { selectedValue ->
+            detailsViewModel.updateLabUiState(uiState.copy(framesPerImage = selectedValue))
+        },
+        bitrateOnValueChange = { selectedValue ->
+            detailsViewModel.updateLabUiState(uiState.copy(bitrate = selectedValue))
+        }
+    )
     DisposableEffect(Unit) {
         onDispose {
             exoPlayer.release()
@@ -188,6 +215,7 @@ fun LabRoute(
 @OptIn(UnstableApi::class)
 @Composable
 fun LabScreen(
+    alpha: Float,
     exoPlayer: ExoPlayer,
     mediaSource: MediaItem?,
     onGenerateVideoBtnClicked: () -> Unit,
@@ -201,6 +229,7 @@ fun LabScreen(
         Modifier
             .safeDrawingPadding()
             .fillMaxSize()
+            .alpha(alpha)
             .padding(top = 32.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
@@ -220,6 +249,7 @@ fun LabScreen(
                 },
                 modifier = Modifier
                     .fillMaxWidth()
+                    .alpha(alpha)
                     .height(400.dp) // Set your desired height
             )
         } else {

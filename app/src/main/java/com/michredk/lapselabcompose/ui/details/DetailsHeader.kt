@@ -42,6 +42,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.media3.common.MediaItem
+import androidx.media3.common.Player
 import androidx.media3.common.Player.REPEAT_MODE_ONE
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.ExoPlayer
@@ -49,6 +50,7 @@ import androidx.media3.ui.PlayerView
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.michredk.database.Album
+import com.michredk.files.MediaManagerInterface
 import com.michredk.lapselab.files.MediaManagerFactory
 import com.michredk.lapselabcompose.TAG
 import kotlinx.coroutines.delay
@@ -64,47 +66,14 @@ fun DetailsHeader(
     onEditVideoClicked: () -> Unit,
     onNotificationIconClicked: () -> Unit,
     backgroundColor: Brush,
-    popBackStack: () -> Unit,
-    showVideo: Boolean,
-    setShowVideo: (Boolean) -> Unit
+    exoPlayer: ExoPlayer,
+    showVideo : Boolean,
+    alpha : Float
 ) {
-    val context = LocalContext.current
-    val exoPlayer = remember {
-        ExoPlayer.Builder(context).build().apply {
-            playWhenReady = true
-            repeatMode = REPEAT_MODE_ONE
-        }
-    }
-
-    val mediaManager = remember {
-        MediaManagerFactory(context)
-    }
-    BackHandler {
-        popBackStack()
-    }
-    var videoUriState by remember { mutableStateOf<String?>(null) }
-    LaunchedEffect(Unit) {
-        videoUriState = mediaManager.getLatestVideoFile(
-            album.directoryName
-        )?.absolutePath
-    }
-
-    val mediaSource = remember(videoUriState) {
-        val newUri = videoUriState
-        Log.d(TAG, "newUri: $newUri")
-        if (newUri != null) MediaItem.fromUri(newUri) else null
-    }
-    LaunchedEffect(mediaSource) {
-        val ms = mediaSource ?: throw CancellationException()
-        exoPlayer.setMediaItem(ms)
-        exoPlayer.prepare()
-    }
-
     val scale by animateFloatAsState(
         targetValue = if (expanded) 1f else 0f, animationSpec = tween(durationMillis = 1000),
         label = ""
     )
-    val scope = rememberCoroutineScope()
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -116,18 +85,7 @@ fun DetailsHeader(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.SpaceBetween
     ) {
-        // TODO: show video properly
-//        val alpha = remember { Animatable(initialValue = 0f) }
-//        LaunchedEffect(key1 = mediaSource) {
-//            setShowVideo(true)
-//            delay(500)
-//            alpha.animateTo(
-//                1f, animationSpec = tween(
-//                    durationMillis = 1500
-//                )
-//            )
-//        }
-        if (mediaSource != null && showVideo) {
+        if (showVideo) {
             AndroidView(
                 factory = { ctx ->
                     PlayerView(ctx).apply {
@@ -137,7 +95,7 @@ fun DetailsHeader(
                 },
                 modifier = Modifier
                     .fillMaxWidth()
-//                    .alpha(alpha.value)
+                    .alpha(alpha)
                     .height(300.dp * scale)
             )
         }

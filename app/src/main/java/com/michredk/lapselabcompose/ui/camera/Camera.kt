@@ -115,11 +115,15 @@ fun CameraRoute(
     var photosTaken by remember {
         mutableIntStateOf(0)
     }
+    var captureBtnEnabled by remember {
+        mutableStateOf(true)
+    }
 
     CameraScreen(
         cameraController = cameraController,
         albumName = albumName ?: throw NullPointerException(),
         onTakePictureClicked = { shootSeries ->
+            captureBtnEnabled = false
             cameraController.takePicture(ContextCompat.getMainExecutor(context),
                 object : ImageCapture.OnImageCapturedCallback() {
                     override fun onCaptureSuccess(image: ImageProxy) {
@@ -131,6 +135,7 @@ fun CameraRoute(
                                 bitmap = finalBitmap, subfolder = "$appPicturesDir/${albumName}"
                             )
                         }
+                        captureBtnEnabled = true
                         if (shootSeries) {
                             photosTaken++
                         } else {
@@ -156,7 +161,8 @@ fun CameraRoute(
         updateGhostBtnTipValue = {
             cameraViewModel.updateGhostBtnTipValue(true)
         },
-        navigatedFromAlbumDetails = navigatedFromAlbumDetails
+        navigatedFromAlbumDetails = navigatedFromAlbumDetails,
+        captureBtnEnabled = captureBtnEnabled
     )
 }
 
@@ -170,7 +176,8 @@ fun CameraScreen(
     ghostBitmap: Bitmap?,
     isGhostBtnTipCompleted: Boolean,
     updateGhostBtnTipValue: () -> Unit,
-    navigatedFromAlbumDetails: Boolean
+    navigatedFromAlbumDetails: Boolean,
+    captureBtnEnabled: Boolean
 ) {
     val context = LocalContext.current
     var ghostPath by remember { mutableStateOf<String?>(null) }
@@ -190,7 +197,7 @@ fun CameraScreen(
         showFlash = false
     }
     val modeButtonsEnabled = ghostPath != null || ghostBitmap != null
-    if (modeButtonsEnabled && navigatedFromAlbumDetails){
+    if (modeButtonsEnabled && navigatedFromAlbumDetails) {
         TipDialog(
             title = "View ghost of previous photo",
             text = "Lorem ipsum tip",
@@ -219,7 +226,8 @@ fun CameraScreen(
                     .background(Color.White)
             )
         }
-        CameraButtons(30.dp,
+        CameraButtons(
+            30.dp,
             40.dp,
             btnBackgroundColor = MaterialTheme.colorScheme.primaryContainer,
             pressedCaptureBackgroundColor = MaterialTheme.colorScheme.primary,
@@ -228,7 +236,9 @@ fun CameraScreen(
             modeButtonsEnabled = modeButtonsEnabled,
             onGhostImageClicked = {
                 showGhost = !showGhost
-            })
+            },
+            captureBtnEnabled = captureBtnEnabled
+        )
     }
 }
 
@@ -252,7 +262,8 @@ private fun BoxScope.CameraButtons(
     onChangeCameraClicked: () -> Unit,
     onTakePictureClicked: (Boolean) -> Unit,
     modeButtonsEnabled: Boolean,
-    onGhostImageClicked: () -> Unit
+    onGhostImageClicked: () -> Unit,
+    captureBtnEnabled: Boolean
 ) {
     var shootSeries by remember {
         mutableStateOf(false)
@@ -338,7 +349,8 @@ private fun BoxScope.CameraButtons(
                     .background(finalBackgroundColor, shape = CircleShape),
                 iconModifier = Modifier.size(iconSize + 10.dp),
                 onTakePictureClicked = onTakePictureClicked,
-                shootSeries = shootSeries
+                shootSeries = shootSeries,
+                captureBtnEnabled = captureBtnEnabled
             )
         }
 
@@ -357,13 +369,14 @@ private fun BoxScope.CameraButtons(
                         )
                     )
             )
-            IconButton(modifier = Modifier
-                .size(btnSize)
-                .background(
-                    if (modeButtonsEnabled) btnBackgroundColor else btnBackgroundColor.copy(
-                        alpha = 0.5f
-                    ), shape = CircleShape
-                ),
+            IconButton(
+                modifier = Modifier
+                    .size(btnSize)
+                    .background(
+                        if (modeButtonsEnabled) btnBackgroundColor else btnBackgroundColor.copy(
+                            alpha = 0.5f
+                        ), shape = CircleShape
+                    ),
                 onClick = {
                     shootSeries = !shootSeries
                     modeIcon = if (shootSeries) R.drawable.bursts_mode else R.drawable.image_mode
@@ -386,11 +399,16 @@ private fun CaptureButton(
     iconModifier: Modifier,
     onTakePictureClicked: (Boolean) -> Unit,
     interactionSource: MutableInteractionSource,
-    shootSeries: Boolean
+    shootSeries: Boolean,
+    captureBtnEnabled: Boolean
 ) {
-    IconButton(interactionSource = interactionSource, modifier = btnModifier, onClick = {
-        onTakePictureClicked(shootSeries)
-    }) {
+    IconButton(
+        enabled = captureBtnEnabled,
+        interactionSource = interactionSource,
+        modifier = btnModifier,
+        onClick = {
+            onTakePictureClicked(shootSeries)
+        }) {
         Icon(
             imageVector = Icons.Default.PhotoCamera,
             contentDescription = "Take photo",
@@ -457,7 +475,8 @@ fun previewButtons() {
                 modeButtonsEnabled = true,
                 onGhostImageClicked = {
 
-                })
+                },
+                true)
         }
 
 

@@ -1,13 +1,22 @@
 package com.michredk.lapselabcompose.ui.details
 
+import android.content.Context
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.tween
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.media3.common.Player
+import androidx.media3.common.Player.REPEAT_MODE_ONE
+import androidx.media3.exoplayer.ExoPlayer
 import com.michredk.database.Album
 import com.michredk.database.DataStoreRepository
 import com.michredk.database.Repository
 import com.michredk.lapselabcompose.services.alarm.AlarmScheduler
 import com.michredk.lapselabcompose.ui.common.FreqUtils
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -22,7 +31,7 @@ import java.time.LocalTime
 import javax.inject.Inject
 
 @HiltViewModel
-class DetailsViewModel @Inject constructor(private val repository: Repository, private val dataStore: DataStoreRepository) : ViewModel() {
+class DetailsViewModel @Inject constructor(@ApplicationContext private val applicationContext: Context, private val repository: Repository, private val dataStore: DataStoreRepository) : ViewModel() {
     private val _albumName = MutableStateFlow<String?>(null)
     val albumName: StateFlow<String?> = _albumName.asStateFlow()
 
@@ -35,6 +44,11 @@ class DetailsViewModel @Inject constructor(private val repository: Repository, p
     private val _videoProperties = MutableStateFlow(LabUiState())
     val videoProperties: StateFlow<LabUiState> = _videoProperties.asStateFlow()
 
+    private val exoPlayer: ExoPlayer = ExoPlayer.Builder(applicationContext).build().apply {
+            playWhenReady = true
+            repeatMode = REPEAT_MODE_ONE
+        }
+
     @OptIn(ExperimentalCoroutinesApi::class)
     private val _album = _albumName.flatMapLatest { albumName ->
         if (albumName != null) {
@@ -44,19 +58,6 @@ class DetailsViewModel @Inject constructor(private val repository: Repository, p
         }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
     val album = _album
-
-//    init {
-//        viewModelScope.launch {
-//            dataStore.resetAllTips()
-//            _album.collect { album ->
-//                album?.let {
-//                    _labUiState.value = LabUiState(
-//                        framesPerImage = 5, bitrate = 2000000
-//                    )
-//                }
-//            }
-//        }
-//    }
 
     fun setAlbumName(name: String) {
         _albumName.value = name
@@ -95,6 +96,10 @@ class DetailsViewModel @Inject constructor(private val repository: Repository, p
 
     fun updateVideoProperties(newState: LabUiState) {
         _videoProperties.value = newState
+    }
+
+    override fun onCleared() {
+        super.onCleared()
     }
 
 }

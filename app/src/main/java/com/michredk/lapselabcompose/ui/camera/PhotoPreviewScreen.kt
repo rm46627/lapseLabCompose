@@ -85,7 +85,7 @@ fun PhotoPreviewRoute(
                     popUpToDest = DetailsGraph
                 } else {
                     navFromDest = SetupPhotoDestination(viewModel.albumName)
-                    popUpToDest = SetupGraph
+                    popUpToDest = CameraGraph
                 }
                 navController.navigate(navFromDest) {
                     popUpTo(popUpToDest) {

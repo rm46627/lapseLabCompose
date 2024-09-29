@@ -83,7 +83,7 @@ fun SetupPhotoRoute(
                 if (granted) {
                     navController.navigate(CameraDestination(albumName)) {
                         popUpTo(SetupPhotoDestination()) {
-                            inclusive = false
+                            inclusive = true
                         }
                     }
                 } else {

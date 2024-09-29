@@ -273,8 +273,6 @@ class PermissionViewModel @Inject constructor() : ViewModel() {
             Manifest.permission.POST_NOTIFICATIONS
         )
 
-//    lateinit var notificationsPermissionToRequest: Array<String>
-
     private val permissionsMap = mutableMapOf(
         Pair(Manifest.permission.CAMERA, false),
         Pair(Manifest.permission.POST_NOTIFICATIONS, false)

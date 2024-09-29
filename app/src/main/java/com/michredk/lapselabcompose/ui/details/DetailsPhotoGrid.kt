@@ -10,6 +10,7 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ShapeDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
@@ -19,9 +20,9 @@ import coil.request.ImageRequest
 // TODO: context menu photo removing option
 
 @Composable
-fun GridPhotoItem(photo: String, onPhotoClicked: () -> Unit) {
+fun GridPhotoItem(photo: String,alpha: Float, onPhotoClicked: () -> Unit) {
     Card(
-        modifier = Modifier.wrapContentSize().padding(8.dp),
+        modifier = Modifier.wrapContentSize().alpha(alpha).padding(8.dp),
         elevation = CardDefaults.cardElevation(
             defaultElevation = 4.dp
         ),
@@ -36,10 +37,6 @@ fun GridPhotoItem(photo: String, onPhotoClicked: () -> Unit) {
                 .data(photo)
                 .crossfade(1000)
                 .transformations(
-//                    CircleCropTransformation()
-//                    RoundedCornersTransformation(50f),
-//                    CustomTransformation(),
-//                    BlurTransformation(LocalContext.current)
                 )
 //                .crossfade(true)
                 .build(),
