@@ -128,7 +128,8 @@ fun CameraRoute(
                 object : ImageCapture.OnImageCapturedCallback() {
                     override fun onCaptureSuccess(image: ImageProxy) {
                         super.onCaptureSuccess(image)
-                        val finalBitmap = scaleCropRotateBitmap(image)
+                        val finalBitmap = scaleCropRotateBitmap(image, cameraController.cameraSelector == CameraSelector.DEFAULT_FRONT_CAMERA)
+                        image.close()
                         cameraViewModel.bitmap = finalBitmap
                         scope.launch {
                             mediaManager.saveBitmap(
@@ -142,7 +143,6 @@ fun CameraRoute(
                             navController.navigate(PhotoPreviewDestination(navigatedFromAlbumDetails))
                         }
                     }
-
                     override fun onError(exception: ImageCaptureException) {
                         super.onError(exception)
                         Log.e(TAG, "HERE !!!!!!!! Couldn't take photo: ", exception)
@@ -418,15 +418,16 @@ private fun CaptureButton(
 }
 
 fun scaleCropRotateBitmap(
-    image: ImageProxy
+    image: ImageProxy,
+    mirrorImage: Boolean
 ): Bitmap {
     val bitmap = image.toBitmap()
     Log.d(TAG, "Original height: ${bitmap.height} width: ${bitmap.width}")
 
     val matrix = Matrix().apply {
+        if(mirrorImage) preScale(1f, -1f);
         postRotate(image.imageInfo.rotationDegrees.toFloat())
     }
-
     val targetRatio = 4000f / 2024f
 
     // Calculate the target dimensions, ensuring the aspect ratio is maintained and no scaling/stretching occurs
