@@ -102,5 +102,6 @@ class DetailsViewModel @Inject constructor(@ApplicationContext private val appli
 
 data class LabUiState(
     val framesPerImage: Int = 0,
-    val bitrate: Int = 0
+    val bitrate: Int = 0,
+    val rotation: Float = 0f
 )

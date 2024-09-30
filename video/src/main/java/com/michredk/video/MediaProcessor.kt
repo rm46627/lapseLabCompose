@@ -37,7 +37,7 @@ class MediaProcessor(private val context: Context, private val file: File) {
 
     @OptIn(androidx.media3.common.util.UnstableApi::class)
     fun encodeMp4(
-        imageList: List<File>, width: Int, height: Int, effects: List<Effect> = listOf()
+        imageList: List<File>, width: Int, height: Int, effects: List<Effect>
     ): EncodingResult {
         val videoEncoder: VideoEncoder?
         try {
@@ -89,8 +89,7 @@ class MediaProcessor(private val context: Context, private val file: File) {
                     /* audioProcessors= */
                     listOf(),
                     /* videoEffects= */
-                    effects + ScaleAndRotateTransformation.Builder().setRotationDegrees(-90f)
-                        .build()
+                    effects
                 )
             ).build()
         val composition = Composition.Builder(EditedMediaItemSequence(editedMediaItem)).build()

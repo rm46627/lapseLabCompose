@@ -5,6 +5,9 @@ import android.graphics.BitmapFactory
 import android.media.MediaFormat
 import android.os.Environment
 import android.util.Log
+import androidx.annotation.OptIn
+import androidx.media3.common.util.UnstableApi
+import androidx.media3.effect.ScaleAndRotateTransformation
 import com.michredk.database.Album
 import java.io.File
 import java.text.SimpleDateFormat
@@ -16,7 +19,8 @@ const val APP_MOVIE_PATH = "Movies/LapseLab"
 
 class LapseCreator(private val context: Context, private val album: Album) {
 
-    suspend fun createVideo(photos: List<File>, framesPerImage: Int, bitrate: Int): String {
+    @OptIn(UnstableApi::class)
+    suspend fun createVideo(photos: List<File>, framesPerImage: Int, bitrate: Int, rotation: Float): String {
         val date =
             SimpleDateFormat(FILES_NAME_DATE_FORMAT, Locale.US).format(System.currentTimeMillis())
         val name = "${album.directoryName}-${photos.size}images-$date"
@@ -26,7 +30,6 @@ class LapseCreator(private val context: Context, private val album: Album) {
         val videoFile = File(folder, "$name.mp4")
         Log.d(TAG, "creating videofile, ${videoFile.name}")
 
-        // TODO : Dont rotate if images are horizontal
         // NEED TO ROTATE IMAGES FOR ENCODING height = width, width = height
         // from portrait to horizontal
         var (width, height) = getImageDimensions(photos[0])
@@ -48,7 +51,10 @@ class LapseCreator(private val context: Context, private val album: Album) {
 
         var i = 0
         while (true) {
-            when (val result = mediaProcessor.encodeMp4(photos, width, height, listOf())) {
+            when (val result = mediaProcessor.encodeMp4(photos, width, height,
+                effects = listOf(ScaleAndRotateTransformation.Builder().setRotationDegrees(-90f + rotation)
+                    .build())
+            )) {
                 is EncodingError -> {
                     Log.d(TAG, result.message)
                 }

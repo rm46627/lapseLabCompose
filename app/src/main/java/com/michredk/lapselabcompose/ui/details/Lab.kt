@@ -9,19 +9,29 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
+import androidx.compose.foundation.layout.size
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Image
+import androidx.compose.material.icons.filled.Rotate90DegreesCcw
+import androidx.compose.material.icons.filled.Rotate90DegreesCw
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -29,6 +39,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
@@ -168,7 +179,8 @@ fun LabRoute(
                     val filename = lab.createVideo(
                         photos = photosSafe,
                         framesPerImage = uiState.framesPerImage,
-                        bitrate = uiState.bitrate
+                        bitrate = uiState.bitrate,
+                        rotation = uiState.rotation
                     )
                     MediaManagerFactory(context).saveVideo(
                         filename,
@@ -204,6 +216,10 @@ fun LabRoute(
         },
         bitrateOnValueChange = { selectedValue ->
             detailsViewModel.updateLabUiState(uiState.copy(bitrate = selectedValue))
+        },
+        rotationOnValueChange = { selectedValue ->
+            detailsViewModel.updateLabUiState(uiState.copy(rotation = selectedValue))
+
         }
     )
     DisposableEffect(Unit) {
@@ -224,7 +240,8 @@ fun LabScreen(
     uiState: LabUiState,
     videoProperties: LabUiState,
     peaceOnValueChange: (Int) -> Unit,
-    bitrateOnValueChange: (Int) -> Unit
+    bitrateOnValueChange: (Int) -> Unit,
+    rotationOnValueChange: (Float) -> Unit
 ) {
     Column(
         Modifier
@@ -274,7 +291,7 @@ fun LabScreen(
         }
         PeaceSlider(uiState.framesPerImage, peaceOnValueChange = peaceOnValueChange)
         BitrateSlider(uiState.bitrate, bitrateOnValueChange = bitrateOnValueChange)
-
+        RotationSelector(uiState.rotation, rotationOnValueChange = rotationOnValueChange)
     }
     if (isLoading) {
         Box(
@@ -289,5 +306,65 @@ fun LabScreen(
                     .padding(64.dp)
             )
         }
+    }
+}
+
+@Composable
+fun RotationSelector(rotation: Float, rotationOnValueChange: (Float) -> Unit) {
+    val rotationAnim = remember {
+        Animatable(initialValue = rotation)
+    }
+    var rotationValue by remember {
+        mutableFloatStateOf(rotation)
+    }
+    val scope = rememberCoroutineScope()
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 32.dp, vertical = 8.dp),
+        horizontalAlignment = Alignment.Start
+    ) {
+        Text(text = "Rotation", style = MaterialTheme.typography.titleMedium)
+        Row {
+            IconButton(onClick = {
+                rotationValue = if(rotationValue + 90f == 360f) 0f else rotationValue + 90f
+                scope.launch{
+                    rotationAnim.animateTo(targetValue = rotationValue, animationSpec = tween(
+                        durationMillis = 600
+                    ))
+                }
+                rotationOnValueChange(rotationValue)
+            }) {
+                Icon(
+                    modifier = Modifier.size(35.dp),
+                    imageVector = Icons.Default.Rotate90DegreesCw,
+                    contentDescription = "Rotate video left"
+                )
+            }
+
+            Icon(
+                modifier = Modifier
+                    .size(50.dp)
+                    .rotate(rotationAnim.value),
+                imageVector = Icons.Default.Image,
+                contentDescription = "Rotation preview"
+            )
+            IconButton(onClick = {
+                rotationValue = if(rotationValue - 90f == -90f) 270f else rotationValue - 90f
+                scope.launch{
+                    rotationAnim.animateTo(targetValue = rotationValue, animationSpec = tween(
+                        durationMillis = 600
+                    ))
+                }
+                rotationOnValueChange(rotationValue)
+            }) {
+                Icon(
+                    modifier = Modifier.size(35.dp),
+                    imageVector = Icons.Default.Rotate90DegreesCcw,
+                    contentDescription = "Rotate video right"
+                )
+            }
+        }
+        Text(text = "${rotationAnim.value.toInt()}\u00B0", style = MaterialTheme.typography.titleSmall)
     }
 }
