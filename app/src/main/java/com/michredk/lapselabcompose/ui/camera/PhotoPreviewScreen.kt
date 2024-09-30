@@ -109,7 +109,7 @@ fun PhotoPreviewScreen(
     ) {
         Image(
             bitmap = bitmap.asImageBitmap(),
-            contentScale = ContentScale.Crop,
+            contentScale = ContentScale.FillWidth ,
             contentDescription = null,
             modifier = Modifier
                 .fillMaxSize()

@@ -90,6 +90,7 @@ fun LabRoute(
     val exoPlayer = remember {
         ExoPlayer.Builder(context).build().apply {
             repeatMode = REPEAT_MODE_ONE
+            playWhenReady = true
         }
     }
     val scope = rememberCoroutineScope()
@@ -101,7 +102,7 @@ fun LabRoute(
             override fun onRenderedFirstFrame() {
                 super.onRenderedFirstFrame()
                 scope.launch {
-                    alpha.animateTo(1f, animationSpec = tween(durationMillis = 1000))
+                    alpha.animateTo(1f, animationSpec = tween(durationMillis = 500))
                 }
             }
         })

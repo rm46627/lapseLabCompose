@@ -44,10 +44,10 @@ class DetailsViewModel @Inject constructor(@ApplicationContext private val appli
     private val _videoProperties = MutableStateFlow(LabUiState())
     val videoProperties: StateFlow<LabUiState> = _videoProperties.asStateFlow()
 
-    private val exoPlayer: ExoPlayer = ExoPlayer.Builder(applicationContext).build().apply {
-            playWhenReady = true
-            repeatMode = REPEAT_MODE_ONE
-        }
+//    private val exoPlayer: ExoPlayer = ExoPlayer.Builder(applicationContext).build().apply {
+//            playWhenReady = true
+//            repeatMode = REPEAT_MODE_ONE
+//        }
 
     @OptIn(ExperimentalCoroutinesApi::class)
     private val _album = _albumName.flatMapLatest { albumName ->
@@ -96,10 +96,6 @@ class DetailsViewModel @Inject constructor(@ApplicationContext private val appli
 
     fun updateVideoProperties(newState: LabUiState) {
         _videoProperties.value = newState
-    }
-
-    override fun onCleared() {
-        super.onCleared()
     }
 
 }

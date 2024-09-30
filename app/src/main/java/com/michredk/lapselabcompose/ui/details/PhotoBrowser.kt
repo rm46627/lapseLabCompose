@@ -1,5 +1,6 @@
 package com.michredk.lapselabcompose.ui.details
 
+import android.graphics.BitmapFactory
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -162,7 +163,12 @@ fun PhotoBrowserScreen(
             Modifier
                 .align(Alignment.TopEnd)
                 .safeDrawingPadding()) {
-            IconButton(onClick = { isMenuVisible = true }, modifier = Modifier.padding(4.dp).background(color = MaterialTheme.colorScheme.primaryContainer, shape = RoundedCornerShape(30)), ) {
+            IconButton(onClick = { isMenuVisible = true }, modifier = Modifier
+                .padding(4.dp)
+                .background(
+                    color = MaterialTheme.colorScheme.primaryContainer,
+                    shape = RoundedCornerShape(30)
+                ), ) {
                 Icon(
                     modifier = Modifier.size(20.dp),
                     painter = painterResource(id = R.drawable.three_dots),
@@ -245,22 +251,22 @@ private fun BoxScope.PrevNextButtons(
         {}
     }
 }
-
-@Preview
-@Composable
-private fun preview() {
-    LapseLabComposeTheme {
-        PhotoBrowserScreen(
-            onNextButtonClicked = { /*TODO*/ },
-            onPreviousButtonClicked = { /*TODO*/ },
-            onDeleteButtonClicked = { /*TODO*/ },
-            photoPath = "",
-            date = "27.09.2024 12:00",
-            index = 1,
-            isLastPhoto = false
-        )
-    }
-}
+//
+//@Preview
+//@Composable
+//private fun preview() {
+//    LapseLabComposeTheme {
+//        PhotoBrowserScreen(
+//            onNextButtonClicked = { /*TODO*/ },
+//            onPreviousButtonClicked = { /*TODO*/ },
+//            onDeleteButtonClicked = { /*TODO*/ },
+//            photoPath = "",
+//            date = "27.09.2024 12:00",
+//            index = 1,
+//            isLastPhoto = false
+//        )
+//    }
+//}
 
 @Preview
 @Composable

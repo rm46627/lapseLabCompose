@@ -7,6 +7,7 @@ import androidx.camera.core.CameraSelector
 import androidx.camera.core.ImageCapture
 import androidx.camera.core.ImageCaptureException
 import androidx.camera.core.ImageProxy
+import androidx.camera.core.UseCase
 import androidx.camera.view.CameraController
 import androidx.camera.view.LifecycleCameraController
 import androidx.compose.animation.core.animateFloatAsState
@@ -110,6 +111,7 @@ fun CameraRoute(
     val cameraController = remember {
         LifecycleCameraController(context).apply {
             setEnabledUseCases(CameraController.IMAGE_CAPTURE)
+
         }
     }
     var photosTaken by remember {
@@ -422,11 +424,11 @@ fun scaleCropRotateBitmap(
     mirrorImage: Boolean
 ): Bitmap {
     val bitmap = image.toBitmap()
-    Log.d(TAG, "Original height: ${bitmap.height} width: ${bitmap.width}")
+    val isPhotoVertical = image.imageInfo.rotationDegrees.toFloat() == 90f || image.imageInfo.rotationDegrees.toFloat() == 270f
 
     val matrix = Matrix().apply {
         if(mirrorImage) preScale(1f, -1f);
-        postRotate(image.imageInfo.rotationDegrees.toFloat())
+        if(isPhotoVertical) postRotate(image.imageInfo.rotationDegrees.toFloat()) else postRotate(image.imageInfo.rotationDegrees.toFloat() + 90f)
     }
     val targetRatio = 4000f / 2024f
 
