@@ -347,7 +347,7 @@ private fun BoxScope.CameraButtons(
             CaptureButton(
                 interactionSource = interactionSource,
                 btnModifier = Modifier
-                    .size(btnSize + 15.dp)
+                    .size(btnSize + 30.dp)
                     .background(finalBackgroundColor, shape = CircleShape),
                 iconModifier = Modifier.size(iconSize + 10.dp),
                 onTakePictureClicked = onTakePictureClicked,

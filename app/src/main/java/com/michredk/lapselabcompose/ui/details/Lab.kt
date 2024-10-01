@@ -1,21 +1,30 @@
 package com.michredk.lapselabcompose.ui.details
 
 import android.util.Log
+import android.widget.ProgressBar
 import androidx.activity.compose.BackHandler
 import androidx.annotation.OptIn
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeContentPadding
+import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBars
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.windowInsetsPadding
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Image
 import androidx.compose.material.icons.filled.Rotate90DegreesCcw
@@ -24,7 +33,9 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ShapeDefaults
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -32,6 +43,7 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -44,14 +56,19 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.media3.common.MediaItem
+import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
 import androidx.media3.common.Player.REPEAT_MODE_ONE
 import androidx.media3.common.util.UnstableApi
+import androidx.media3.datasource.FileDataSource.FileDataSourceException
+import androidx.media3.datasource.HttpDataSource
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.ui.PlayerView
 import androidx.media3.ui.PlayerView.SHOW_BUFFERING_ALWAYS
@@ -67,10 +84,12 @@ import com.michredk.lapselabcompose.ui.DetailsGraph
 import com.michredk.video.LapseCreator
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.Serializable
 import java.lang.NullPointerException
+import kotlin.math.abs
 
 // TODO: make screen animate alpha to 0f in BackHandler and on generate video btn click with showScreen
 // TODO: add bitmap overlay with lapseLab logo
@@ -108,6 +127,7 @@ fun LabRoute(
     val alpha = remember {
         Animatable(initialValue = 0f)
     }
+    var isVideoInProgress by remember { mutableStateOf(false) }
     LaunchedEffect(Unit) {
         exoPlayer.addListener(object : Player.Listener {
             override fun onRenderedFirstFrame() {
@@ -116,6 +136,28 @@ fun LabRoute(
                     alpha.animateTo(1f, animationSpec = tween(durationMillis = 500))
                 }
             }
+
+//            override fun onPlayerError(error: PlaybackException) {
+//                val cause = error.cause
+//                Log.d(TAG, "cause: $cause")
+//                if (cause is FileDataSourceException) {
+//                    isVideoInProgress = true
+//                    scope.launch {
+//                        delay(5000 * album!!.photoCount.toLong() / 13)
+//                        if (exoPlayer.isPlaying) {
+//                            isVideoInProgress = false
+//                        } else {
+//                            withContext(Dispatchers.Main) {
+//                                navController.navigate(LabDestination(albumName)) {
+//                                    popUpTo(LabDestination(albumName)) {
+//                                        inclusive = true
+//                                    }
+//                                }
+//                            }
+//                        }
+//                    }
+//                }
+//            }
         })
     }
 
@@ -153,7 +195,6 @@ fun LabRoute(
         exoPlayer.prepare()
     }
 
-    var isVideoInProgress by remember { mutableStateOf(false) }
     LaunchedEffect(Unit) {
         scope.launch {
             alpha.animateTo(
@@ -162,6 +203,12 @@ fun LabRoute(
                 )
             )
         }
+    }
+    var encodingProgressCurrent by remember {
+        mutableIntStateOf(0)
+    }
+    var encodingProgressEnd by remember {
+        mutableIntStateOf(0)
     }
     LabScreen(
         alpha.value,
@@ -180,9 +227,13 @@ fun LabRoute(
                         photos = photosSafe,
                         framesPerImage = uiState.framesPerImage,
                         bitrate = uiState.bitrate,
-                        rotation = uiState.rotation
+                        rotation = uiState.rotation,
+                        encodingProgress = { current, end ->
+                            encodingProgressCurrent = current
+                            encodingProgressEnd = end
+                        }
                     )
-                    MediaManagerFactory(context).saveVideo(
+                    mediaManager.saveVideo(
                         filename,
                         "$appMoviesDir/${album!!.directoryName}"
                     )
@@ -204,11 +255,14 @@ fun LabRoute(
                     )
                 } finally {
                     isVideoInProgress = false
+                    encodingProgressEnd = 0
                     detailsViewModel.updateVideoProperties(uiState.copy())
                 }
             }
         },
         isLoading = isVideoInProgress,
+        encodingProgressEnd = encodingProgressEnd,
+        encodingProgressCurrent = encodingProgressCurrent,
         uiState = uiState,
         videoProperties = videoProperties,
         peaceOnValueChange = { selectedValue ->
@@ -237,6 +291,8 @@ fun LabScreen(
     mediaSource: MediaItem?,
     onGenerateVideoBtnClicked: () -> Unit,
     isLoading: Boolean,
+    encodingProgressEnd: Int,
+    encodingProgressCurrent: Int,
     uiState: LabUiState,
     videoProperties: LabUiState,
     peaceOnValueChange: (Int) -> Unit,
@@ -248,7 +304,7 @@ fun LabScreen(
             .safeDrawingPadding()
             .fillMaxSize()
             .alpha(alpha)
-            .padding(top = 32.dp),
+            .safeContentPadding(),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         if (mediaSource != null) {
@@ -268,16 +324,15 @@ fun LabScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .alpha(alpha)
-                    .height(400.dp) // Set your desired height
+                    .height(300.dp) // Set your desired height
             )
         } else {
-            // TODO: alpha float animation for image appearing
             Image(
                 painter = painterResource(id = R.drawable.camera_shutter),
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(400.dp)
-                    .padding(8.dp),
+                    .height(350.dp)
+                    .padding(horizontal = 8.dp),
                 contentDescription = "Video placeholder",
                 contentScale = ContentScale.Crop,
             )
@@ -299,41 +354,69 @@ fun LabScreen(
                 .background(color = Color.White.copy(alpha = 0.5f))
                 .fillMaxSize()
         ) {
-            CircularProgressIndicator(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(200.dp)
-                    .padding(64.dp)
-            )
+            if (encodingProgressEnd != 0) {
+                Column(Modifier.fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.SpaceEvenly) {
+                    CircularProgressIndicator(modifier = Modifier
+                        .fillMaxWidth()
+                        .height(200.dp)
+                        .padding(64.dp),
+                        progress = { encodingProgressCurrent.toFloat() / encodingProgressEnd.toFloat() })
+                    Text(
+                        modifier = Modifier.background(color = MaterialTheme.colorScheme.primaryContainer, shape = RoundedCornerShape(10.dp)).padding(8.dp).width(200.dp),
+                        text = "Please don't leave the app until the video finishes generating.",
+                        style = TextStyle(
+                            fontSize = MaterialTheme.typography.titleLarge.fontSize,
+                            textAlign = TextAlign.Center
+                        )
+                    )
+                }
+
+            } else {
+                CircularProgressIndicator(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(200.dp)
+                        .padding(64.dp)
+                )
+            }
         }
     }
 }
 
 @Composable
 fun RotationSelector(rotation: Float, rotationOnValueChange: (Float) -> Unit) {
+    val rotationValues = remember {
+        listOf(0f, 90f, 180f, 270f)
+    }
     val rotationAnim = remember {
         Animatable(initialValue = rotation)
     }
-    var rotationValue by remember {
-        mutableFloatStateOf(rotation)
+    var currentRotation by remember {
+        mutableIntStateOf(rotationValues.indexOf(rotation))
     }
     val scope = rememberCoroutineScope()
     Column(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 32.dp, vertical = 8.dp),
-        horizontalAlignment = Alignment.Start
+        horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Text(text = "Rotation", style = MaterialTheme.typography.titleMedium)
+        Text(
+            text = "Rotation",
+            style = MaterialTheme.typography.titleMedium,
+            textAlign = TextAlign.Center
+        )
         Row {
             IconButton(onClick = {
-                rotationValue = if(rotationValue + 90f == 360f) 0f else rotationValue + 90f
-                scope.launch{
-                    rotationAnim.animateTo(targetValue = rotationValue, animationSpec = tween(
-                        durationMillis = 600
-                    ))
+                currentRotation = ((currentRotation - 1) % 4 + 4) % 4
+                scope.launch {
+                    rotationAnim.animateTo(
+                        targetValue = -rotationValues[currentRotation], animationSpec = tween(
+                            durationMillis = 600
+                        )
+                    )
                 }
-                rotationOnValueChange(rotationValue)
+                rotationOnValueChange(rotationValues[currentRotation])
             }) {
                 Icon(
                     modifier = Modifier.size(35.dp),
@@ -350,13 +433,15 @@ fun RotationSelector(rotation: Float, rotationOnValueChange: (Float) -> Unit) {
                 contentDescription = "Rotation preview"
             )
             IconButton(onClick = {
-                rotationValue = if(rotationValue - 90f == -90f) 270f else rotationValue - 90f
-                scope.launch{
-                    rotationAnim.animateTo(targetValue = rotationValue, animationSpec = tween(
-                        durationMillis = 600
-                    ))
+                currentRotation = ((currentRotation + 1) % 4 + 4) % 4
+                scope.launch {
+                    rotationAnim.animateTo(
+                        targetValue = -rotationValues[currentRotation], animationSpec = tween(
+                            durationMillis = 600
+                        )
+                    )
                 }
-                rotationOnValueChange(rotationValue)
+                rotationOnValueChange(rotationValues[currentRotation])
             }) {
                 Icon(
                     modifier = Modifier.size(35.dp),
@@ -365,6 +450,10 @@ fun RotationSelector(rotation: Float, rotationOnValueChange: (Float) -> Unit) {
                 )
             }
         }
-        Text(text = "${rotationAnim.value.toInt()}\u00B0", style = MaterialTheme.typography.titleSmall)
+        Text(
+            text = "${rotationValues[currentRotation]}\u00B0",
+            style = MaterialTheme.typography.titleSmall,
+            textAlign = TextAlign.Center
+        )
     }
 }

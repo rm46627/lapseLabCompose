@@ -33,7 +33,6 @@ fun PeaceSlider(currentValue: Int, peaceOnValueChange: (Int) -> Unit) {
         horizontalAlignment = Alignment.Start
     ) {
         Text(text = "Video Peace", style = MaterialTheme.typography.titleMedium)
-        Spacer(modifier = Modifier.height(4.dp))
         Slider(
             value = sliderPosition,
             onValueChange = { newPosition ->
@@ -50,33 +49,62 @@ fun PeaceSlider(currentValue: Int, peaceOnValueChange: (Int) -> Unit) {
 
 @Composable
 fun BitrateSlider(currentValue: Int, bitrateOnValueChange: (Int) -> Unit) {
-    val values = listOf(1000000, 1250000, 1500000, 1750000, 2000000)
+    val strValues = listOf("Low", "Moderate", "High")
+    val intValues = listOf(1000000, 1500000, 2000000)
 
-    // Determine the slider's position based on the current value
-    var sliderPosition by remember {
-        mutableFloatStateOf(values.indexOf(currentValue).takeIf { it != -1 }?.toFloat() ?: 1f)
-    }
+    val position = intValues.indexOf(currentValue).takeIf { it != -1 }?.toFloat() ?: 1f
+    var sliderPosition by remember { mutableFloatStateOf(position) }
 
-    // Calculate the current index and selected value based on slider position
-    val currentIndex = sliderPosition.roundToInt().coerceIn(0, values.size - 1)
-    val selectedValue = values[currentIndex]
+    val currentIndex = sliderPosition.roundToInt().coerceIn(0, strValues.size - 1)
+    val selectedValue = strValues[currentIndex]
 
     Column(
-        modifier = Modifier.padding(horizontal = 32.dp, vertical = 8.dp),
+        modifier = Modifier.padding(horizontal = 32.dp, vertical = 12.dp),
         horizontalAlignment = Alignment.Start
     ) {
-        Text(text = "Bitrate", style = MaterialTheme.typography.titleMedium)
-        Spacer(modifier = Modifier.height(4.dp))
+        Text(text = "Quality", style = MaterialTheme.typography.titleMedium)
         Slider(
             value = sliderPosition,
             onValueChange = { newPosition ->
                 sliderPosition = newPosition
-                bitrateOnValueChange(values[newPosition.roundToInt().coerceIn(0, values.size - 1)])
+                bitrateOnValueChange(intValues[newPosition.roundToInt().coerceIn(0, intValues.size - 1)])
             },
-            valueRange = 0f..(values.size - 1).toFloat(),
-            steps = values.size - 2
+            valueRange = 0f..(strValues.size - 1).toFloat(),
+            steps = strValues.size - 2
         )
         Spacer(modifier = Modifier.height(2.dp))
-        Text(text = "${selectedValue / 1000} kb/sec", style = MaterialTheme.typography.titleSmall)
+        Text(text = selectedValue, style = MaterialTheme.typography.titleSmall)
     }
 }
+//@Composable
+//fun BitrateSlider(currentValue: Int, bitrateOnValueChange: (Int) -> Unit) {
+//    val values = listOf(1000000, 1250000, 1500000, 1750000, 2000000)
+//
+//    // Determine the slider's position based on the current value
+//    var sliderPosition by remember {
+//        mutableFloatStateOf(values.indexOf(currentValue).takeIf { it != -1 }?.toFloat() ?: 1f)
+//    }
+//
+//    // Calculate the current index and selected value based on slider position
+//    val currentIndex = sliderPosition.roundToInt().coerceIn(0, values.size - 1)
+//    val selectedValue = values[currentIndex]
+//
+//    Column(
+//        modifier = Modifier.padding(horizontal = 32.dp, vertical = 8.dp),
+//        horizontalAlignment = Alignment.Start
+//    ) {
+//        Text(text = "Bitrate", style = MaterialTheme.typography.titleMedium)
+//        Spacer(modifier = Modifier.height(4.dp))
+//        Slider(
+//            value = sliderPosition,
+//            onValueChange = { newPosition ->
+//                sliderPosition = newPosition
+//                bitrateOnValueChange(values[newPosition.roundToInt().coerceIn(0, values.size - 1)])
+//            },
+//            valueRange = 0f..(values.size - 1).toFloat(),
+//            steps = values.size - 2
+//        )
+//        Spacer(modifier = Modifier.height(2.dp))
+//        Text(text = "${selectedValue / 1000} kb/sec", style = MaterialTheme.typography.titleSmall)
+//    }
+//}

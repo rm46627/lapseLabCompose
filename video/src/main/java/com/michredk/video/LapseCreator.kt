@@ -20,7 +20,13 @@ const val APP_MOVIE_PATH = "Movies/LapseLab"
 class LapseCreator(private val context: Context, private val album: Album) {
 
     @OptIn(UnstableApi::class)
-    suspend fun createVideo(photos: List<File>, framesPerImage: Int, bitrate: Int, rotation: Float): String {
+    fun createVideo(
+        photos: List<File>,
+        framesPerImage: Int,
+        bitrate: Int,
+        rotation: Float,
+        encodingProgress: (Int, Int) -> Unit
+    ): String {
         val date =
             SimpleDateFormat(FILES_NAME_DATE_FORMAT, Locale.US).format(System.currentTimeMillis())
         val name = "${album.directoryName}-${photos.size}images-$date"
@@ -34,26 +40,31 @@ class LapseCreator(private val context: Context, private val album: Album) {
         // from portrait to horizontal
         var (width, height) = getImageDimensions(photos[0])
 
+        Log.d(TAG, "bitrate: ${if (bitrate == 2000000 && framesPerImage <= 5) bitrate * 5 - framesPerImage else bitrate}")
+
         val encoderConfig = EncoderConfig(
             videoFile,
             MediaFormat.MIMETYPE_VIDEO_AVC,
             framesPerImage,
             10F,
-            bitrate
+            if (bitrate == 2000000 && framesPerImage <= 5) bitrate * 5 - framesPerImage else bitrate
         )
 
         val mediaProcessor = MediaProcessor(context, encoderConfig)
         mediaProcessor.setOnEncodingProgressListener(object : EncodingProgressListener {
             override fun onFrameCreated(current: Int, end: Int) {
-                Log.d(TAG, "Muxing progress: $current / $end")
+                encodingProgress(current, end)
             }
         })
 
         var i = 0
         while (true) {
-            when (val result = mediaProcessor.encodeMp4(photos, width, height,
-                effects = listOf(ScaleAndRotateTransformation.Builder().setRotationDegrees(-90f + rotation)
-                    .build())
+            when (val result = mediaProcessor.encodeMp4(
+                photos, width, height,
+                effects = listOf(
+                    ScaleAndRotateTransformation.Builder().setRotationDegrees(-90f + rotation)
+                        .build()
+                )
             )) {
                 is EncodingError -> {
                     Log.d(TAG, result.message)
@@ -62,7 +73,7 @@ class LapseCreator(private val context: Context, private val album: Album) {
                 is EncodingFormatError -> {
                     width -= 1
                     height -= 5
-                    if(i++ > 5) {
+                    if (i++ > 5) {
                         break
                     }
                 }

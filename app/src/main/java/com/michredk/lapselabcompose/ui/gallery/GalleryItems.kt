@@ -224,7 +224,6 @@ fun GalleryPagerItem(
                         drawRect(fireBrush, blendMode = BlendMode.SrcAtop)
                     }
                 },
-            // TODO: make usage of other fire icons
             painter = painterResource(id = if(album.photoCount > 49) R.drawable.big_fire else R.drawable.small_fire),
             contentDescription = "photo counter icon"
         )
