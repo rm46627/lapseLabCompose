@@ -16,6 +16,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AddPhotoAlternate
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.SlowMotionVideo
+import androidx.compose.material.icons.filled.UploadFile
 import androidx.compose.material.icons.outlined.Notifications
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -48,6 +49,7 @@ fun DetailsHeader(
     onAddPhotoClicked: () -> Unit,
     onEditVideoClicked: () -> Unit,
     onNotificationIconClicked: () -> Unit,
+    onPhotoPickerIconClicked: () -> Unit,
     backgroundColor: Brush,
     exoPlayer: ExoPlayer,
     showVideo : Boolean,
@@ -79,11 +81,9 @@ fun DetailsHeader(
                 modifier = Modifier
                     .fillMaxWidth()
                     .alpha(alpha)
-//                    .background(Color.Red)
                     .height(300.dp * scale)
             )
         }
-        // TODO: fancy progressbar to 100 photos
         Text(
             modifier = Modifier
                 .alpha(scale)
@@ -111,7 +111,12 @@ fun DetailsHeader(
                 overflow = TextOverflow.Ellipsis,
                 style = MaterialTheme.typography.headlineSmall,
             )
-
+            IconButton(onClick = onPhotoPickerIconClicked) {
+                Icon(
+                    imageVector = Icons.Default.UploadFile,
+                    contentDescription = "Upload photo to album"
+                )
+            }
             IconButton(onClick = onNotificationIconClicked) {
                 Icon(
                     imageVector = if (album.daysBetweenReminders == 0L) Icons.Outlined.Notifications else Icons.Default.Notifications,

@@ -1,7 +1,17 @@
 package com.michredk.lapselabcompose.ui.details
 
+import android.content.ContentResolver
+import android.content.Context
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
+import android.graphics.ImageDecoder
+import android.net.Uri
+import android.os.Build
 import android.util.Log
 import androidx.activity.compose.BackHandler
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.PickVisualMediaRequest
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
@@ -18,6 +28,7 @@ import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.itemsIndexed
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.SnackbarDuration
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -30,6 +41,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -41,8 +53,11 @@ import androidx.media3.exoplayer.ExoPlayer
 import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavHostController
 import com.michredk.database.Album
+import com.michredk.files.appPicturesDir
 import com.michredk.lapselab.files.MediaManagerFactory
 import com.michredk.lapselabcompose.TAG
+import com.michredk.lapselabcompose.services.SnackbarController
+import com.michredk.lapselabcompose.services.SnackbarEvent
 import com.michredk.lapselabcompose.services.alarm.AlarmScheduler
 import com.michredk.lapselabcompose.ui.PermissionViewModel
 import com.michredk.lapselabcompose.ui.DetailsGraph
@@ -79,7 +94,10 @@ fun DetailsRoute(
     val mediaManager = remember {
         MediaManagerFactory(context)
     }
-    LaunchedEffect(album) {
+    var photoUploaded by remember {
+        mutableStateOf(false)
+    }
+    LaunchedEffect(album, photoUploaded) {
         val photos = album?.let {
             mediaManager.getPhotoFiles(it.directoryName)
         }
@@ -134,6 +152,7 @@ fun DetailsRoute(
 
         var videoUriState by remember { mutableStateOf<String?>(null) }
         var showDetailsScreen by remember { mutableStateOf(false) }
+        var showPhotoPicker by remember { mutableStateOf(false) }
         LaunchedEffect(Unit) {
             videoUriState = mediaManager.getLatestVideoFile(
                 albumSafe.directoryName
@@ -162,6 +181,9 @@ fun DetailsRoute(
                 alpha = alpha.value,
                 album = albumSafe,
                 photos = it,
+                showPhotoPicker = {
+                    showPhotoPicker = true
+                },
                 onAddPhotoClicked = {
                     if (granted) {
                         navController.navigate(CameraDestination(albumName, true))
@@ -199,6 +221,37 @@ fun DetailsRoute(
                 showVideo = mediaSource != null
             )
         }
+        val pickMultipleMedia =
+            rememberLauncherForActivityResult(
+                ActivityResultContracts.PickMultipleVisualMedia()
+            ) { uris ->
+                if (uris.isNotEmpty()) {
+                    showPhotoPicker = false
+                    for (uri in uris) {
+                        val bitmap = uriToBitmap(context, uri)
+                        scope.launch {
+                            if (bitmap == null) {
+                                SnackbarController.sendEvent(
+                                    event = SnackbarEvent(
+                                        message = "Uploading the photo failed.",
+                                        duration = SnackbarDuration.Short
+                                    )
+                                )
+                            } else {
+                                mediaManager.saveBitmap(
+                                    bitmap = bitmap, subfolder = "$appPicturesDir/${albumName}"
+                                )
+                            }
+                            photoUploaded = true
+                        }
+                    }
+                } else {
+                    showPhotoPicker = false
+                }
+            }
+        if (showPhotoPicker) {
+            pickMultipleMedia.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
+        }
     }
 }
 
@@ -207,6 +260,7 @@ fun DetailsScreen(
     alpha: Float,
     album: Album,
     photos: List<File>,
+    showPhotoPicker: () -> Unit,
     onAddPhotoClicked: () -> Unit,
     onEditVideoClicked: () -> Unit,
     onPhotoClicked: (Int) -> Unit,
@@ -253,6 +307,7 @@ fun DetailsScreen(
             onNotificationIconClicked = {
                 showNotificationDialog = true
             },
+            onPhotoPickerIconClicked = showPhotoPicker,
             topBackgroundColor,
             exoPlayer = exoPlayer,
             showVideo = showVideo,
@@ -280,5 +335,22 @@ fun DetailsScreen(
         onApplyClicked = onApplyNotificationDialogClicked,
         dismissDialog = { showNotificationDialog = false }
     )
+}
 
+fun uriToBitmap(context: Context, uri: Uri): Bitmap? {
+    // Obtain the content resolver from the context
+    val contentResolver: ContentResolver = context.contentResolver
+
+    // Check the API level to use the appropriate method for decoding the Bitmap
+    return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+        // For Android P (API level 28) and higher, use ImageDecoder to decode the Bitmap
+        val source = ImageDecoder.createSource(contentResolver, uri)
+        ImageDecoder.decodeBitmap(source)
+    } else {
+        // For versions prior to Android P, use BitmapFactory to decode the Bitmap
+        val bitmap = context.contentResolver.openInputStream(uri)?.use { stream ->
+            Bitmap.createBitmap(BitmapFactory.decodeStream(stream))
+        }
+        bitmap
+    }
 }
