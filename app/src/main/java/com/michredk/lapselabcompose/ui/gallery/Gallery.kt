@@ -29,7 +29,9 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowUpward
 import androidx.compose.material.icons.filled.Cached
 import androidx.compose.material.icons.filled.DeleteForever
+import androidx.compose.material.icons.filled.GridView
 import androidx.compose.material.icons.filled.Menu
+import androidx.compose.material.icons.filled.Pages
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -118,10 +120,6 @@ fun GalleryRoute(navController: NavHostController) {
         mutableStateOf<String?>(null)
     }
 
-    val pagerViewMode by remember {
-        mutableStateOf(false)
-    }
-
     if (albums.isEmpty() || albums[0].id != Int.MIN_VALUE) {
         if (albums.isNotEmpty()) {
             TipDialog(
@@ -165,8 +163,8 @@ fun GalleryRoute(navController: NavHostController) {
             galleryDropDownItems = listOf(
                 GalleryMenuItem(
                     id = "switch view mode",
-                    if (isPagerViewModeOn) "Switch to Grid" else "Switch to Pager",
-                    icon = Icons.Default.Cached
+                        if (isPagerViewModeOn) "Switch to Grid" else "Switch to Pager",
+                    icon = if (isPagerViewModeOn) Icons.Default.GridView else Icons.Default.Pages
                 ),
                 GalleryMenuItem(id = "reset tips", "Reset Tips", icon = Icons.Default.Cached)
             ),

@@ -8,10 +8,12 @@ import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.gestures.scrollable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -24,7 +26,9 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.windowInsetsPadding
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Image
 import androidx.compose.material.icons.filled.Rotate90DegreesCcw
@@ -302,12 +306,13 @@ fun LabScreen(
     Column(
         Modifier
             .safeDrawingPadding()
+            .verticalScroll(rememberScrollState())
             .fillMaxSize()
             .alpha(alpha)
             .safeContentPadding(),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        if (mediaSource != null) {
+        if (alpha > 0f || mediaSource != null) {
             AndroidView(
                 factory = { ctx ->
                     PlayerView(ctx).apply {
@@ -324,7 +329,7 @@ fun LabScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .alpha(alpha)
-                    .height(300.dp) // Set your desired height
+                    .height(350.dp) // Set your desired height
             )
         } else {
             Image(
@@ -362,7 +367,13 @@ fun LabScreen(
                         .padding(64.dp),
                         progress = { encodingProgressCurrent.toFloat() / encodingProgressEnd.toFloat() })
                     Text(
-                        modifier = Modifier.background(color = MaterialTheme.colorScheme.primaryContainer, shape = RoundedCornerShape(10.dp)).padding(8.dp).width(200.dp),
+                        modifier = Modifier
+                            .background(
+                                color = MaterialTheme.colorScheme.primaryContainer,
+                                shape = RoundedCornerShape(10.dp)
+                            )
+                            .padding(8.dp)
+                            .width(200.dp),
                         text = "Please don't leave the app until the video finishes generating.",
                         style = TextStyle(
                             fontSize = MaterialTheme.typography.titleLarge.fontSize,

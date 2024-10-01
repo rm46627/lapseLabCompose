@@ -113,7 +113,7 @@ fun DetailsRoute(
         scope.launch {
             alpha.animateTo(
                 0f, animationSpec = tween(
-                    durationMillis = 400
+                    durationMillis = 250
                 )
             )
             navController.popBackStack()
@@ -133,15 +133,16 @@ fun DetailsRoute(
         }
 
         var videoUriState by remember { mutableStateOf<String?>(null) }
+        var showDetailsScreen by remember { mutableStateOf(false) }
         LaunchedEffect(Unit) {
             videoUriState = mediaManager.getLatestVideoFile(
                 albumSafe.directoryName
             )?.absolutePath
+            showDetailsScreen = true
         }
 
         val mediaSource = remember(videoUriState) {
             val newUri = videoUriState
-            Log.d(TAG, "newUri: $newUri")
             if (newUri != null) {
                 MediaItem.fromUri(newUri)
             } else {
@@ -156,33 +157,48 @@ fun DetailsRoute(
             exoPlayer.setMediaItem(ms)
             exoPlayer.prepare()
         }
-
-        DetailsScreen(
-            alpha = alpha.value,
-            album = albumSafe,
-            photos = it,
-            onAddPhotoClicked = {
-                if (granted) {
-                    navController.navigate(CameraDestination(albumName, true))
-                } else {
-                    permissionsResultLaunch()
-                }
-            },
-            onEditVideoClicked = {
-                navController.navigate(LabDestination(albumName))
-            },
-            onPhotoClicked = { index ->
-                navController.navigate(PhotoBrowserDestination(index))
-            },
-            onApplyNotificationDialogClicked = { time, freq ->
-                if (!granted) {
-                    permissionsResultLaunch()
-                }
-                detailsViewModel.updateAlbum(albumSafe, freq, time, AlarmScheduler(context))
-            },
-            exoPlayer = exoPlayer,
-            showVideo = mediaSource != null
-        )
+        if (showDetailsScreen) {
+            DetailsScreen(
+                alpha = alpha.value,
+                album = albumSafe,
+                photos = it,
+                onAddPhotoClicked = {
+                    if (granted) {
+                        navController.navigate(CameraDestination(albumName, true))
+                    } else {
+                        permissionsResultLaunch()
+                    }
+                },
+                onEditVideoClicked = {
+                    scope.launch {
+                        alpha.animateTo(
+                            0f, animationSpec = tween(
+                                durationMillis = 250
+                            )
+                        )
+                        navController.navigate(LabDestination(albumName))
+                    }
+                },
+                onPhotoClicked = { index ->
+                    scope.launch {
+                        alpha.animateTo(
+                            0f, animationSpec = tween(
+                                durationMillis = 250
+                            )
+                        )
+                        navController.navigate(PhotoBrowserDestination(index))
+                    }
+                },
+                onApplyNotificationDialogClicked = { time, freq ->
+                    if (!granted) {
+                        permissionsResultLaunch()
+                    }
+                    detailsViewModel.updateAlbum(albumSafe, freq, time, AlarmScheduler(context))
+                },
+                exoPlayer = exoPlayer,
+                showVideo = mediaSource != null
+            )
+        }
     }
 }
 
@@ -213,16 +229,16 @@ fun DetailsScreen(
             .fillMaxSize()
     ) {
         val gridState = rememberLazyGridState()
-        val expandedState by remember {
-            derivedStateOf {
-                if (photos.size < 7)
-                    true
-                else if (!gridState.canScrollBackward && !gridState.isScrollInProgress) {
-                    gridState.firstVisibleItemIndex <= 1
-                } else
-                    gridState.lastScrolledBackward && gridState.firstVisibleItemIndex == 0
+        val expandedState =
+            if (!showVideo) false
+            else if (photos.size < 7) {
+                true
+            } else if (!gridState.canScrollBackward && !gridState.isScrollInProgress) {
+                remember { derivedStateOf { gridState.firstVisibleItemIndex } }.value <= 1
+            } else {
+                gridState.lastScrolledBackward && remember { derivedStateOf { gridState.firstVisibleItemIndex } }.value == 0
             }
-        }
+
         Box(
             modifier = Modifier
                 .fillMaxWidth()
