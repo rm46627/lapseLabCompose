@@ -20,7 +20,7 @@ class AlarmScheduler(
 
     private val alarmManager = context.getSystemService(AlarmManager::class.java)
 
-    fun schedule(albumName: String, daysBetweenAlarms: Long, time: LocalTime? = null) {
+    fun schedule(albumName: String, daysBetweenAlarms: Long, time: LocalTime? = null, lastReminderSentOn: LocalDateTime = LocalDateTime.now()) {
         val intent = Intent(context, AlarmReceiver::class.java).apply {
             putExtra("ALBUM_NAME", albumName)
             putExtra("DAYS_BETWEEN", daysBetweenAlarms)
@@ -30,7 +30,7 @@ class AlarmScheduler(
             }
         }
 
-        val now = LocalDateTime.now()
+        val now = lastReminderSentOn
         val notifyTime = LocalTime.of(time?.hour ?: now.hour, time?.minute ?: now.minute)
         val timeHasPassedToday = !now.isBefore(LocalDateTime.of(LocalDate.now(), notifyTime))
         val notifyDate = if (timeHasPassedToday){
@@ -43,8 +43,11 @@ class AlarmScheduler(
         val zonedDateTime = notifyAt.atZone(ZoneId.systemDefault())
         val timeInMillis = zonedDateTime.toInstant().toEpochMilli()
 
-        Log.d(TAG, "schedule days: $daysBetweenAlarms,time: $time")
-        Log.d(TAG, "h: ${Duration.between(now, notifyAt).toHours()}, min: ${Duration.between(now, notifyAt).toMinutes()}")
+        println("TESTRESSCHED")
+        println("TESTRESSCHED schedule days: $daysBetweenAlarms,time: $time")
+        println("TESTRESSCHED h: ${Duration.between(now, notifyAt).toHours()}, min: ${Duration.between(now, notifyAt).toMinutes()}")
+        Log.d(TAG, "TESTRESSCHED schedule days: $daysBetweenAlarms,time: $time")
+        Log.d(TAG, "TESTRESSCHED h: ${Duration.between(now, notifyAt).toHours()}, min: ${Duration.between(now, notifyAt).toMinutes()}")
 
         alarmManager.setExactAndAllowWhileIdle(
             AlarmManager.RTC_WAKEUP,

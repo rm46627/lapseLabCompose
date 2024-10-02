@@ -3,8 +3,9 @@ package com.michredk.database
 import dagger.hilt.android.scopes.ViewModelScoped
 import kotlinx.coroutines.flow.Flow
 import javax.inject.Inject
+import javax.inject.Singleton
 
-@ViewModelScoped
+@Singleton
 class Repository @Inject constructor(
     private val albumDao: AlbumDao
 ) {

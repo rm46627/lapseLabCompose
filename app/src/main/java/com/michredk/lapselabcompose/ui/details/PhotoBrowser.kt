@@ -121,7 +121,7 @@ fun PhotoBrowserRoute(
                     }
                 },
                 photoPath = photoPath,
-                date = FreqUtils.filePathToLocalDateTime(photoPath).toString(),
+                date = FreqUtils.filePathToFormatedDateTime(photoPath),
                 index,
                 index == photos.size - 1
             )
@@ -162,13 +162,17 @@ fun PhotoBrowserScreen(
         Box(
             Modifier
                 .align(Alignment.TopEnd)
-                .safeDrawingPadding()) {
-            IconButton(onClick = { isMenuVisible = true }, modifier = Modifier
-                .padding(4.dp)
-                .background(
-                    color = MaterialTheme.colorScheme.primaryContainer,
-                    shape = RoundedCornerShape(30)
-                ), ) {
+                .safeDrawingPadding()
+        ) {
+            IconButton(
+                onClick = { isMenuVisible = true },
+                modifier = Modifier
+                    .padding(4.dp)
+                    .background(
+                        color = MaterialTheme.colorScheme.primaryContainer,
+                        shape = RoundedCornerShape(30)
+                    ),
+            ) {
                 Icon(
                     modifier = Modifier.size(20.dp),
                     painter = painterResource(id = R.drawable.three_dots),
@@ -182,7 +186,7 @@ fun PhotoBrowserScreen(
                 Column(Modifier.padding(4.dp)) {
                     Text(
                         style = TextStyle(color = MaterialTheme.colorScheme.primary),
-                        text = "Photo taken"
+                        text = "Photo added"
                     )
                     Text(text = date)
                 }
@@ -229,20 +233,7 @@ private fun BoxScope.PrevNextButtons(
                 .weight(1f)
                 .clickable {
                     if (prevEnabled) onPreviousButtonClicked()
-                }) {
-//            IconButton(
-//                enabled = prevEnabled,
-//                onClick = onPreviousButtonClicked
-//            ) {
-//                Icon(
-//                    modifier = Modifier
-//                        .size(50.dp),
-//                    tint = MaterialTheme.colorScheme.primary,
-//                    imageVector = Icons.Default.ArrowBackIos,
-//                    contentDescription = "Previous photo"
-//                )
-//            }
-        }
+                }) {}
         Box(
             Modifier
                 .weight(1f)
@@ -251,22 +242,6 @@ private fun BoxScope.PrevNextButtons(
         {}
     }
 }
-//
-//@Preview
-//@Composable
-//private fun preview() {
-//    LapseLabComposeTheme {
-//        PhotoBrowserScreen(
-//            onNextButtonClicked = { /*TODO*/ },
-//            onPreviousButtonClicked = { /*TODO*/ },
-//            onDeleteButtonClicked = { /*TODO*/ },
-//            photoPath = "",
-//            date = "27.09.2024 12:00",
-//            index = 1,
-//            isLastPhoto = false
-//        )
-//    }
-//}
 
 @Preview
 @Composable

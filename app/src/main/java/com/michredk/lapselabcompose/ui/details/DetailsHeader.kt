@@ -5,12 +5,14 @@ import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AddPhotoAlternate
@@ -49,7 +51,6 @@ fun DetailsHeader(
     onAddPhotoClicked: () -> Unit,
     onEditVideoClicked: () -> Unit,
     onNotificationIconClicked: () -> Unit,
-    onPhotoPickerIconClicked: () -> Unit,
     backgroundColor: Brush,
     exoPlayer: ExoPlayer,
     showVideo : Boolean,
@@ -71,18 +72,18 @@ fun DetailsHeader(
         verticalArrangement = Arrangement.SpaceBetween
     ) {
         if (showVideo) {
-            AndroidView(
-                factory = { ctx ->
-                    PlayerView(ctx).apply {
-                        useController = false
-                        player = exoPlayer
-                    }
-                },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .alpha(alpha)
-                    .height(300.dp * scale)
-            )
+                AndroidView(
+                    factory = { ctx ->
+                        PlayerView(ctx).apply {
+                            useController = false
+                            player = exoPlayer
+                        }
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .alpha(alpha)
+                        .height(300.dp * scale)
+                )
         }
         Text(
             modifier = Modifier
@@ -111,12 +112,6 @@ fun DetailsHeader(
                 overflow = TextOverflow.Ellipsis,
                 style = MaterialTheme.typography.headlineSmall,
             )
-            IconButton(onClick = onPhotoPickerIconClicked) {
-                Icon(
-                    imageVector = Icons.Default.UploadFile,
-                    contentDescription = "Upload photo to album"
-                )
-            }
             IconButton(onClick = onNotificationIconClicked) {
                 Icon(
                     imageVector = if (album.daysBetweenReminders == 0L) Icons.Outlined.Notifications else Icons.Default.Notifications,
@@ -141,10 +136,8 @@ fun DetailsHeader(
 
 @Composable
 fun AlbumCoverPhoto(photo: String, scale: Float) {
-    // TODO: if it is possible view video
     AsyncImage(
         modifier = Modifier
-//            .width(200.dp * scale)
             .width(200.dp)
             .height(300.dp * scale)
             .alpha(scale)

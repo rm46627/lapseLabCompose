@@ -119,5 +119,6 @@ dependencies {
 //    implementation(libs.androidx.datastore.preferences.android)
     implementation(libs.play.services.ads)
 
+    implementation(libs.androidx.work.runtime.ktx)
 
 }

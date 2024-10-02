@@ -63,6 +63,13 @@ object FreqUtils {
     }
 
     fun localDateToDaysPassed(date: LocalDateTime): Long {
-        return ChronoUnit.DAYS.between(date, LocalDateTime.now())
+        val inputDate = date.toLocalDate()
+        return ChronoUnit.DAYS.between(inputDate, LocalDate.now())
+    }
+
+    fun filePathToFormatedDateTime(photoPath: String): String {
+        val localDateTime = filePathToLocalDateTime(photoPath)
+        val formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm:ss")
+        return localDateTime.format(formatter)
     }
 }

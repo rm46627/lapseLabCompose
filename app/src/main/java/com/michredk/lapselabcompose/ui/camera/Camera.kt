@@ -1,8 +1,17 @@
 package com.michredk.lapselabcompose.ui.camera
 
+import android.content.ContentResolver
+import android.content.Context
 import android.graphics.Bitmap
+import android.graphics.BitmapFactory
+import android.graphics.ImageDecoder
 import android.graphics.Matrix
+import android.net.Uri
+import android.os.Build
 import android.util.Log
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.PickVisualMediaRequest
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.ImageCapture
 import androidx.camera.core.ImageCaptureException
@@ -24,6 +33,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeContentPadding
+import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
@@ -33,9 +43,11 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Cameraswitch
 import androidx.compose.material.icons.filled.PeopleAlt
 import androidx.compose.material.icons.filled.PhotoCamera
+import androidx.compose.material.icons.filled.UploadFile
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -64,12 +76,16 @@ import androidx.navigation.NavHostController
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.michredk.files.appPicturesDir
+import com.michredk.lapselab.files.FileMediaManager
 import com.michredk.lapselab.files.MediaManagerFactory
 import com.michredk.lapselabcompose.R
+import com.michredk.lapselabcompose.services.SnackbarController
+import com.michredk.lapselabcompose.services.SnackbarEvent
 import com.michredk.lapselabcompose.ui.CameraGraph
 import com.michredk.lapselabcompose.ui.common.TipDialog
 import com.michredk.lapselabcompose.ui.theme.LapseLabComposeTheme
 import com.michredk.video.TAG
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
@@ -120,7 +136,9 @@ fun CameraRoute(
     var captureBtnEnabled by remember {
         mutableStateOf(true)
     }
-
+    var showPhotoPicker by remember {
+        mutableStateOf(false)
+    }
     CameraScreen(
         cameraController = cameraController,
         albumName = albumName ?: throw NullPointerException(),
@@ -130,7 +148,10 @@ fun CameraRoute(
                 object : ImageCapture.OnImageCapturedCallback() {
                     override fun onCaptureSuccess(image: ImageProxy) {
                         super.onCaptureSuccess(image)
-                        val finalBitmap = scaleCropRotateBitmap(image, cameraController.cameraSelector == CameraSelector.DEFAULT_FRONT_CAMERA)
+                        val finalBitmap = scaleCropRotateBitmap(
+                            image,
+                            cameraController.cameraSelector == CameraSelector.DEFAULT_FRONT_CAMERA
+                        )
                         image.close()
                         cameraViewModel.bitmap = finalBitmap
                         scope.launch {
@@ -145,6 +166,7 @@ fun CameraRoute(
                             navController.navigate(PhotoPreviewDestination(navigatedFromAlbumDetails))
                         }
                     }
+
                     override fun onError(exception: ImageCaptureException) {
                         super.onError(exception)
                         Log.e(TAG, "HERE !!!!!!!! Couldn't take photo: ", exception)
@@ -164,8 +186,54 @@ fun CameraRoute(
             cameraViewModel.updateGhostBtnTipValue(true)
         },
         navigatedFromAlbumDetails = navigatedFromAlbumDetails,
-        captureBtnEnabled = captureBtnEnabled
+        captureBtnEnabled = captureBtnEnabled,
+        onUploadClicked = { showPhotoPicker = true }
     )
+
+    PhotoPicker(showPhotoPicker = showPhotoPicker, onResult = { uris ->
+        showPhotoPicker = false
+        scope.launch {
+            var successFlag: Boolean = false
+            var failedFlag: Boolean = false
+            var noSelectionFlag: Boolean = false
+            if (uris.isNotEmpty()) {
+                uris.forEach { uri ->
+                    val bitmap = uriToBitmap(context, uri)
+                    if (bitmap == null) {
+                        failedFlag = true
+                    } else {
+                        mediaManager.saveBitmap(
+                            bitmap = bitmap, subfolder = "$appPicturesDir/${albumName}"
+                        )
+                        successFlag = true
+                    }
+                }
+            } else {
+                noSelectionFlag = true
+            }
+            SnackbarController.sendEvent(
+                event = SnackbarEvent(
+                    message = if(successFlag && failedFlag) "Some uploads were successful, and some failed."
+                            else if(successFlag) "Uploaded photos successfully."
+                            else if(failedFlag) "Uploading photos failed."
+                            else if (noSelectionFlag) "No photos selected."
+                            else "A really obscure error.",
+                    duration = SnackbarDuration.Short
+                )
+            )
+        }
+    })
+}
+
+@Composable
+private fun PhotoPicker(showPhotoPicker: Boolean, onResult: (List<Uri>) -> Unit) {
+    val pickMultipleMedia =
+        rememberLauncherForActivityResult(
+            ActivityResultContracts.PickMultipleVisualMedia(),
+            onResult = { uris -> onResult(uris) })
+    if (showPhotoPicker) {
+        pickMultipleMedia.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
+    }
 }
 
 @Composable
@@ -179,7 +247,8 @@ fun CameraScreen(
     isGhostBtnTipCompleted: Boolean,
     updateGhostBtnTipValue: () -> Unit,
     navigatedFromAlbumDetails: Boolean,
-    captureBtnEnabled: Boolean
+    captureBtnEnabled: Boolean,
+    onUploadClicked: () -> Unit
 ) {
     val context = LocalContext.current
     var ghostPath by remember { mutableStateOf<String?>(null) }
@@ -239,6 +308,7 @@ fun CameraScreen(
             onGhostImageClicked = {
                 showGhost = !showGhost
             },
+            onUploadClicked = onUploadClicked,
             captureBtnEnabled = captureBtnEnabled
         )
     }
@@ -265,13 +335,14 @@ private fun BoxScope.CameraButtons(
     onTakePictureClicked: (Boolean) -> Unit,
     modeButtonsEnabled: Boolean,
     onGhostImageClicked: () -> Unit,
+    onUploadClicked: () -> Unit,
     captureBtnEnabled: Boolean
 ) {
     var shootSeries by remember {
         mutableStateOf(false)
     }
     var modeIcon by remember {
-        mutableStateOf(R.drawable.image_mode)
+        mutableIntStateOf(R.drawable.image_mode)
     }
     var animateModeText by remember {
         mutableStateOf(false)
@@ -282,13 +353,14 @@ private fun BoxScope.CameraButtons(
             animateModeText = false
         },
         targetValue = if (animateModeText) 1f else 0f,
-        animationSpec = tween(durationMillis = 500)
+        animationSpec = tween(durationMillis = 500), label = ""
     )
 
 
     Row(
         modifier = Modifier
-            .padding(32.dp, 64.dp)
+            .safeDrawingPadding()
+            .padding(16.dp, 16.dp)
             .fillMaxWidth()
             .align(Alignment.TopCenter),
         horizontalArrangement = Arrangement.SpaceBetween,
@@ -304,6 +376,18 @@ private fun BoxScope.CameraButtons(
                 modifier = Modifier.size(iconSize),
                 imageVector = Icons.Default.Cameraswitch,
                 contentDescription = "Switch camera"
+            )
+        }
+        IconButton(
+            onClick = onUploadClicked,
+            modifier = Modifier
+                .size(btnSize)
+                .background(btnBackgroundColor, shape = CircleShape),
+        ) {
+            Icon(
+                modifier = Modifier.size(iconSize),
+                imageVector = Icons.Default.UploadFile,
+                contentDescription = "Upload photo"
             )
         }
     }
@@ -424,11 +508,14 @@ fun scaleCropRotateBitmap(
     mirrorImage: Boolean
 ): Bitmap {
     val bitmap = image.toBitmap()
-    val isPhotoVertical = image.imageInfo.rotationDegrees.toFloat() == 90f || image.imageInfo.rotationDegrees.toFloat() == 270f
+    val isPhotoVertical =
+        image.imageInfo.rotationDegrees.toFloat() == 90f || image.imageInfo.rotationDegrees.toFloat() == 270f
 
     val matrix = Matrix().apply {
-        if(mirrorImage) preScale(1f, -1f);
-        if(isPhotoVertical) postRotate(image.imageInfo.rotationDegrees.toFloat()) else postRotate(image.imageInfo.rotationDegrees.toFloat() + 90f)
+        if (mirrorImage) preScale(1f, -1f);
+        if (isPhotoVertical) postRotate(image.imageInfo.rotationDegrees.toFloat()) else postRotate(
+            image.imageInfo.rotationDegrees.toFloat() + 90f
+        )
     }
     val targetRatio = 4000f / 2024f
 
@@ -464,24 +551,20 @@ fun scaleCropRotateBitmap(
     return croppedBitmap
 }
 
-@Preview
-@Composable
-fun previewButtons() {
-    LapseLabComposeTheme {
-        Box(modifier = Modifier.fillMaxSize()) {
-            CameraButtons(30.dp,
-                40.dp,
-                btnBackgroundColor = MaterialTheme.colorScheme.primaryContainer,
-                pressedCaptureBackgroundColor = MaterialTheme.colorScheme.primary,
-                { },
-                { },
-                modeButtonsEnabled = true,
-                onGhostImageClicked = {
+fun uriToBitmap(context: Context, uri: Uri): Bitmap? {
+    // Obtain the content resolver from the context
+    val contentResolver: ContentResolver = context.contentResolver
 
-                },
-                true)
+    // Check the API level to use the appropriate method for decoding the Bitmap
+    return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+        // For Android P (API level 28) and higher, use ImageDecoder to decode the Bitmap
+        val source = ImageDecoder.createSource(contentResolver, uri)
+        ImageDecoder.decodeBitmap(source)
+    } else {
+        // For versions prior to Android P, use BitmapFactory to decode the Bitmap
+        val bitmap = context.contentResolver.openInputStream(uri)?.use { stream ->
+            Bitmap.createBitmap(BitmapFactory.decodeStream(stream))
         }
-
-
+        bitmap
     }
 }

@@ -3,6 +3,7 @@ package com.michredk.lapselabcompose.ui
 import android.Manifest
 import android.annotation.SuppressLint
 import android.app.Activity
+import android.app.ComponentCaller
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
