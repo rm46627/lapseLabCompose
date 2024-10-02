@@ -43,11 +43,7 @@ class AlarmScheduler(
         val zonedDateTime = notifyAt.atZone(ZoneId.systemDefault())
         val timeInMillis = zonedDateTime.toInstant().toEpochMilli()
 
-        println("TESTRESSCHED")
-        println("TESTRESSCHED schedule days: $daysBetweenAlarms,time: $time")
-        println("TESTRESSCHED h: ${Duration.between(now, notifyAt).toHours()}, min: ${Duration.between(now, notifyAt).toMinutes()}")
-        Log.d(TAG, "TESTRESSCHED schedule days: $daysBetweenAlarms,time: $time")
-        Log.d(TAG, "TESTRESSCHED h: ${Duration.between(now, notifyAt).toHours()}, min: ${Duration.between(now, notifyAt).toMinutes()}")
+        println("WE SKEDULERZE")
 
         alarmManager.setExactAndAllowWhileIdle(
             AlarmManager.RTC_WAKEUP,
