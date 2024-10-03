@@ -7,6 +7,7 @@ import com.michredk.database.DataStoreRepository
 import com.michredk.database.Repository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -16,7 +17,7 @@ class GalleryViewModel @Inject constructor(
     private val dataStore: DataStoreRepository
 ) : ViewModel() {
 
-    val getAlbums = repository.getAlbums()
+    var getAlbums = repository.getAlbums()
     val isContextMenuTipCompleted = dataStore.readContextMenuTipState()
     val isPagerViewModeOn = dataStore.readGalleryViewMode()
 

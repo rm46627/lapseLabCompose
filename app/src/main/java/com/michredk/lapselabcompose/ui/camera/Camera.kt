@@ -16,7 +16,6 @@ import androidx.camera.core.CameraSelector
 import androidx.camera.core.ImageCapture
 import androidx.camera.core.ImageCaptureException
 import androidx.camera.core.ImageProxy
-import androidx.camera.core.UseCase
 import androidx.camera.view.CameraController
 import androidx.camera.view.LifecycleCameraController
 import androidx.compose.animation.core.animateFloatAsState
@@ -32,7 +31,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.safeContentPadding
 import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -42,6 +40,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Cameraswitch
 import androidx.compose.material.icons.filled.PeopleAlt
+import androidx.compose.material.icons.filled.Photo
 import androidx.compose.material.icons.filled.PhotoCamera
 import androidx.compose.material.icons.filled.UploadFile
 import androidx.compose.material3.Icon
@@ -65,7 +64,6 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
@@ -76,16 +74,13 @@ import androidx.navigation.NavHostController
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.michredk.files.appPicturesDir
-import com.michredk.lapselab.files.FileMediaManager
 import com.michredk.lapselab.files.MediaManagerFactory
 import com.michredk.lapselabcompose.R
 import com.michredk.lapselabcompose.services.SnackbarController
 import com.michredk.lapselabcompose.services.SnackbarEvent
 import com.michredk.lapselabcompose.ui.CameraGraph
 import com.michredk.lapselabcompose.ui.common.TipDialog
-import com.michredk.lapselabcompose.ui.theme.LapseLabComposeTheme
 import com.michredk.video.TAG
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
@@ -142,7 +137,7 @@ fun CameraRoute(
     CameraScreen(
         cameraController = cameraController,
         albumName = albumName ?: throw NullPointerException(),
-        onTakePictureClicked = { shootSeries ->
+        onTakePictureClicked = { shootBurst ->
             captureBtnEnabled = false
             cameraController.takePicture(ContextCompat.getMainExecutor(context),
                 object : ImageCapture.OnImageCapturedCallback() {
@@ -160,7 +155,7 @@ fun CameraRoute(
                             )
                         }
                         captureBtnEnabled = true
-                        if (shootSeries) {
+                        if (shootBurst) {
                             photosTaken++
                         } else {
                             navController.navigate(PhotoPreviewDestination(navigatedFromAlbumDetails))
@@ -270,8 +265,27 @@ fun CameraScreen(
     val modeButtonsEnabled = ghostPath != null || ghostBitmap != null
     if (modeButtonsEnabled && navigatedFromAlbumDetails) {
         TipDialog(
-            title = "View ghost of previous photo",
-            text = "Lorem ipsum tip",
+            title = "What these buttons do?",
+            content = {
+                Column {
+                    Row {
+                        Icon(modifier = Modifier.padding(end = 4.dp), imageVector = Icons.Default.Cameraswitch, contentDescription = "camera switch explanation")
+                        Text(text = "Change camera")
+                    }
+                    Row(modifier = Modifier.padding(top = 8.dp)) {
+                        Icon(modifier = Modifier.padding(end = 4.dp),imageVector = Icons.Default.UploadFile, contentDescription = "upload button explanation")
+                        Text(text = "Upload image from your phone")
+                    }
+                    Row(modifier = Modifier.padding(top = 8.dp)) {
+                        Icon(modifier = Modifier.padding(end = 4.dp), painter = painterResource(id = R.drawable.ic_ghost), contentDescription = "ghost button explanation")
+                        Text(text = "Switch on/off preview of the last photo")
+                    }
+                    Row(modifier = Modifier.padding(top = 8.dp)) {
+                        Icon(modifier = Modifier.padding(end = 4.dp), imageVector = Icons.Default.Photo, contentDescription = "Switch camera mode explanation")
+                        Text(text = "Switch between normal and burst modes")
+                    }
+                }
+            },
             viewTipDialog = !isGhostBtnTipCompleted,
             saveTipViewed = updateGhostBtnTipValue
         )
@@ -338,7 +352,7 @@ private fun BoxScope.CameraButtons(
     onUploadClicked: () -> Unit,
     captureBtnEnabled: Boolean
 ) {
-    var shootSeries by remember {
+    var shootBurst by remember {
         mutableStateOf(false)
     }
     var modeIcon by remember {
@@ -435,14 +449,14 @@ private fun BoxScope.CameraButtons(
                     .background(finalBackgroundColor, shape = CircleShape),
                 iconModifier = Modifier.size(iconSize + 10.dp),
                 onTakePictureClicked = onTakePictureClicked,
-                shootSeries = shootSeries,
+                shootBurst = shootBurst,
                 captureBtnEnabled = captureBtnEnabled
             )
         }
 
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Text(
-                text = if (shootSeries) "Series Mode" else "Photo Mode",
+                text = if (shootBurst) "Burst Mode" else "Photo Mode",
                 color = Color.Black,
                 textAlign = TextAlign.Center,
                 modifier = Modifier
@@ -464,8 +478,8 @@ private fun BoxScope.CameraButtons(
                         ), shape = CircleShape
                     ),
                 onClick = {
-                    shootSeries = !shootSeries
-                    modeIcon = if (shootSeries) R.drawable.bursts_mode else R.drawable.image_mode
+                    shootBurst = !shootBurst
+                    modeIcon = if (shootBurst) R.drawable.bursts_mode else R.drawable.image_mode
                     animateModeText = true
                 }, enabled = modeButtonsEnabled
             ) {
@@ -485,7 +499,7 @@ private fun CaptureButton(
     iconModifier: Modifier,
     onTakePictureClicked: (Boolean) -> Unit,
     interactionSource: MutableInteractionSource,
-    shootSeries: Boolean,
+    shootBurst: Boolean,
     captureBtnEnabled: Boolean
 ) {
     IconButton(
@@ -493,7 +507,7 @@ private fun CaptureButton(
         interactionSource = interactionSource,
         modifier = btnModifier,
         onClick = {
-            onTakePictureClicked(shootSeries)
+            onTakePictureClicked(shootBurst)
         }) {
         Icon(
             imageVector = Icons.Default.PhotoCamera,

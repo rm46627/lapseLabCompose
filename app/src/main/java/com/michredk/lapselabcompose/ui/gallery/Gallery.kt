@@ -1,5 +1,6 @@
 package com.michredk.lapselabcompose.ui.gallery
 
+import android.util.Log
 import androidx.compose.foundation.LocalIndication
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -45,6 +46,7 @@ import androidx.compose.material3.ShapeDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -68,6 +70,7 @@ import androidx.navigation.NavHostController
 import com.michredk.database.Album
 import com.michredk.lapselab.files.MediaManagerFactory
 import com.michredk.lapselabcompose.R
+import com.michredk.lapselabcompose.TAG
 import com.michredk.lapselabcompose.services.alarm.AlarmScheduler
 import com.michredk.lapselabcompose.ui.common.TipDialog
 import com.michredk.lapselabcompose.ui.details.DetailsDestination
@@ -124,7 +127,7 @@ fun GalleryRoute(navController: NavHostController) {
         if (albums.isNotEmpty()) {
             TipDialog(
                 title = "Context menu",
-                text = "Use long press on album card to view context menu.",
+                content = { Text(text = "Use long press on album card to view context menu.") },
                 viewTipDialog = !isContextMenuTipCompleted,
                 saveTipViewed = {
                     galleryViewModel.updateContextMenuTipValue(isCompleted = true)
@@ -147,6 +150,7 @@ fun GalleryRoute(navController: NavHostController) {
             onAlbumMenuItemClicked = { id, albumName ->
                 when (id) {
                     "delete" -> {
+                        Log.d(TAG, "delete: $albumName")
                         albumToRemove = albumName
                     }
 
@@ -157,13 +161,18 @@ fun GalleryRoute(navController: NavHostController) {
                             galleryViewModel.updateAlbum(
                                 album.copy(order = orderNum - 1)
                             )
+                        navController.navigate(GalleryDestination){
+                            popUpTo(GalleryDestination){
+                                inclusive = true
+                            }
+                        }
                     }
                 }
             },
             galleryDropDownItems = listOf(
                 GalleryMenuItem(
                     id = "switch view mode",
-                        if (isPagerViewModeOn) "Switch to Grid" else "Switch to Pager",
+                    if (isPagerViewModeOn) "Switch to Grid" else "Switch to Pager",
                     icon = if (isPagerViewModeOn) Icons.Default.GridView else Icons.Default.Pages
                 ),
                 GalleryMenuItem(id = "reset tips", "Reset Tips", icon = Icons.Default.Cached)
@@ -238,7 +247,10 @@ private fun GalleryScreen(
             )
             Box {
                 IconButton(onClick = { isMenuVisible = true }) {
-                    Icon(painter = painterResource(id = R.drawable.three_dots), contentDescription = "Menu")
+                    Icon(
+                        painter = painterResource(id = R.drawable.three_dots),
+                        contentDescription = "Menu"
+                    )
                 }
                 DropdownMenu(
                     modifier = Modifier.background(color = MaterialTheme.colorScheme.secondaryContainer),
@@ -309,6 +321,7 @@ private fun PagerGallery(
         state = pagerState,
         pagerSnapDistance = PagerSnapDistance.atMost(2)
     )
+    var contextMenuPageOpened by remember { mutableIntStateOf(-1) }
     HorizontalPager(
         state = pagerState,
         pageSpacing = 18.dp,
@@ -340,8 +353,12 @@ private fun PagerGallery(
                                 )
                             },
                             onLongPress = {
-                                isContextMenuVisible = true
-                                pressOffset = DpOffset(it.x.toDp(), it.y.toDp())
+                                if (page != albumsWithExtras.size - 1) {
+                                    isContextMenuVisible = true
+                                    pressOffset = DpOffset(it.x.toDp(), it.y.toDp())
+                                    contextMenuPageOpened = page
+                                    Log.d(TAG, "page: $page, state: $contextMenuPageOpened")
+                                }
                             })
                     },
                 elevation = CardDefaults.cardElevation(
@@ -364,29 +381,30 @@ private fun PagerGallery(
             }
             Spacer(modifier = Modifier.height(100.dp))
         }
-        DropdownMenu(
-            modifier = Modifier.background(color = MaterialTheme.colorScheme.secondaryContainer),
-            expanded = isContextMenuVisible,
-            offset = pressOffset.copy(y = pressOffset.y - itemHeight),
-            onDismissRequest = { isContextMenuVisible = false }) {
-            albumDropDownItems.forEach { item ->
-                DropdownMenuItem(
-                    text = { Text(text = item.text) },
-                    leadingIcon = {
-                        Icon(
-                            imageVector = item.icon,
-                            contentDescription = item.text
-                        )
-                    },
-                    onClick = {
-                        onAlbumMenuItemClicked(item.id, album.directoryName)
-                        isContextMenuVisible = false
-                    },
-                )
-            }
-        }
-
     }
+    DropdownMenu(
+        modifier = Modifier.background(color = MaterialTheme.colorScheme.secondaryContainer),
+        expanded = isContextMenuVisible,
+        offset = pressOffset.copy(y = pressOffset.y - itemHeight),
+        onDismissRequest = { isContextMenuVisible = false }) {
+        albumDropDownItems.forEach { item ->
+            DropdownMenuItem(
+                text = { Text(text = item.text) },
+                leadingIcon = {
+                    Icon(
+                        imageVector = item.icon,
+                        contentDescription = item.text
+                    )
+                },
+                onClick = { // Avoid calling for the last item
+                    onAlbumMenuItemClicked(item.id, albumsWithExtras[contextMenuPageOpened].directoryName)
+                    isContextMenuVisible = false
+                    contextMenuPageOpened = -1
+                },
+            )
+        }
+    }
+
 }
 
 @Composable
