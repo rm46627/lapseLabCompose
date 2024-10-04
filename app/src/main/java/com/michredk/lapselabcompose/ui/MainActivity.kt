@@ -270,20 +270,18 @@ class PermissionViewModel @Inject constructor() : ViewModel() {
 
     var photosPermissionsToRequest =
         arrayOf(
-            Manifest.permission.CAMERA,
-            Manifest.permission.POST_NOTIFICATIONS
+            Manifest.permission.CAMERA
         )
 
     private val permissionsMap = mutableMapOf(
-        Pair(Manifest.permission.CAMERA, false),
-        Pair(Manifest.permission.POST_NOTIFICATIONS, false)
+        Pair(Manifest.permission.CAMERA, false)
     )
     private val _allPermissionsGranted = MutableStateFlow(false)
     val allPermissionsGranted = _allPermissionsGranted.asStateFlow()
     val visiblePermissionDialogQueue = mutableStateListOf<String>()
 
     init {
-        if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.P) {
+        if (Build.VERSION.SDK_INT <= 28) {
             photosPermissionsToRequest = arrayOf(
                 Manifest.permission.CAMERA,
                 Manifest.permission.READ_EXTERNAL_STORAGE,
@@ -291,6 +289,12 @@ class PermissionViewModel @Inject constructor() : ViewModel() {
             )
             permissionsMap[Manifest.permission.READ_EXTERNAL_STORAGE] = false
             permissionsMap[Manifest.permission.WRITE_EXTERNAL_STORAGE] = false
+        } else if (Build.VERSION.SDK_INT >= 33){
+            photosPermissionsToRequest = arrayOf(
+                Manifest.permission.CAMERA,
+                Manifest.permission.POST_NOTIFICATIONS
+            )
+            permissionsMap[Manifest.permission.POST_NOTIFICATIONS] = false
         }
     }
 

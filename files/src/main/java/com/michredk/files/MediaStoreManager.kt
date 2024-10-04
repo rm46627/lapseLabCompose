@@ -8,6 +8,7 @@ import android.graphics.Bitmap
 import android.media.MediaScannerConnection
 import android.net.Uri
 import android.os.Build
+import android.os.Environment
 import android.provider.MediaStore
 import android.util.Log
 import androidx.annotation.RequiresApi
@@ -25,7 +26,6 @@ const val appMoviesDir = "Movies/LapseLab"
 const val PHOTO_TYPE = "image/png"
 const val VIDEO_TYPE = "video/mp4"
 
-@RequiresApi(Build.VERSION_CODES.Q)
 class MediaStoreMediaManager(private val context: Context) : MediaManagerInterface {
 
     ////
@@ -40,9 +40,18 @@ class MediaStoreMediaManager(private val context: Context) : MediaManagerInterfa
     }
 
     private val mediaStoreImageCollection: Uri? =
-        MediaStore.Images.Media.getContentUri(MediaStore.VOLUME_EXTERNAL)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            MediaStore.Images.Media.getContentUri(MediaStore.VOLUME_EXTERNAL)
+        } else {
+            MediaStore.Images.Media.EXTERNAL_CONTENT_URI
+        }
+
     private val mediaStoreVideoCollection: Uri? =
-        MediaStore.Video.Media.getContentUri(MediaStore.VOLUME_EXTERNAL)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            MediaStore.Video.Media.getContentUri(MediaStore.VOLUME_EXTERNAL)
+        } else {
+            MediaStore.Video.Media.EXTERNAL_CONTENT_URI
+        }
 
     private fun createContentValues(
         name: String,
@@ -50,12 +59,40 @@ class MediaStoreMediaManager(private val context: Context) : MediaManagerInterfa
         filetype: String
     ): ContentValues =
         ContentValues().apply {
-            Log.d(TAG, "createContentValues")
             put(MediaStore.MediaColumns.DISPLAY_NAME, name)
             put(MediaStore.MediaColumns.MIME_TYPE, filetype)
             when (filetype) {
-                PHOTO_TYPE -> put(MediaStore.Images.Media.RELATIVE_PATH, subfolder)
-                VIDEO_TYPE -> put(MediaStore.Video.Media.RELATIVE_PATH, subfolder)
+                PHOTO_TYPE -> if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                    put(MediaStore.Images.Media.RELATIVE_PATH, subfolder)
+                } else {
+                    val albumFolder = File(
+                        Environment.getExternalStorageDirectory(), subfolder
+                    )
+                    if (!albumFolder.exists()) {
+                        albumFolder.mkdirs()
+                    }
+                    put(
+                        MediaStore.Images.Media.DATA,
+                        "${Environment.getExternalStorageDirectory()}/$subfolder/$name.png"
+                    )
+                }
+
+                VIDEO_TYPE ->
+//                    put(MediaStore.Video.Media.RELATIVE_PATH, subfolder)
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                    put(MediaStore.Video.Media.RELATIVE_PATH, subfolder)
+                } else {
+                    val albumFolder = File(
+                        Environment.getExternalStorageDirectory(), subfolder
+                    )
+                    if (!albumFolder.exists()) {
+                        albumFolder.mkdirs()
+                    }
+                    put(
+                        MediaStore.Video.Media.DATA,
+                        "${Environment.getExternalStorageDirectory()}/$subfolder/$name"
+                    )
+                }
             }
         }
 
@@ -80,8 +117,6 @@ class MediaStoreMediaManager(private val context: Context) : MediaManagerInterfa
             file.delete()
         }
         videoAlbumFolder!!.delete()
-
-
     }
 
     ////
@@ -126,7 +161,11 @@ class MediaStoreMediaManager(private val context: Context) : MediaManagerInterfa
         withContext(Dispatchers.IO) {
             val projection = arrayOf(imageDataColumnIndex, imageIdColumnIndex)
             val sortOrder = "DATE_ADDED DESC"
-            val selection = "${MediaStore.Images.ImageColumns.RELATIVE_PATH} LIKE ?"
+            val selection = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                "${MediaStore.Images.ImageColumns.RELATIVE_PATH} LIKE ?"
+            } else {
+                "${MediaStore.Images.ImageColumns.DATA} LIKE ?"
+            }
             val arg = if (albumName != null) {
                 "%$appPicturesDir/$albumName/%"
             } else {
@@ -268,7 +307,11 @@ class MediaStoreMediaManager(private val context: Context) : MediaManagerInterfa
         withContext(Dispatchers.IO) {
             val projection = arrayOf(videoDataColumnIndex, videoIdColumnIndex)
             val sortOrder = "DATE_ADDED DESC"
-            val selection = "${MediaStore.Video.VideoColumns.RELATIVE_PATH} LIKE ?"
+            val selection = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                "${MediaStore.Video.VideoColumns.RELATIVE_PATH} LIKE ?"
+            } else {
+                "${MediaStore.Video.VideoColumns.DATA} LIKE ?"
+            }
             val arg = if (albumName != null) {
                 "%$appMoviesDir/$albumName/%"
             } else {
@@ -300,9 +343,5 @@ class MediaStoreMediaManager(private val context: Context) : MediaManagerInterfa
             }
         }
         return files
-    }
-
-    override suspend fun getMoviesFolderFile(albumName: String): File? {
-        TODO("Not yet implemented")
     }
 }

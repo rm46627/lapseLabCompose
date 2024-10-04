@@ -30,5 +30,4 @@ interface MediaManagerInterface {
 
     suspend fun getAlbumFolderFile(albumName: String): File?
     suspend fun getVideoFiles(albumName: String): MutableList<File>
-    suspend fun getMoviesFolderFile(albumName: String): File?
 }

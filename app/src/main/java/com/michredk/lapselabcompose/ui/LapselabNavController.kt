@@ -116,15 +116,18 @@ class LapselabNavController(
     ) {
         navigation<SetupGraph>(startDestination = SetupAlbumDestination) {
             composable<SetupAlbumDestination> { backStackEntry ->
-                SetupAlbumRoute(backStackEntry, navController)
+                SetupAlbumRoute(
+                    backStackEntry,
+                    navController,
+                    permissionsResultLaunch,
+                    permissionViewModel,
+                )
             }
             composable<SetupPhotoDestination> { backStackEntry ->
                 val args = backStackEntry.toRoute<SetupPhotoDestination>()
                 SetupPhotoRoute(
                     backStackEntry,
                     navController,
-                    permissionsResultLaunch,
-                    permissionViewModel,
                     args.albumName
                 )
             }

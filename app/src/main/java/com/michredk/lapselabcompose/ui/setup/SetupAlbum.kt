@@ -35,7 +35,9 @@ import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavHostController
 import com.michredk.lapselabcompose.R
 import com.michredk.lapselabcompose.TAG
+import com.michredk.lapselabcompose.ui.PermissionViewModel
 import com.michredk.lapselabcompose.ui.SetupGraph
+import com.michredk.lapselabcompose.ui.camera.CameraDestination
 import com.michredk.lapselabcompose.ui.common.BackHandlingDialog
 import com.michredk.lapselabcompose.ui.common.DropDownMenu
 import kotlinx.serialization.Serializable
@@ -45,35 +47,39 @@ object SetupAlbumDestination
 
 @Composable
 fun SetupAlbumRoute(
-    backStackEntry: NavBackStackEntry, navController: NavHostController
+    backStackEntry: NavBackStackEntry,
+    navController: NavHostController,
+    permissionsResultLaunch: () -> Unit,
+    permissionViewModel: PermissionViewModel,
 ) {
     val parentEntry = remember(backStackEntry) {
         navController.getBackStackEntry(SetupGraph)
     }
     val setupViewModel: SetupViewModel = hiltViewModel(parentEntry)
     val albums by setupViewModel.albums.collectAsStateWithLifecycle(initialValue = emptyList())
+    val granted by permissionViewModel.allPermissionsGranted.collectAsStateWithLifecycle()
 
-    SetupAlbumScreen(
-        onNextButtonClicked = {
+    SetupAlbumScreen(onNextButtonClicked = {
+        Log.d(TAG, "granted: $granted")
+        if (granted) {
             navController.navigate(SetupPhotoDestination()) {
                 popUpTo(SetupAlbumDestination) {
                     inclusive = true
                 }
             }
-        },
-        checkForNameConflict = { name ->
-            setupViewModel.albumName = name
-            !albums.none { album ->
-                album.directoryName == name
-            }
-        },
-        onLeaveAlertClicked = {
-            navController.popBackStack()
-        },
-        frequencyIsValid = { value ->
-            setupViewModel.frequencyIsValid(value)
+        } else {
+            permissionsResultLaunch()
         }
-    )
+    }, checkForNameConflict = { name ->
+        setupViewModel.albumName = name
+        !albums.none { album ->
+            album.directoryName == name
+        }
+    }, onLeaveAlertClicked = {
+        navController.popBackStack()
+    }, frequencyIsValid = { value ->
+        setupViewModel.frequencyIsValid(value)
+    })
 }
 
 @Composable
@@ -102,24 +108,19 @@ fun SetupAlbumScreen(
         val offset = 400f
         val titleBrush = Brush.linearGradient(
             listOf(
-                MaterialTheme.colorScheme.onPrimaryContainer,
-                MaterialTheme.colorScheme.primary
+                MaterialTheme.colorScheme.onPrimaryContainer, MaterialTheme.colorScheme.primary
             ), tileMode = TileMode.Mirror, start = Offset(0f, 0f), end = Offset(offset, offset)
         )
         Text(
-            textAlign = TextAlign.Center,
-            style = TextStyle(
+            textAlign = TextAlign.Center, style = TextStyle(
                 brush = titleBrush,
                 fontWeight = FontWeight.ExtraBold,
                 fontSize = MaterialTheme.typography.headlineLarge.fontSize
-            ),
-            text = stringResource(R.string.album_setup_title)
+            ), text = stringResource(R.string.album_setup_title)
         )
         Spacer(modifier = Modifier.height(24.dp))
-        NameTextField(
-            checkForNameConflict = checkForNameConflict,
-            onNameValidityChanged = { isValid -> nameIsValid = isValid }
-        )
+        NameTextField(checkForNameConflict = checkForNameConflict,
+            onNameValidityChanged = { isValid -> nameIsValid = isValid })
 
         Column(modifier = Modifier.padding(16.dp)) {
             Text(
@@ -135,7 +136,8 @@ fun SetupAlbumScreen(
                     "Every 3 weeks",
                     "Once a month",
                     "Every 6 months"
-                ), "Select or type frequency",
+                ),
+                "Select or type frequency",
                 onValueChanged = { value ->
                     if (frequencyIsValid(value)) {
                         notificationsSet = true
@@ -169,8 +171,7 @@ fun SetupAlbumScreen(
 
 @Composable
 fun NameTextField(
-    checkForNameConflict: (String) -> Boolean,
-    onNameValidityChanged: (Boolean) -> Unit
+    checkForNameConflict: (String) -> Boolean, onNameValidityChanged: (Boolean) -> Unit
 ) {
     var text by rememberSaveable { mutableStateOf("") }
     val errorText = "Must be at least 3 characters long"
@@ -179,28 +180,22 @@ fun NameTextField(
     var isError by rememberSaveable { mutableStateOf(false) }
     var isConflict by rememberSaveable { mutableStateOf(false) }
     var isForbidden by remember { mutableStateOf(false) }
-    OutlinedTextField(isError = isError || isConflict || isForbidden,
-        supportingText = {
-            if (isForbidden) Text(text = forbiddenText) else if (isError) Text(text = errorText) else if (isConflict) Text(
-                text = conflictText
+    OutlinedTextField(isError = isError || isConflict || isForbidden, supportingText = {
+        if (isForbidden) Text(text = forbiddenText) else if (isError) Text(text = errorText) else if (isConflict) Text(
+            text = conflictText
+        )
+    }, value = text, label = { Text("Album name") }, onValueChange = { newText ->
+        text = newText
+        isConflict = checkForNameConflict(newText)
+        isError = text.length < 3
+        isForbidden = text.fold(initial = false) { flag, char ->
+            Log.d(
+                TAG,
+                "char: '$char', flag: $flag, isLetter: ${!char.isLetterOrDigit()}, isWhite: ${!char.isWhitespace()}, lettDigitWhite: ${((!char.isLetterOrDigit() || !char.isWhitespace()))}, comb:${(flag || (!char.isLetterOrDigit() || !char.isWhitespace()))}"
             )
-        },
-        value = text,
-        label = { Text("Album name") },
-        onValueChange = { newText ->
-            text = newText
-            isConflict = checkForNameConflict(newText)
-            isError = text.length < 3
-            isForbidden =
-                text.fold(initial = false) { flag, char ->
-                    Log.d(
-                        TAG,
-                        "char: '$char', flag: $flag, isLetter: ${!char.isLetterOrDigit()}, isWhite: ${!char.isWhitespace()}, lettDigitWhite: ${((!char.isLetterOrDigit() || !char.isWhitespace()))}, comb:${(flag || (!char.isLetterOrDigit() || !char.isWhitespace()))}"
-                    )
-                    (flag || (!char.isLetterOrDigit() && !char.isWhitespace()))
-                }
-            Log.d(TAG, "isForbidden: $isForbidden")
-            onNameValidityChanged(!isError && !isConflict && !isForbidden)
+            (flag || (!char.isLetterOrDigit() && !char.isWhitespace()))
         }
-    )
+        Log.d(TAG, "isForbidden: $isForbidden")
+        onNameValidityChanged(!isError && !isConflict && !isForbidden)
+    })
 }

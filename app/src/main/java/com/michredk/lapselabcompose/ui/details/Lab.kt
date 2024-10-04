@@ -305,11 +305,9 @@ fun LabScreen(
 ) {
     Column(
         Modifier
-            .safeDrawingPadding()
             .verticalScroll(rememberScrollState())
             .fillMaxSize()
-            .alpha(alpha)
-            .safeContentPadding(),
+            .alpha(alpha),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         if (alpha > 0f || mediaSource != null) {

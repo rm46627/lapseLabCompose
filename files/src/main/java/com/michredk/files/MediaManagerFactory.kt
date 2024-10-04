@@ -12,12 +12,13 @@ const val FILES_NAME_DATE_FORMAT = "yyyy-MM-dd-HH-mm-ss-SSS"
 
 class MediaManagerFactory(context: Context) : MediaManagerInterface {
 
-    private var manager: MediaManagerInterface =
-        if (Build.VERSION.SDK_INT > Build.VERSION_CODES.Q) {
-            MediaStoreMediaManager(context)
-        } else {
-            FileMediaManager(context)
-        }
+//    private var manager: MediaManagerInterface =
+//        if (Build.VERSION.SDK_INT > Build.VERSION_CODES.Q) {
+//            MediaStoreMediaManager(context)
+//        } else {
+//            FileMediaManager(context)
+//        }
+    private var manager: MediaManagerInterface = MediaStoreMediaManager(context)
 
     override suspend fun saveBitmap(
         bitmap: Bitmap,
@@ -61,10 +62,6 @@ class MediaManagerFactory(context: Context) : MediaManagerInterface {
 
     override suspend fun getVideoFiles(albumName: String): MutableList<File> =
         manager.getVideoFiles(albumName)
-
-    override suspend fun getMoviesFolderFile(albumName: String): File? {
-        TODO("Not yet implemented")
-    }
 
     suspend fun getVideoFile(albumName: String, fileName: String): File {
         return File(getAlbumFolderFile(albumName), fileName)

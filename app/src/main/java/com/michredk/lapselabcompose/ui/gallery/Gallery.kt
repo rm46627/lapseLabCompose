@@ -29,10 +29,12 @@ import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowUpward
 import androidx.compose.material.icons.filled.Cached
+import androidx.compose.material.icons.filled.Cameraswitch
 import androidx.compose.material.icons.filled.DeleteForever
 import androidx.compose.material.icons.filled.GridView
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Pages
+import androidx.compose.material.icons.filled.UploadFile
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -127,7 +129,17 @@ fun GalleryRoute(navController: NavHostController) {
         if (albums.isNotEmpty()) {
             TipDialog(
                 title = "Context menu",
-                content = { Text(text = "Use long press on album card to view context menu.") },
+                content = { Column {
+                    Text(text = "Use long press on album card to view context menu:")
+                    Row(modifier = Modifier.padding(top = 8.dp)) {
+                        Icon(modifier = Modifier.padding(end = 4.dp), imageVector = Icons.Default.ArrowUpward, contentDescription = "camera switch explanation")
+                        Text(text = "Move album up on the list")
+                    }
+                    Row(modifier = Modifier.padding(top = 8.dp)) {
+                        Icon(modifier = Modifier.padding(end = 4.dp),imageVector = Icons.Default.DeleteForever, contentDescription = "upload button explanation")
+                        Text(text = "Delete your album forever")
+                    }
+                } },
                 viewTipDialog = !isContextMenuTipCompleted,
                 saveTipViewed = {
                     galleryViewModel.updateContextMenuTipValue(isCompleted = true)

@@ -63,15 +63,12 @@ data class SetupPhotoDestination(val albumName: String? = null)
 fun SetupPhotoRoute(
     backStackEntry: NavBackStackEntry,
     navController: NavHostController,
-    permissionsResultLaunch: () -> Unit,
-    permissionViewModel: PermissionViewModel,
     albumName: String?
 ) {
     val parentEntry = remember(backStackEntry) {
         navController.getBackStackEntry(SetupGraph)
     }
     val setupViewModel: SetupViewModel = hiltViewModel(parentEntry)
-    val granted by permissionViewModel.allPermissionsGranted.collectAsStateWithLifecycle()
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
     val mediaManager = MediaManagerFactory(context)
@@ -80,15 +77,12 @@ fun SetupPhotoRoute(
     setupViewModel.albumName?.let {
         SetupPhotoScreen(
             onFirstImagePreviewClicked = { albumName ->
-                if (granted) {
+
                     navController.navigate(CameraDestination(albumName)) {
                         popUpTo(SetupPhotoDestination()) {
                             inclusive = true
                         }
                     }
-                } else {
-                    permissionsResultLaunch()
-                }
             },
             onCreateAlbumClicked = { imagePath ->
                 navController.navigate(GalleryDestination) {
@@ -178,7 +172,6 @@ fun SetupPhotoScreen(
                 }
             }
         }
-        Spacer(modifier = Modifier.weight(1F))
 
     }
 

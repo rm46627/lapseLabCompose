@@ -33,6 +33,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.CornerSize
@@ -116,8 +117,6 @@ fun CameraRoute(
     val isGhostBtnTipCompleted by cameraViewModel.isGhostBtnTipCompleted.collectAsStateWithLifecycle(
         initialValue = true
     )
-
-    Log.d(TAG, "tip completed: $isGhostBtnTipCompleted")
 
     val cameraController = remember {
         LifecycleCameraController(context).apply {
@@ -373,8 +372,7 @@ private fun BoxScope.CameraButtons(
 
     Row(
         modifier = Modifier
-            .safeDrawingPadding()
-            .padding(16.dp, 16.dp)
+            .padding(horizontal = 16.dp, vertical = 28.dp)
             .fillMaxWidth()
             .align(Alignment.TopCenter),
         horizontalArrangement = Arrangement.SpaceBetween,
@@ -396,7 +394,11 @@ private fun BoxScope.CameraButtons(
             onClick = onUploadClicked,
             modifier = Modifier
                 .size(btnSize)
-                .background(btnBackgroundColor, shape = CircleShape),
+                .background(
+                    if (modeButtonsEnabled) btnBackgroundColor else btnBackgroundColor.copy(
+                        alpha = 0.5f
+                    ), shape = CircleShape
+                ), enabled = modeButtonsEnabled
         ) {
             Icon(
                 modifier = Modifier.size(iconSize),
