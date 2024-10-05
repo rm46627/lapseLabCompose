@@ -164,12 +164,15 @@ fun SetupPhotoScreen(
                 contentDescription = "First album photo",
                 error = painterResource(id = R.drawable.ic_add_photo)
             )
-            photoPath?.let {
+            if(photoPath != null) {
                 OutlinedButton(onClick = {
-                    onCreateAlbumClicked(it)
+                    onCreateAlbumClicked(photoPath!!)
                 }) {
                     Text(text = "Create new album")
                 }
+            }
+            else {
+                Spacer(modifier = Modifier)
             }
         }
 
