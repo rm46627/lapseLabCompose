@@ -25,6 +25,7 @@ import androidx.compose.foundation.lazy.staggeredgrid.itemsIndexed
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.PagerDefaults
 import androidx.compose.foundation.pager.PagerSnapDistance
+import androidx.compose.foundation.pager.PagerState
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowUpward
@@ -47,13 +48,16 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ShapeDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.saveable.rememberSaveableStateHolder
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
@@ -67,7 +71,9 @@ import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.util.lerp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.compose.saveable
 import androidx.navigation.NavHostController
 import com.michredk.database.Album
 import com.michredk.lapselab.files.MediaManagerFactory
@@ -150,7 +156,11 @@ fun GalleryRoute(navController: NavHostController) {
         GalleryScreen(
             albums = albums,
             onAlbumClick = { name ->
-                navController.navigate(DetailsDestination(name))
+                navController.navigate(DetailsDestination(name)){
+                    popUpTo(DetailsDestination(name)){
+                        inclusive = true
+                    }
+                }
             },
             onCreateClick = {
                 navController.navigate(SetupAlbumDestination)
@@ -328,12 +338,23 @@ private fun PagerGallery(
     val interactionSource = remember {
         MutableInteractionSource()
     }
-    val pagerState = rememberPagerState(pageCount = { albumsWithExtras.size })
+    val savedPage = rememberSaveable { mutableIntStateOf(0) }
+    val pagerState = rememberPagerState(initialPage = savedPage.intValue, pageCount = { albumsWithExtras.size })
+    LaunchedEffect(pagerState) {
+        pagerState.scrollToPage(savedPage.intValue)
+    }
+    LaunchedEffect(pagerState) {
+        snapshotFlow { pagerState.currentPage }.collect { page ->
+            savedPage.intValue = page
+        }
+    }
+
     val fling = PagerDefaults.flingBehavior(
         state = pagerState,
         pagerSnapDistance = PagerSnapDistance.atMost(2)
     )
     var contextMenuPageOpened by remember { mutableIntStateOf(-1) }
+
     HorizontalPager(
         state = pagerState,
         pageSpacing = 18.dp,
@@ -360,9 +381,10 @@ private fun PagerGallery(
                     .pointerInput(true) {
                         detectTapGestures(
                             onTap = {
-                                if (page == albumsWithExtras.size - 1) onCreateClick() else onAlbumClick(
+                                if (page == albumsWithExtras.size - 1) onCreateClick() else {
+                                    onAlbumClick(
                                     album.directoryName
-                                )
+                                )}
                             },
                             onLongPress = {
                                 if (page != albumsWithExtras.size - 1) {

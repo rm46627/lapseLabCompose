@@ -150,7 +150,6 @@ fun PhotoBrowserScreen(
                 .fillMaxSize(),
             model = ImageRequest.Builder(LocalContext.current)
                 .data(photoPath)
-                .crossfade(1000)
                 .build(),
             contentDescription = "Gallery photo",
             contentScale = ContentScale.Crop,
@@ -162,7 +161,7 @@ fun PhotoBrowserScreen(
         Box(
             Modifier
                 .align(Alignment.TopEnd)
-                .safeDrawingPadding()
+                .padding(top = 24.dp)
         ) {
             IconButton(
                 onClick = { isMenuVisible = true },

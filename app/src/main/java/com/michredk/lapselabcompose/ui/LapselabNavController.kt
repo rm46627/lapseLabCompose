@@ -14,11 +14,13 @@ import androidx.compose.foundation.layout.windowInsetsTopHeight
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.platform.LocalContext
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.media3.common.Player
 import androidx.media3.common.Player.REPEAT_MODE_ONE
 import androidx.media3.exoplayer.ExoPlayer
@@ -48,6 +50,9 @@ import com.michredk.lapselabcompose.ui.setup.SetupAlbumDestination
 import com.michredk.lapselabcompose.ui.setup.SetupAlbumRoute
 import com.michredk.lapselabcompose.ui.setup.SetupPhotoDestination
 import com.michredk.lapselabcompose.ui.setup.SetupPhotoRoute
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 
@@ -67,7 +72,7 @@ class LapselabNavController(
     private val navController: NavHostController,
 ) {
 
-    @SuppressLint("RestrictedApi")
+    @SuppressLint("RestrictedApi", "FlowOperatorInvokedInComposition")
     @Composable
     fun SetupNavGraph(
         modifier: Modifier,
@@ -75,15 +80,24 @@ class LapselabNavController(
         permissionViewModel: PermissionViewModel,
         showInterstitialAd: () -> Unit
     ) {
-
-        navController.addOnDestinationChangedListener { controller, dest, _ ->
-            val routes = controller
-                .currentBackStack.value
-                .map { it.destination.route }
-                .joinToString(",\n\t")
-
-            Log.d("BackStackLog", "BackStack: $routes\n\t${dest.route}")
+        val scope = rememberCoroutineScope()
+        val backStack = remember {
+            navController.currentBackStack
+                .map { stackEntries ->
+                    stackEntries.map { entry -> entry.destination.route }
+                }
+                .stateIn(
+                    scope = scope,
+                    started = SharingStarted.WhileSubscribed(5_000),
+                    initialValue = emptyList()
+                )
         }
+        val bs by backStack.collectAsStateWithLifecycle()
+
+        LaunchedEffect(bs) {
+            Log.d("BackStackLog", "BackStack changed: $bs")
+        }
+
         NavHost(
             modifier = Modifier, navController = navController,
             startDestination = SplashScreenDestination

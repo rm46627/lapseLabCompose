@@ -21,6 +21,7 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.windowInsetsTopHeight
 import androidx.compose.foundation.lazy.grid.GridCells
@@ -62,7 +63,10 @@ import com.michredk.lapselabcompose.services.alarm.AlarmScheduler
 import com.michredk.lapselabcompose.ui.PermissionViewModel
 import com.michredk.lapselabcompose.ui.DetailsGraph
 import com.michredk.lapselabcompose.ui.camera.CameraDestination
+import com.michredk.lapselabcompose.ui.gallery.GalleryDestination
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import kotlinx.serialization.Serializable
 import java.io.File
 import java.time.LocalTime
@@ -94,10 +98,7 @@ fun DetailsRoute(
     val mediaManager = remember {
         MediaManagerFactory(context)
     }
-    var photoUploaded by remember {
-        mutableStateOf(false)
-    }
-    LaunchedEffect(album, photoUploaded) {
+    LaunchedEffect(album) {
         val photos = album?.let {
             mediaManager.getPhotoFiles(it.directoryName)
         }
@@ -105,9 +106,9 @@ fun DetailsRoute(
     }
     val photos by detailsViewModel.photos.collectAsStateWithLifecycle()
 
-    val exoPlayer = remember {
+    val exoPlayer = remember<ExoPlayer?> {
         ExoPlayer.Builder(context).build().apply {
-            playWhenReady = false
+            playWhenReady = true
             repeatMode = REPEAT_MODE_ONE
 
         }
@@ -115,33 +116,20 @@ fun DetailsRoute(
     val alpha = remember { Animatable(initialValue = 0f) }
     val scope = rememberCoroutineScope()
 
-    LaunchedEffect(Unit) {
-        exoPlayer.addListener(object : Player.Listener {
-            override fun onRenderedFirstFrame() {
-                super.onRenderedFirstFrame()
-                exoPlayer.play()
-                scope.launch {
-                    alpha.animateTo(1f, animationSpec = tween(durationMillis = 500))
-                }
-            }
-        })
-    }
-
     BackHandler {
-        scope.launch {
+        scope.launch(Dispatchers.Main) {
             alpha.animateTo(
                 0f, animationSpec = tween(
-                    durationMillis = 250
+                    durationMillis = 200
                 )
             )
             navController.popBackStack()
         }
-
     }
 
     DisposableEffect(Unit) {
         onDispose {
-            exoPlayer.release()
+            exoPlayer?.release()
         }
     }
     photos?.let {
@@ -152,7 +140,6 @@ fun DetailsRoute(
 
         var videoUriState by remember { mutableStateOf<String?>(null) }
         var showDetailsScreen by remember { mutableStateOf(false) }
-        var showPhotoPicker by remember { mutableStateOf(false) }
         LaunchedEffect(Unit) {
             videoUriState = mediaManager.getLatestVideoFile(
                 albumSafe.directoryName
@@ -160,7 +147,7 @@ fun DetailsRoute(
             showDetailsScreen = true
         }
 
-        val mediaSource = remember(videoUriState) {
+        var mediaSource = remember(videoUriState) {
             val newUri = videoUriState
             if (newUri != null) {
                 MediaItem.fromUri(newUri)
@@ -173,20 +160,28 @@ fun DetailsRoute(
         }
         LaunchedEffect(mediaSource) {
             val ms = mediaSource ?: throw CancellationException()
-            exoPlayer.setMediaItem(ms)
-            exoPlayer.prepare()
+            exoPlayer?.setMediaItem(ms)
+            exoPlayer?.prepare()
+        }
+        var showVideo by remember {
+            mutableStateOf(true)
         }
         if (showDetailsScreen) {
             DetailsScreen(
                 alpha = alpha.value,
                 album = albumSafe,
                 photos = it,
-                showPhotoPicker = {
-                    showPhotoPicker = true
-                },
                 onAddPhotoClicked = {
                     if (granted) {
-                        navController.navigate(CameraDestination(albumName, true))
+                        scope.launch {
+                            alpha.animateTo(
+                                0f, animationSpec = tween(
+                                    durationMillis = 300
+                                )
+                            )
+                            showVideo = false
+                            navController.navigate(CameraDestination(albumName, true))
+                        }
                     } else {
                         permissionsResultLaunch()
                     }
@@ -195,9 +190,10 @@ fun DetailsRoute(
                     scope.launch {
                         alpha.animateTo(
                             0f, animationSpec = tween(
-                                durationMillis = 250
+                                durationMillis = 300
                             )
                         )
+                        showVideo = false
                         navController.navigate(LabDestination(albumName))
                     }
                 },
@@ -205,9 +201,10 @@ fun DetailsRoute(
                     scope.launch {
                         alpha.animateTo(
                             0f, animationSpec = tween(
-                                durationMillis = 250
+                                durationMillis = 300
                             )
                         )
+                        showVideo = false
                         navController.navigate(PhotoBrowserDestination(index))
                     }
                 },
@@ -217,8 +214,8 @@ fun DetailsRoute(
                     }
                     detailsViewModel.updateAlbum(albumSafe, freq, time, AlarmScheduler(context))
                 },
-                exoPlayer = exoPlayer,
-                showVideo = mediaSource != null
+                exoPlayer = exoPlayer!!,
+                showVideo = mediaSource != null && showVideo
             )
         }
     }
@@ -229,7 +226,6 @@ fun DetailsScreen(
     alpha: Float,
     album: Album,
     photos: List<File>,
-    showPhotoPicker: () -> Unit,
     onAddPhotoClicked: () -> Unit,
     onEditVideoClicked: () -> Unit,
     onPhotoClicked: (Int) -> Unit,
@@ -265,8 +261,8 @@ fun DetailsScreen(
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .windowInsetsTopHeight(WindowInsets.statusBars)
                 .background(topBackgroundColor)
+                .padding(top = 32.dp)
         )
         DetailsHeader(
             expandedState,

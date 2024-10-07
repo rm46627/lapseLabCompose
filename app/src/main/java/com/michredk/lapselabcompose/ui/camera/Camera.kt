@@ -9,6 +9,7 @@ import android.graphics.Matrix
 import android.net.Uri
 import android.os.Build
 import android.util.Log
+import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
@@ -18,6 +19,7 @@ import androidx.camera.core.ImageCaptureException
 import androidx.camera.core.ImageProxy
 import androidx.camera.view.CameraController
 import androidx.camera.view.LifecycleCameraController
+import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
@@ -32,10 +34,8 @@ import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.statusBars
-import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.shape.CircleShape
@@ -73,6 +73,7 @@ import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.media3.common.Player
 import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavHostController
 import coil.compose.AsyncImage
@@ -85,6 +86,7 @@ import com.michredk.lapselabcompose.services.SnackbarEvent
 import com.michredk.lapselabcompose.ui.CameraGraph
 import com.michredk.lapselabcompose.ui.common.TipDialog
 import com.michredk.video.TAG
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
@@ -136,6 +138,21 @@ fun CameraRoute(
     var showPhotoPicker by remember {
         mutableStateOf(false)
     }
+    val alphaAnim = remember {
+        Animatable(initialValue = 0f)
+    }
+    LaunchedEffect(Unit) {
+        scope.launch {
+            alphaAnim.animateTo(1f, animationSpec = tween(durationMillis = 300))
+        }
+    }
+    BackHandler {
+        scope.launch(Dispatchers.Main) {
+            alphaAnim.animateTo(0f, animationSpec = tween(durationMillis = 300))
+            navController.popBackStack()
+        }
+    }
+
     CameraScreen(
         cameraController = cameraController,
         albumName = albumName ?: throw NullPointerException(),
@@ -184,7 +201,8 @@ fun CameraRoute(
         },
         navigatedFromAlbumDetails = navigatedFromAlbumDetails,
         captureBtnEnabled = captureBtnEnabled,
-        onUploadClicked = { showPhotoPicker = true }
+        onUploadClicked = { showPhotoPicker = true },
+        alpha = alphaAnim.value
     )
 
     PhotoPicker(showPhotoPicker = showPhotoPicker, onResult = { uris ->
@@ -210,11 +228,11 @@ fun CameraRoute(
             }
             SnackbarController.sendEvent(
                 event = SnackbarEvent(
-                    message = if(successFlag && failedFlag) "Some uploads were successful, and some failed."
-                            else if(successFlag) "Uploaded photos successfully."
-                            else if(failedFlag) "Uploading photos failed."
-                            else if (noSelectionFlag) "No photos selected."
-                            else "A really obscure error.",
+                    message = if (successFlag && failedFlag) "Some uploads were successful, and some failed."
+                    else if (successFlag) "Uploaded photos successfully."
+                    else if (failedFlag) "Uploading photos failed."
+                    else if (noSelectionFlag) "No photos selected."
+                    else "A really obscure error.",
                     duration = SnackbarDuration.Short
                 )
             )
@@ -245,7 +263,8 @@ fun CameraScreen(
     updateGhostBtnTipValue: () -> Unit,
     navigatedFromAlbumDetails: Boolean,
     captureBtnEnabled: Boolean,
-    onUploadClicked: () -> Unit
+    onUploadClicked: () -> Unit,
+    alpha: Float
 ) {
     val context = LocalContext.current
     var ghostPath by remember { mutableStateOf<String?>(null) }
@@ -264,26 +283,42 @@ fun CameraScreen(
         delay(100)
         showFlash = false
     }
-    val modeButtonsEnabled = ghostPath != null || ghostBitmap != null
-    if (modeButtonsEnabled && navigatedFromAlbumDetails) {
+    val ghostModeEnabled = ghostPath != null || ghostBitmap != null
+    if (navigatedFromAlbumDetails) {
         TipDialog(
             title = "What these buttons do?",
             content = {
                 Column {
                     Row {
-                        Icon(modifier = Modifier.padding(end = 4.dp), imageVector = Icons.Default.Cameraswitch, contentDescription = "camera switch explanation")
+                        Icon(
+                            modifier = Modifier.padding(end = 4.dp),
+                            imageVector = Icons.Default.Cameraswitch,
+                            contentDescription = "camera switch explanation"
+                        )
                         Text(text = "Change camera")
                     }
                     Row(modifier = Modifier.padding(top = 8.dp)) {
-                        Icon(modifier = Modifier.padding(end = 4.dp),imageVector = Icons.Default.UploadFile, contentDescription = "upload button explanation")
+                        Icon(
+                            modifier = Modifier.padding(end = 4.dp),
+                            imageVector = Icons.Default.UploadFile,
+                            contentDescription = "upload button explanation"
+                        )
                         Text(text = "Upload image from your phone")
                     }
                     Row(modifier = Modifier.padding(top = 8.dp)) {
-                        Icon(modifier = Modifier.padding(end = 4.dp), painter = painterResource(id = R.drawable.ic_ghost), contentDescription = "ghost button explanation")
+                        Icon(
+                            modifier = Modifier.padding(end = 4.dp),
+                            painter = painterResource(id = R.drawable.ic_ghost),
+                            contentDescription = "ghost button explanation"
+                        )
                         Text(text = "Switch on/off preview of the last photo")
                     }
                     Row(modifier = Modifier.padding(top = 8.dp)) {
-                        Icon(modifier = Modifier.padding(end = 4.dp), imageVector = Icons.Default.Photo, contentDescription = "Switch camera mode explanation")
+                        Icon(
+                            modifier = Modifier.padding(end = 4.dp),
+                            imageVector = Icons.Default.Photo,
+                            contentDescription = "Switch camera mode explanation"
+                        )
                         Text(text = "Switch between normal and burst modes")
                     }
                 }
@@ -294,7 +329,9 @@ fun CameraScreen(
     }
 
     Box(
-        modifier = Modifier.fillMaxSize()
+        modifier = Modifier
+            .fillMaxSize()
+            .alpha(alpha)
     ) {
         CameraPreview(controller = cameraController, modifier = Modifier.fillMaxSize())
         if (showGhost) {
@@ -320,7 +357,8 @@ fun CameraScreen(
             pressedCaptureBackgroundColor = MaterialTheme.colorScheme.primary,
             onChangeCameraClicked,
             onTakePictureClicked,
-            modeButtonsEnabled = modeButtonsEnabled,
+            ghostModeEnabled = ghostModeEnabled,
+            otherFunctionBtnsEnabled = navigatedFromAlbumDetails,
             onGhostImageClicked = {
                 showGhost = !showGhost
             },
@@ -349,7 +387,8 @@ private fun BoxScope.CameraButtons(
     pressedCaptureBackgroundColor: Color,
     onChangeCameraClicked: () -> Unit,
     onTakePictureClicked: (Boolean) -> Unit,
-    modeButtonsEnabled: Boolean,
+    ghostModeEnabled: Boolean,
+    otherFunctionBtnsEnabled: Boolean,
     onGhostImageClicked: () -> Unit,
     onUploadClicked: () -> Unit,
     captureBtnEnabled: Boolean
@@ -375,10 +414,9 @@ private fun BoxScope.CameraButtons(
 
     Row(
         modifier = Modifier
-            .padding(horizontal = 16.dp)
+            .padding(horizontal = 16.dp, vertical = 38.dp)
             .fillMaxWidth()
-            .align(Alignment.TopCenter)
-            .windowInsetsPadding(WindowInsets.statusBars),
+            .align(Alignment.TopCenter),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.Top
     ) {
@@ -399,10 +437,10 @@ private fun BoxScope.CameraButtons(
             modifier = Modifier
                 .size(btnSize)
                 .background(
-                    if (modeButtonsEnabled) btnBackgroundColor else btnBackgroundColor.copy(
+                    if (otherFunctionBtnsEnabled) btnBackgroundColor else btnBackgroundColor.copy(
                         alpha = 0.5f
                     ), shape = CircleShape
-                ), enabled = modeButtonsEnabled
+                ), enabled = otherFunctionBtnsEnabled
         ) {
             Icon(
                 modifier = Modifier.size(iconSize),
@@ -415,7 +453,8 @@ private fun BoxScope.CameraButtons(
         modifier = Modifier
             .fillMaxWidth()
             .align(Alignment.BottomCenter)
-            .padding(bottom = 68.dp),
+            .padding(bottom = 38.dp)
+            .windowInsetsPadding(WindowInsets.systemBars),
         horizontalArrangement = Arrangement.SpaceAround,
         verticalAlignment = Alignment.Bottom
     ) {
@@ -427,10 +466,10 @@ private fun BoxScope.CameraButtons(
                 modifier = Modifier
                     .size(btnSize)
                     .background(
-                        if (modeButtonsEnabled) btnBackgroundColor else btnBackgroundColor.copy(
+                        if (ghostModeEnabled) btnBackgroundColor else btnBackgroundColor.copy(
                             alpha = 0.5f
                         ), shape = CircleShape
-                    ), enabled = modeButtonsEnabled, onClick = onGhostImageClicked
+                    ), enabled = ghostModeEnabled, onClick = onGhostImageClicked
             ) {
                 Icon(
                     imageVector = Icons.Default.PeopleAlt,
@@ -479,7 +518,7 @@ private fun BoxScope.CameraButtons(
                 modifier = Modifier
                     .size(btnSize)
                     .background(
-                        if (modeButtonsEnabled) btnBackgroundColor else btnBackgroundColor.copy(
+                        if (otherFunctionBtnsEnabled) btnBackgroundColor else btnBackgroundColor.copy(
                             alpha = 0.5f
                         ), shape = CircleShape
                     ),
@@ -487,11 +526,11 @@ private fun BoxScope.CameraButtons(
                     shootBurst = !shootBurst
                     modeIcon = if (shootBurst) R.drawable.bursts_mode else R.drawable.image_mode
                     animateModeText = true
-                }, enabled = modeButtonsEnabled
+                }, enabled = otherFunctionBtnsEnabled
             ) {
                 Icon(
                     painter = painterResource(id = modeIcon),
-                    contentDescription = "Ghost photo",
+                    contentDescription = "Photo mode switch",
                     modifier = Modifier.size(iconSize)
                 )
             }
@@ -538,6 +577,7 @@ fun scaleCropRotateBitmap(
         )
     }
     val targetRatio = 4000f / 2024f
+//    val targetRatio = 1280f / 646f
 
     // Calculate the target dimensions, ensuring the aspect ratio is maintained and no scaling/stretching occurs
     val (targetWidth, targetHeight) = if (bitmap.width.toFloat() / bitmap.height.toFloat() > targetRatio) {
@@ -551,8 +591,8 @@ fun scaleCropRotateBitmap(
     }
 
     // Ensure target dimensions are even numbers
-    val finalWidth = targetWidth - targetWidth % 2
-    val finalHeight = targetHeight - targetHeight % 2
+    var finalWidth = targetWidth - targetWidth % 2
+    var finalHeight = targetHeight - targetHeight % 2
 
     // Calculate the x and y coordinates to center the crop
     val x = (bitmap.width - finalWidth) / 2
@@ -567,7 +607,10 @@ fun scaleCropRotateBitmap(
         matrix, true
     )
 
-    Log.d(TAG, "Final dimensions height = $finalHeight width = $finalWidth ")
+    Log.d(
+        TAG,
+        "From: height = ${bitmap.height} width = ${bitmap.width} to Final dimensions height = $finalHeight width = $finalWidth "
+    )
     return croppedBitmap
 }
 

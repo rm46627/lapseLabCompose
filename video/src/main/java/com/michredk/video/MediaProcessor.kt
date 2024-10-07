@@ -41,7 +41,6 @@ class MediaProcessor(private val context: Context, private val file: File) {
     ): EncodingResult {
         val videoEncoder: VideoEncoder?
         try {
-            Log.d(TAG, "1 MEDIA FORMAT width $width height $height mime ${encoderConfig.mimeType}")
             videoEncoder = VideoEncoder(encoderConfig, width, height)
         } catch (e: Exception) {
             e.printStackTrace()

@@ -36,11 +36,12 @@ class LapseCreator(private val context: Context, private val album: Album) {
         val videoFile = File(folder, "$name.mp4")
         Log.d(TAG, "creating videofile, ${videoFile.name}")
 
-        // NEED TO ROTATE IMAGES FOR ENCODING height = width, width = height
-        // from portrait to horizontal
         var (width, height) = getImageDimensions(photos[0])
 
-        Log.d(TAG, "bitrate: ${if (bitrate == 2000000 && framesPerImage <= 5) bitrate * 5 - framesPerImage else bitrate}")
+        Log.d(
+            TAG,
+            "bitrate: ${if (bitrate == 2000000 && framesPerImage <= 5) bitrate * 5 - framesPerImage else bitrate}"
+        )
 
         val encoderConfig = EncoderConfig(
             videoFile,
@@ -71,16 +72,20 @@ class LapseCreator(private val context: Context, private val album: Album) {
                 }
 
                 is EncodingFormatError -> {
-                    width -= 1
-                    height -= 5
-                    if (i++ > 5) {
-                        break
+                    width -= 2
+                    height -= 4
+                    if (i++ > 20) {
+                        if (width >= 3264 && height >= 1650) {
+                            width = 3264
+                            height = 1650
+                        } else {
+                            break
+                        }
                     }
                 }
 
                 is EncodingSuccess -> {
                     Log.d(TAG, "Success!!!")
-                    // TODO: update dimensions
                     break
                 }
             }

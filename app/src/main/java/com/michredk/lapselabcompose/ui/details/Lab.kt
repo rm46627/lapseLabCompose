@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -24,6 +25,7 @@ import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBars
+import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.rememberScrollState
@@ -132,44 +134,12 @@ fun LabRoute(
         Animatable(initialValue = 0f)
     }
     var isVideoInProgress by remember { mutableStateOf(false) }
-    LaunchedEffect(Unit) {
-        exoPlayer.addListener(object : Player.Listener {
-            override fun onRenderedFirstFrame() {
-                super.onRenderedFirstFrame()
-                scope.launch {
-                    alpha.animateTo(1f, animationSpec = tween(durationMillis = 500))
-                }
-            }
-
-//            override fun onPlayerError(error: PlaybackException) {
-//                val cause = error.cause
-//                Log.d(TAG, "cause: $cause")
-//                if (cause is FileDataSourceException) {
-//                    isVideoInProgress = true
-//                    scope.launch {
-//                        delay(5000 * album!!.photoCount.toLong() / 13)
-//                        if (exoPlayer.isPlaying) {
-//                            isVideoInProgress = false
-//                        } else {
-//                            withContext(Dispatchers.Main) {
-//                                navController.navigate(LabDestination(albumName)) {
-//                                    popUpTo(LabDestination(albumName)) {
-//                                        inclusive = true
-//                                    }
-//                                }
-//                            }
-//                        }
-//                    }
-//                }
-//            }
-        })
-    }
 
     val mediaManager = remember {
         MediaManagerFactory(context)
     }
     BackHandler {
-        scope.launch {
+        scope.launch(Dispatchers.Main) {
             alpha.animateTo(
                 0f, animationSpec = tween(
                     durationMillis = 300
@@ -307,6 +277,7 @@ fun LabScreen(
         Modifier
             .verticalScroll(rememberScrollState())
             .fillMaxSize()
+            .padding(top = 32.dp, bottom = WindowInsets.systemBars.asPaddingValues().calculateBottomPadding())
             .alpha(alpha),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {

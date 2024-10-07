@@ -21,8 +21,8 @@ const val TIMEOUT_USEC = 10000
 
 class VideoEncoder(
     private val encoderConfig: EncoderConfig,
-    width: Int,
-    height: Int
+    private val width: Int,
+    private val height: Int
 ) {
 
     private val mediaFormat: MediaFormat = run {
@@ -67,34 +67,28 @@ class VideoEncoder(
     }
 
     private fun createCanvas(): Canvas? {
-        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            surface?.lockHardwareCanvas()
-        } else {
-            surface?.lockCanvas(rect)
-        }
+        return surface?.lockHardwareCanvas()
     }
 
     private fun drawBitmapAndPostCanvas(bitmapOrg: Bitmap, canvas: Canvas?) {
-        // TODO : Dont rotate if images are horizontal
-        // need to rotate image from portrait to horizontal
         val matrix = Matrix()
         matrix.postRotate(-90f)
-        val scaledBitmap = Bitmap.createScaledBitmap(bitmapOrg, bitmapOrg.width, bitmapOrg.height, true)
+//        val scaledBitmap = Bitmap.createScaledBitmap(bitmapOrg, bitmapOrg.width, bitmapOrg.height, true)
+
         val rotatedBitmap = Bitmap.createBitmap(
-            scaledBitmap,
+            bitmapOrg,
             0,
             0,
-            scaledBitmap.width,
-            scaledBitmap.height,
+            bitmapOrg.width,
+            bitmapOrg.height,
             matrix,
             true
         )
-        scaledBitmap.recycle()
+//        scaledBitmap.recycle()
         canvas?.drawBitmap(rotatedBitmap, 0f, 0f, null)
         rotatedBitmap.recycle()
         postCanvasFrame(canvas)
     }
-
 
     private fun postCanvasFrame(canvas: Canvas?) {
         surface?.unlockCanvasAndPost(canvas)
