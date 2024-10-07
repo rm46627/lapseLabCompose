@@ -331,10 +331,6 @@ private fun PagerGallery(
     var pressOffset by remember {
         mutableStateOf(DpOffset.Zero)
     }
-    var itemHeight by remember {
-        mutableStateOf(0.dp)
-    }
-    val density = LocalDensity.current
     val interactionSource = remember {
         MutableInteractionSource()
     }
@@ -376,7 +372,6 @@ private fun PagerGallery(
             Card(
                 modifier = Modifier
                     .height((if (isCreateCard) 430.dp else 530.dp) * (1 - (pageOffset * 0.3f)))
-                    .onSizeChanged { itemHeight = with(density) { it.height.toDp() } }
                     .indication(interactionSource, LocalIndication.current)
                     .pointerInput(true) {
                         detectTapGestures(
@@ -419,7 +414,7 @@ private fun PagerGallery(
     DropdownMenu(
         modifier = Modifier.background(color = MaterialTheme.colorScheme.secondaryContainer),
         expanded = isContextMenuVisible,
-        offset = pressOffset.copy(y = pressOffset.y - itemHeight),
+        offset = pressOffset.copy(y = pressOffset.y + 150.dp),
         onDismissRequest = { isContextMenuVisible = false }) {
         albumDropDownItems.forEach { item ->
             DropdownMenuItem(
