@@ -23,6 +23,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.staggeredgrid.LazyVerticalStaggeredGrid
 import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridCells
 import androidx.compose.foundation.lazy.staggeredgrid.itemsIndexed
@@ -86,6 +87,7 @@ import com.michredk.lapselab.files.MediaManagerFactory
 import com.michredk.lapselabcompose.R
 import com.michredk.lapselabcompose.TAG
 import com.michredk.lapselabcompose.services.alarm.AlarmScheduler
+import com.michredk.lapselabcompose.ui.common.GifImage
 import com.michredk.lapselabcompose.ui.common.TipDialog
 import com.michredk.lapselabcompose.ui.details.DetailsDestination
 import com.michredk.lapselabcompose.ui.setup.SetupAlbumDestination
@@ -150,7 +152,14 @@ fun GalleryRoute(navController: NavHostController) {
     var viewFilemanagerTipDialog by remember {
         mutableStateOf(false)
     }
-
+    val galleryDropDownItems = mutableListOf(
+        GalleryMenuItem(
+            id = "switch view mode",
+            if (isPagerViewModeOn) "Switch to Grid" else "Switch to Pager",
+            icon = if (isPagerViewModeOn) Icons.Default.GridView else Icons.Default.Pages
+        ),
+        GalleryMenuItem(id = "reset tips", "Reset Tips", icon = Icons.Default.Cached),
+    )
     if (albums.isEmpty() || albums[0].id != Int.MIN_VALUE) {
         if (albums.isNotEmpty()) {
             TipDialog(
@@ -172,11 +181,12 @@ fun GalleryRoute(navController: NavHostController) {
                 }
             )
 
+            galleryDropDownItems.add(GalleryMenuItem(id = "file manager", "View files", icon = Icons.Default.Folder))
             TipDialog(
                 title = "Find your files",
                 content = { Column {
-                    Text(text = "Use Images and Movies folders to check your files")
-
+                    Text(text = "Use Images and Videos folders to check your files:")
+                    GifImage(data = R.drawable.filemanager, modifier = Modifier.padding(top = 16.dp).height(250.dp).fillMaxWidth())
                 } },
                 viewTipDialog = !isFilemanagerTipCompleted && viewFilemanagerTipDialog,
                 saveTipViewed = {
@@ -185,7 +195,8 @@ fun GalleryRoute(navController: NavHostController) {
                 doOnConfirm = {
                     viewFilemanagerTipDialog = false
                     viewFileManager(context)
-                }
+                },
+                confirmButtonText = "Open file manager"
             )
         }
 
@@ -227,15 +238,7 @@ fun GalleryRoute(navController: NavHostController) {
                     }
                 }
             },
-            galleryDropDownItems = listOf(
-                GalleryMenuItem(
-                    id = "switch view mode",
-                    if (isPagerViewModeOn) "Switch to Grid" else "Switch to Pager",
-                    icon = if (isPagerViewModeOn) Icons.Default.GridView else Icons.Default.Pages
-                ),
-                GalleryMenuItem(id = "reset tips", "Reset Tips", icon = Icons.Default.Cached),
-                GalleryMenuItem(id = "file manager", "View files", icon = Icons.Default.Folder)
-            ),
+            galleryDropDownItems = galleryDropDownItems,
             onGalleryMenuItemClicked = { id ->
                 when (id) {
                     "switch view mode" -> {

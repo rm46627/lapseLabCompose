@@ -19,7 +19,7 @@ import androidx.compose.ui.Modifier
 @Composable
 fun TipDialog(
     title: String, content: @Composable () -> Unit, viewTipDialog: Boolean,
-    saveTipViewed: () -> Unit, doOnConfirm: () -> Unit = {}
+    saveTipViewed: () -> Unit, doOnConfirm: () -> Unit = {}, confirmButtonText: String = "Ok"
 ) {
     if (viewTipDialog) {
         AlertDialog(
@@ -29,7 +29,7 @@ fun TipDialog(
                 saveTipViewed()
             },
             confirmButton = {
-                Text(text = "Ok", modifier = Modifier.clickable {
+                Text(text = confirmButtonText, modifier = Modifier.clickable {
                     saveTipViewed()
                     doOnConfirm()
                 })

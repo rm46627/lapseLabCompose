@@ -150,6 +150,7 @@ fun DetailsRoute(
         val mediaSource = remember(videoUriState) {
             val newUri = videoUriState
             if (newUri != null) {
+                Log.d(TAG, "uri: $newUri")
                 MediaItem.fromUri(newUri)
             } else {
                 scope.launch {
