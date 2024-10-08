@@ -19,6 +19,7 @@ class DataStoreRepository(context: Context) {
     private object PreferencesKey {
         val onBoardingKey = booleanPreferencesKey(name = "on_boarding_completed")
         val contextMenuTipKey = booleanPreferencesKey(name = "context_menu_tip_completed")
+        val filemanagerTipKey = booleanPreferencesKey(name = "filemanager_tip_completed")
         val ghostBtnTipKey = booleanPreferencesKey(name = "ghost_btn_tip_completed")
         val pagerViewMode = booleanPreferencesKey(name = "pager_view_mode")
     }
@@ -34,6 +35,12 @@ class DataStoreRepository(context: Context) {
     suspend fun saveContextMenuTipState(completed: Boolean) {
         dataStore.edit { preferences ->
             preferences[PreferencesKey.contextMenuTipKey] = completed
+        }
+    }
+
+    suspend fun saveFilemanagerTipState(completed: Boolean) {
+        dataStore.edit { preferences ->
+            preferences[PreferencesKey.filemanagerTipKey] = completed
         }
     }
 
@@ -53,6 +60,7 @@ class DataStoreRepository(context: Context) {
         dataStore.edit { preferences ->
             preferences[PreferencesKey.onBoardingKey] = false
             preferences[PreferencesKey.contextMenuTipKey] = false
+            preferences[PreferencesKey.filemanagerTipKey] = false
             preferences[PreferencesKey.ghostBtnTipKey] = false
         }
     }
@@ -84,6 +92,21 @@ class DataStoreRepository(context: Context) {
             .map { preferences ->
                 val contextMenuTipState = preferences[PreferencesKey.contextMenuTipKey] ?: true
                 contextMenuTipState
+            }
+    }
+
+    fun readFilemanagerTipState(): Flow<Boolean> {
+        return dataStore.data
+            .catch { exception ->
+                if (exception is IOException) {
+                    emit(emptyPreferences())
+                } else {
+                    throw exception
+                }
+            }
+            .map { preferences ->
+                val filemanagerTipState = preferences[PreferencesKey.filemanagerTipKey] ?: true
+                filemanagerTipState
             }
     }
 

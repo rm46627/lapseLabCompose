@@ -1,5 +1,9 @@
 package com.michredk.lapselabcompose.ui.gallery
 
+import android.content.Context
+import android.content.Intent
+import android.net.Uri
+import android.os.Environment
 import android.util.Log
 import androidx.compose.foundation.LocalIndication
 import androidx.compose.foundation.background
@@ -32,6 +36,7 @@ import androidx.compose.material.icons.filled.ArrowUpward
 import androidx.compose.material.icons.filled.Cached
 import androidx.compose.material.icons.filled.Cameraswitch
 import androidx.compose.material.icons.filled.DeleteForever
+import androidx.compose.material.icons.filled.Folder
 import androidx.compose.material.icons.filled.GridView
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Pages
@@ -70,6 +75,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.util.lerp
+import androidx.core.content.ContextCompat.startActivity
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -115,7 +121,18 @@ fun GalleryRoute(navController: NavHostController) {
         )
     )
 
+    LaunchedEffect(albums) {
+        Log.d(TAG, "albums:")
+        albums.forEach { album ->
+            Log.d(TAG, album.directoryName)
+        }
+    }
+
     val isContextMenuTipCompleted by galleryViewModel.isContextMenuTipCompleted.collectAsStateWithLifecycle(
+        initialValue = true
+    )
+    
+    val isFilemanagerTipCompleted by galleryViewModel.isFilemanagerTipCompleted.collectAsStateWithLifecycle(
         initialValue = true
     )
 
@@ -129,6 +146,9 @@ fun GalleryRoute(navController: NavHostController) {
 
     var albumToRemove by remember {
         mutableStateOf<String?>(null)
+    }
+    var viewFilemanagerTipDialog by remember {
+        mutableStateOf(false)
     }
 
     if (albums.isEmpty() || albums[0].id != Int.MIN_VALUE) {
@@ -149,6 +169,22 @@ fun GalleryRoute(navController: NavHostController) {
                 viewTipDialog = !isContextMenuTipCompleted,
                 saveTipViewed = {
                     galleryViewModel.updateContextMenuTipValue(isCompleted = true)
+                }
+            )
+
+            TipDialog(
+                title = "Find your files",
+                content = { Column {
+                    Text(text = "Use Images and Movies folders to check your files")
+
+                } },
+                viewTipDialog = !isFilemanagerTipCompleted && viewFilemanagerTipDialog,
+                saveTipViewed = {
+                    galleryViewModel.updateFilemanagerTipValue(isCompleted = true)
+                },
+                doOnConfirm = {
+                    viewFilemanagerTipDialog = false
+                    viewFileManager(context)
                 }
             )
         }
@@ -197,17 +233,23 @@ fun GalleryRoute(navController: NavHostController) {
                     if (isPagerViewModeOn) "Switch to Grid" else "Switch to Pager",
                     icon = if (isPagerViewModeOn) Icons.Default.GridView else Icons.Default.Pages
                 ),
-                GalleryMenuItem(id = "reset tips", "Reset Tips", icon = Icons.Default.Cached)
+                GalleryMenuItem(id = "reset tips", "Reset Tips", icon = Icons.Default.Cached),
+                GalleryMenuItem(id = "file manager", "View files", icon = Icons.Default.Folder)
             ),
             onGalleryMenuItemClicked = { id ->
                 when (id) {
                     "switch view mode" -> {
                         galleryViewModel.switchGalleryViewMode(!isPagerViewModeOn)
                     }
-
                     "reset tips" -> {
                         galleryViewModel.resetAllTipsValues()
-                        // TODO: view Snackbar
+                    }
+                    "file manager" -> {
+                        if (isFilemanagerTipCompleted) {
+                            viewFileManager(context)
+                        } else {
+                            viewFilemanagerTipDialog = true
+                        }
                     }
                 }
             },
@@ -216,14 +258,16 @@ fun GalleryRoute(navController: NavHostController) {
         if (albumToRemove != null) {
             RemoveAlbumDialog(
                 removeAlbum = {
-                    galleryViewModel.deleteAlbum(albumToRemove!!)
+                    val albumToRemoveSafe = albumToRemove ?: ""
+                    galleryViewModel.deleteAlbum(albumToRemoveSafe)
                     coroutineScope.launch {
-                        mediaManager.deleteAlbum(albumToRemove!!)
-                        AlarmScheduler(context).cancel(albumToRemove!!)
+                        mediaManager.deleteAlbum(albumToRemoveSafe)
+                        AlarmScheduler(context).cancel(albumToRemoveSafe)
                         albumToRemove = null
                     }
                 },
-                hideDialog = { albumToRemove = null }
+                hideDialog = { albumToRemove = null },
+                albumName = albumToRemove!!
             )
         }
     } else {
@@ -231,6 +275,13 @@ fun GalleryRoute(navController: NavHostController) {
             CircularProgressIndicator(modifier = Modifier.size(400.dp))
         }
     }
+}
+
+fun viewFileManager(context: Context) {
+    val path = Environment.getExternalStorageDirectory().toString() + "/Movies/"
+    val intent = Intent(Intent.ACTION_VIEW)
+    intent.setDataAndType(Uri.parse(path), "*/*")
+    startActivity(context, intent, null)
 }
 
 @Composable
@@ -249,6 +300,14 @@ private fun GalleryScreen(
     }
     // adds creating new album card
     val albumsWithExtras = albums.plus(Album())
+
+    LaunchedEffect(albumsWithExtras) {
+        Log.d(TAG, "albumsWithExtras:")
+        albumsWithExtras.forEach { album ->
+            Log.d(TAG, "${album.directoryName} id: ${album.id}")
+        }
+    }
+
     val backgroundColor = MaterialTheme.colorScheme.background
     Column(
         modifier = Modifier
@@ -362,7 +421,7 @@ private fun PagerGallery(
         )
     ) { page ->
         val isCreateCard = page == albumsWithExtras.size - 1
-        val album = remember { albumsWithExtras[page] }
+        val album = albumsWithExtras[page]
         val pageOffset = pagerState.getOffsetDistanceInPages(page).absoluteValue
         Column(
             modifier = Modifier
@@ -378,8 +437,9 @@ private fun PagerGallery(
                             onTap = {
                                 if (page == albumsWithExtras.size - 1) onCreateClick() else {
                                     onAlbumClick(
-                                    album.directoryName
-                                )}
+                                        album.directoryName
+                                    )
+                                }
                             },
                             onLongPress = {
                                 if (page != albumsWithExtras.size - 1) {
@@ -468,10 +528,10 @@ private fun GalleryGrid(
 }
 
 @Composable
-fun RemoveAlbumDialog(removeAlbum: () -> Unit, hideDialog: () -> Unit) {
+fun RemoveAlbumDialog(removeAlbum: () -> Unit, hideDialog: () -> Unit, albumName: String) {
     AlertDialog(
         title = { Text(text = "Remove album") },
-        text = { Text(text = "Do you really want to do this?") },
+        text = { Text(text = "Do you really want to remove '$albumName' album?") },
         onDismissRequest = hideDialog,
         confirmButton = {
             Row {

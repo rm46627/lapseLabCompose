@@ -147,7 +147,7 @@ fun DetailsRoute(
             showDetailsScreen = true
         }
 
-        var mediaSource = remember(videoUriState) {
+        val mediaSource = remember(videoUriState) {
             val newUri = videoUriState
             if (newUri != null) {
                 MediaItem.fromUri(newUri)
