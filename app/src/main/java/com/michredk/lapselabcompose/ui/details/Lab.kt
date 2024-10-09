@@ -29,6 +29,8 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Folder
 import androidx.compose.material.icons.filled.Image
+import androidx.compose.material.icons.filled.KeyboardDoubleArrowLeft
+import androidx.compose.material.icons.filled.KeyboardDoubleArrowRight
 import androidx.compose.material.icons.filled.Rotate90DegreesCcw
 import androidx.compose.material.icons.filled.Rotate90DegreesCw
 import androidx.compose.material3.Button
@@ -36,6 +38,7 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -190,6 +193,7 @@ fun LabRoute(
                         framesPerImage = uiState.framesPerImage,
                         bitrate = uiState.bitrate,
                         rotation = uiState.rotation,
+                        startFromLatest = uiState.startFromLatest,
                         encodingProgress = { current, end ->
                             encodingProgressCurrent = current
                             encodingProgressEnd = end
@@ -236,6 +240,10 @@ fun LabRoute(
         rotationOnValueChange = { selectedValue ->
             detailsViewModel.updateLabUiState(uiState.copy(rotation = selectedValue))
 
+        },
+        startFromLatestOnValueChange = { selectedValue ->
+            detailsViewModel.updateLabUiState(uiState.copy(startFromLatest = selectedValue))
+
         }
     )
     DisposableEffect(Unit) {
@@ -259,7 +267,8 @@ fun LabScreen(
     videoProperties: LabUiState,
     peaceOnValueChange: (Int) -> Unit,
     bitrateOnValueChange: (Int) -> Unit,
-    rotationOnValueChange: (Float) -> Unit
+    rotationOnValueChange: (Float) -> Unit,
+    startFromLatestOnValueChange: (Boolean) -> Unit
 ) {
     Column(
         Modifier
@@ -314,7 +323,18 @@ fun LabScreen(
 
         PeaceSlider(uiState.framesPerImage, peaceOnValueChange = peaceOnValueChange)
         BitrateSlider(uiState.bitrate, bitrateOnValueChange = bitrateOnValueChange)
-        RotationSelector(uiState.rotation, rotationOnValueChange = rotationOnValueChange)
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = 8.dp),
+            horizontalArrangement = Arrangement.SpaceEvenly
+        ) {
+            RotationSelector(uiState.rotation, rotationOnValueChange = rotationOnValueChange)
+            VideoStartSelector(
+                uiState.startFromLatest,
+                startFromLatestOnValueChange = startFromLatestOnValueChange
+            )
+        }
     }
     if (isLoading) {
         Box(
@@ -362,6 +382,21 @@ fun LabScreen(
 }
 
 @Composable
+fun VideoStartSelector(startFromLatest: Boolean, startFromLatestOnValueChange: (Boolean) -> Unit) {
+    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        Text(text = "Start video from:", textAlign = TextAlign.Center)
+        OutlinedButton(onClick = { startFromLatestOnValueChange(!startFromLatest) }) {
+            Icon(
+                imageVector = if (startFromLatest) Icons.Default.KeyboardDoubleArrowLeft else Icons.Default.KeyboardDoubleArrowRight,
+                contentDescription = ""
+            )
+            Text(text = if (startFromLatest) "Latest photo" else "Newest photo")
+        }
+    }
+
+}
+
+@Composable
 fun RotationSelector(rotation: Float, rotationOnValueChange: (Float) -> Unit) {
     val rotationValues = remember {
         listOf(0f, 90f, 180f, 270f)
@@ -374,9 +409,6 @@ fun RotationSelector(rotation: Float, rotationOnValueChange: (Float) -> Unit) {
     }
     val scope = rememberCoroutineScope()
     Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 32.dp, vertical = 8.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Text(

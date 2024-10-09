@@ -25,6 +25,7 @@ class LapseCreator(private val context: Context, private val album: Album) {
         framesPerImage: Int,
         bitrate: Int,
         rotation: Float,
+        startFromLatest: Boolean,
         encodingProgress: (Int, Int) -> Unit
     ): String {
         val date =
@@ -61,7 +62,9 @@ class LapseCreator(private val context: Context, private val album: Album) {
         var i = 0
         while (true) {
             when (val result = mediaProcessor.encodeMp4(
-                photos, width, height,
+                imageList = if (startFromLatest) photos.reversed() else photos,
+                width,
+                height,
                 effects = listOf(
                     ScaleAndRotateTransformation.Builder().setRotationDegrees(-90f + rotation)
                         .build()
