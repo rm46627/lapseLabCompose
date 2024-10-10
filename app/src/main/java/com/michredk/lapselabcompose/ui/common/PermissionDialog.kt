@@ -9,9 +9,11 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import com.michredk.lapselabcompose.R
 
 // TODO: create another PermissionDialog and which dont use shouldShowRequestPermissionRationale(). display it based on lower API
 
@@ -31,9 +33,9 @@ fun PermissionDialog(
                 HorizontalDivider()
                 Text(
                     text = if (isPermanentlyDeclined) {
-                        "Grant permission"
+                        stringResource(R.string.grant_permission)
                     } else {
-                        "OK"
+                        stringResource(R.string.ok)
                     },
                     fontWeight = FontWeight.Bold,
                     textAlign = TextAlign.Center,
@@ -50,7 +52,7 @@ fun PermissionDialog(
                 )
             }
         },
-        title = { Text(text = "Permission required") },
+        title = { Text(text = stringResource(R.string.permission_required)) },
         text = {
             Text(
                 text = permissionTextProvider.getDescription(isPermanentlyDeclined)

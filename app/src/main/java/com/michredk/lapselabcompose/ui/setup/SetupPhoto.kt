@@ -148,7 +148,7 @@ fun SetupPhotoScreen(
                     fontWeight = FontWeight.Bold,
                     fontSize = MaterialTheme.typography.headlineSmall.fontSize
                 ),
-                text = "Add you first photo!"
+                text = stringResource(R.string.add_you_first_photo)
             )
             AsyncImage(
                 modifier = Modifier
@@ -168,7 +168,7 @@ fun SetupPhotoScreen(
                 OutlinedButton(onClick = {
                     onCreateAlbumClicked(photoPath!!)
                 }) {
-                    Text(text = "Create new album")
+                    Text(text = stringResource(R.string.create_new_album))
                 }
             }
             else {
@@ -179,8 +179,8 @@ fun SetupPhotoScreen(
     }
 
     val coroutineScope = rememberCoroutineScope()
-    BackHandlingDialog(title = "Leave album creation?",
-        text = "If you exit now, you will lose your creation progress. Are you sure you want to do this?",
+    BackHandlingDialog(title = stringResource(R.string.leave_album_creation),
+        text = stringResource(R.string.if_you_exit_now_you_will_lose_your_creation_progress_are_you_sure_you_want_to_do_this),
         onLeaveClicked = {
             coroutineScope.launch {
                 photoPath?.let {

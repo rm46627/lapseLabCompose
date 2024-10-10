@@ -105,23 +105,3 @@ fun DropDownMenu(
         }
     }
 }
-
-@Preview
-@Composable
-fun PreviewDropDown() {
-    LapseLabComposeTheme {
-        Scaffold {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(it)
-            ) {
-                DropDownMenu(
-                    listOf("Pierwszy", "Drugi", "Trzeci", "Czwarty"),
-                    "Wybierz opcję",
-                    onValueChanged = {}, "", false)
-            }
-
-        }
-    }
-}

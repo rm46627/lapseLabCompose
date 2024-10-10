@@ -23,9 +23,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.michredk.database.Album
+import com.michredk.lapselabcompose.R
 import com.michredk.lapselabcompose.ui.common.DropDownMenu
 import com.michredk.lapselabcompose.ui.common.FreqUtils
 import java.time.LocalTime
@@ -54,14 +56,18 @@ fun ConfigureNotificationsDialog(
 
     val timeSet = "${LocalTime.of(timePickerState.hour, timePickerState.minute)}"
     val currentConfig = when (album.daysBetweenReminders) {
-        0L -> "No notifications set."
-        1L -> "Daily notifications are enabled for $timeSet."
-        else -> "You will be notified every ${album.daysBetweenReminders} days at $timeSet."
+        0L -> stringResource(R.string.no_notifications_set)
+        1L -> stringResource(R.string.daily_notifications_are_enabled_for, timeSet)
+        else -> stringResource(
+            R.string.you_will_be_notified_every_days_at,
+            album.daysBetweenReminders,
+            timeSet
+        )
     }
 
     if (showDialog) {
         MaterialTheme(colorScheme = MaterialTheme.colorScheme.copy(background = AlertDialogDefaults.containerColor)) {
-            AlertDialog(title = { Text(text = "Configure your notifications") }, text = {
+            AlertDialog(title = { Text(text = stringResource(R.string.configure_your_notifications)) }, text = {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     Text(
                         textAlign = TextAlign.Start, text = currentConfig, modifier = Modifier
@@ -70,15 +76,15 @@ fun ConfigureNotificationsDialog(
                     )
                     DropDownMenu(
                         items = listOf(
-                            "I don't need a reminder",
-                            "Everyday",
-                            "Every 2 days",
-                            "Once a week",
-                            "Every 3 weeks",
-                            "Once a month",
-                            "Every 6 months"
+                            stringResource(R.string.i_don_t_need_a_reminder),
+                            stringResource(R.string.everyday),
+                            stringResource(R.string.every_2_days),
+                            stringResource(R.string.once_a_week),
+                            stringResource(R.string.every_3_weeks),
+                            stringResource(R.string.once_a_month),
+                            stringResource(R.string.every_6_months)
                         ),
-                        "Select or type frequency",
+                        stringResource(R.string.select_or_type_frequency),
                         onValueChanged = { value ->
                             if (FreqUtils.frequencyIsValid(value)) {
                                 freq = value
@@ -89,17 +95,17 @@ fun ConfigureNotificationsDialog(
                                 notificationsSet = false
                             }
                         },
-                        supportingText = "You can edit the available options to e.g. 'Every 3 days' or 'Every 2 weeks'",
+                        supportingText = stringResource(R.string.you_can_edit_the_available_options_to_e_g_every_3_days_or_every_2_weeks),
                         isError = frequencyError
                     )
-                    if (freq.isNotEmpty() && freq != "I don't need a reminder") {
+                    if (freq.isNotEmpty() && freq != stringResource(R.string.i_don_t_need_a_reminder)) {
                         TimeInput(modifier = Modifier.padding(top = 4.dp), state = timePickerState)
                     }
                 }
             }, onDismissRequest = dismissDialog, confirmButton = {
                 Row {
                     Spacer(modifier = Modifier.width(16.dp))
-                    Text(text = "Apply",
+                    Text(text = stringResource(R.string.apply),
                         color = if (!applyButtonEnabled) MaterialTheme.colorScheme.outlineVariant
                         else MaterialTheme.colorScheme.primary,
                         modifier = Modifier
@@ -116,7 +122,7 @@ fun ConfigureNotificationsDialog(
                     )
                 }
             }, dismissButton = {
-                Text(text = "Back", modifier = Modifier.clickable { dismissDialog() })
+                Text(text = stringResource(R.string.back), modifier = Modifier.clickable { dismissDialog() })
             })
         }
     }

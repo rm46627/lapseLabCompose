@@ -1,0 +1,139 @@
+<resources>
+    <string name="app_name">LapseLab</string>
+    <string name="album_setup_title">Wprowadź informacje o swoim nowym albumie</string>
+    <string name="album_name_info">Informacje o przechowywaniu zdjęć w pamięci urządzenia i aplikacji Galeria systemowa.</string>
+    <string name="notifications_options_label">Otrzymuj przypomnienia kolejnego zdjęcia do albumu</string>
+    <string name="share_where">Udostępnij za pomocą</string>
+    <string name="leave_backhandling_dialog">Opuść</string>
+    <string name="stay_backhandling_dialog">Zostań</string>
+    <string name="some_uploads_were_successful_and_some_failed">Niektóre przesyłania zakończyły się sukcesem, a niektóre niepowodzeniem.</string>
+    <string name="uploaded_photos_successfully">Zdjęcia przesłane pomyślnie.</string>
+    <string name="uploading_photos_failed">Przesyłanie zdjęć nie powiodło się.</string>
+    <string name="no_photos_selected">Nie wybrano zdjęć.</string>
+    <string name="a_really_obscure_error">Bardzo dziwny błąd.</string>
+    <string name="what_these_buttons_do">Co robią te przyciski?</string>
+    <string name="change_camera">Zmień kamerę</string>
+    <string name="upload_image_from_your_phone">Prześlij zdjęcie z pamięci telefonu</string>
+    <string name="switch_on_off_preview_of_the_last_photo">Włącz/wyłącz podgląd ostatniego zdjęcia</string>
+    <string name="switch_between_normal_and_burst_modes">Przełącz pomiędzy trybem normalnym a seryjnym</string>
+    <string name="burst_mode">Tryb seryjny</string>
+    <string name="photo_mode">Tryb zdjęć</string>
+    <string name="no_notifications_set">Brak ustawionych powiadomień.</string>
+    <string name="daily_notifications_are_enabled_for">Codzienne powiadomienia są włączone dla %1$s.</string>
+    <string name="you_will_be_notified_every_days_at">Otrzymasz powiadomienia co %1$s dni o %2$s.</string>
+    <string name="configure_your_notifications">Skonfiguruj swoje powiadomienia</string>
+    <string name="i_don_t_need_a_reminder">Nie potrzebuję przypomnień</string>
+    <string name="everyday">Codziennie</string>
+    <string name="every_2_days">Co 2 dni</string>
+    <string name="once_a_week">Raz w tygodniu</string>
+    <string name="every_3_weeks">Co 3 tygodnie</string>
+    <string name="once_a_month">Raz w miesiącu</string>
+    <string name="every_6_months">Co 6 miesięcy</string>
+    <string name="select_or_type_frequency">Wybierz lub wpisz częstotliwość</string>
+    <string name="you_can_edit_the_available_options_to_e_g_every_3_days_or_every_2_weeks">Możesz edytować dostępne opcje, np. \'Co 3 dni\' lub \'Co 2 tygodnie\'</string>
+    <string name="apply">Zastosuj</string>
+    <string name="back">Wstecz</string>
+    <string name="switch_to_grid">Przełącz na siatkę</string>
+    <string name="switch_to_pager">Przełącz na albumy</string>
+    <string name="context_menu">Menu kontekstowe</string>
+    <string name="use_long_press_on_album_card_to_view_context_menu">Użyj długiego naciśnięcia na album, aby wyświetlić menu kontekstowe:</string>
+    <string name="move_album_up_on_the_list">Przesuń album na początek</string>
+    <string name="delete_your_album_forever">Usuń swój album</string>
+    <string name="find_your_files">Znajdź swoje pliki</string>
+    <string name="use_images_and_videos_folders_to_check_your_files">Użyj folderów Obrazy i Filmy, aby sprawdzić swoje pliki:</string>
+    <string name="open_file_manager">Otwórz menedżera plików</string>
+    <string name="move_album_up">Przesuń album w górę</string>
+    <string name="delete_album">Usuń album</string>
+    <string name="my_albums">Moje albumy</string>
+    <string name="remove_album">Usuń album</string>
+    <string name="do_you_really_want_to_remove_album">Czy na pewno chcesz usunąć album \'%1$s\'?</string>
+    <string name="yes">Tak</string>
+    <string name="no">Nie</string>
+    <string name="create_new_album">Utwórz nowy album!</string>
+    <string name="number_of_photos">Liczba zdjęć</string>
+    <string name="latest_photo_was_taken">Ostatnie zdjęcie zrobiono</string>
+    <string name="ready_to_capture_something_new_how_about">Gotów, aby uchwycić coś nowego? A może...?</string>
+    <string name="next_idea">Następny pomysł</string>
+    <string name="need_at_least_two_pictures_to_generate_video">Potrzebne są co najmniej dwa zdjęcia, aby wygenerować wideo</string>
+    <string name="generate_video">Generuj wideo</string>
+    <string name="please_don_t_leave_the_app_until_the_video_finishes_generating">Proszę nie opuszczać aplikacji, dopóki wideo nie zostanie wygenerowane.</string>
+    <string name="start_video_from">Rozpocznij wideo od:</string>
+    <string name="latest_photo">Najstarsze zdjęcie</string>
+    <string name="newest_photo">Najnowsze zdjęcie</string>
+    <string name="rotation">Obrót</string>
+    <string name="super_slow">Super Wolno</string>
+    <string name="slow">Wolno</string>
+    <string name="moderate">Średni</string>
+    <string name="fast">Szybko</string>
+    <string name="super_fast">Super Szybko</string>
+    <string name="video_peace">Tempo filmu</string>
+    <string name="low">Niski</string>
+    <string name="high">Wysoki</string>
+    <string name="quality">Jakość</string>
+    <string name="proceed">Kontynuuj</string>
+    <string name="grant_permission">Przyznaj uprawnienia</string>
+    <string name="ok">OK</string>
+    <string name="permission_required">Wymagane uprawnienia</string>
+    <string name="photo_added">Zdjęcie dodane</string>
+    <string name="remove_photo">Usuń zdjęcie</string>
+    <string name="next">Następny</string>
+    <string name="leave_album_creation">Opuścić tworzenie albumu?</string>
+    <string name="if_you_exit_now_you_will_lose_your_creation_progress_are_you_sure_you_want_to_do_this">Jeśli teraz wyjdziesz, stracisz wprowadzone dane. Czy na pewno chcesz to zrobić?</string>
+    <string name="must_be_at_least_3_characters_long">Musi mieć co najmniej 3 znaki</string>
+    <string name="album_name_already_taken">Ta nazwa albumu jest już zajęta</string>
+    <string name="album_name_must_contain_only_letters_and_numbers">Nazwa albumu może zawierać tylko litery i cyfry</string>
+    <string name="album_name">Nazwa albumu</string>
+    <string name="add_you_first_photo">Dodaj swoje pierwsze zdjęcie!</string>
+    <string name="reset_tips">Resetuj podpowiedzi</string>
+    <string name="view_files">Znajdź pliki</string>
+
+
+    <plurals name="numberOfDaysAgo">
+        <item quantity="zero">dzisiaj.</item>
+        <item quantity="one">wczoraj.</item>
+        <item quantity="two">%d dni temu.</item>
+        <item quantity="few">%d dni temu.</item>
+        <item quantity="many">%d dni temu.</item>
+        <item quantity="other">dzisiaj.</item>
+    </plurals>
+
+    <string-array name="album_ideas">
+        <item>Krajobrazy miejskie – ruch uliczny, piesi, zmiany dnia i nocy</item>
+        <item>Wschód lub zachód słońca – zmiany kolorów nieba</item>
+        <item>Przyroda w rozkwicie – kwitnące kwiaty, zmiany sezonowe</item>
+        <item>Niebo i chmury – chmury, pogoda, gwiazdy</item>
+        <item>Projekty budowlane – postęp prac budowlanych</item>
+        <item>Przygotowywanie jedzenia – proces tworzenia potrawy</item>
+        <item>Rosnące rośliny – zdjęcia od nasion do rozkwitu</item>
+        <item>Ludzie – ruch na wydarzeniach bądź w mieście</item>
+        <item>Zmieniające się pory roku – przekształcenia krajobrazu</item>
+        <item>Tworzenie sztuki – od pustego płótna do gotowego dzieła</item>
+        <item>Dzieci rosnące na przestrzeni miesięcy lub lat</item>
+        <item>Rodzinne zdjęcia robione co roku</item>
+        <item>Postępy na siłowni – transformacja ciała</item>
+        <item>Animacja poklatkowa z LEGO lub innymi zabawkami</item>
+        <item>Proces malowania muralu lub ściennej sztuki</item>
+        <item>Zmiany sezonowe w ogrodzie za domem</item>
+        <item>Przygody na szlakach – malownicze krajobrazy i dzikie zwierzęta</item>
+        <item>Święta – dekoracje i rodzinne chwile</item>
+        <item>Zabytki miejskie – słynne budynki i sztuka uliczna</item>
+        <item>Wspomnienia z podróży samochodowych – malownicze trasy i odkrycia</item>
+        <item>Dzień na plaży – zachody słońca i zamki na piasku</item>
+        <item>Wspinaczka górska – zapierające dech w piersiach widoki i chwile na szczycie</item>
+        <item>Zabawa w parku rozrywki – karuzele i wata cukrowa</item>
+        <item>Weekendowy wypad – przytulne chatki i lokalna kuchnia</item>
+        <item>Festiwale kulturalne – parady i kolorowe kostiumy</item>
+        <item>Biwak pod gwiazdami – ogniska i obserwowanie gwiazd</item>
+        <item>Wizyty w zoo lub na safari – zwierzęta i wystawy</item>
+        <item>Wycieczka po zabytkach – ruiny i muzea</item>
+        <item>Kulinarna podróż – lokalne potrawy i jedzenie uliczne</item>
+        <item>Wizyty w muzeach – galerie sztuki i wystawy</item>
+        <item>Wieczorne wyjścia – światła miasta i atmosfera nocnego życia</item>
+        <item>Spacer po ogrodzie – ogrody botaniczne i rzadkie rośliny</item>
+        <item>Wycieczka po farmie lub winnicy – zbiory i widoki na wieś</item>
+        <item>Krajobrazy śnieżne i jazda na łyżwach</item>
+        <item>Trasy rowerowe – malownicze widoki i przystanki na piknik</item>
+        <item>Eksploracja miast – sztuka graffiti i ukryte ciekawe miejsca</item>
+    </string-array>
+
+</resources>

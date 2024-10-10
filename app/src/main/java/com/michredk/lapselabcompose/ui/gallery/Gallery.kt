@@ -73,6 +73,7 @@ import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.util.lerp
@@ -155,24 +156,25 @@ fun GalleryRoute(navController: NavHostController) {
     val galleryDropDownItems = mutableListOf(
         GalleryMenuItem(
             id = "switch view mode",
-            if (isPagerViewModeOn) "Switch to Grid" else "Switch to Pager",
+            if (isPagerViewModeOn) stringResource(R.string.switch_to_grid) else stringResource(R.string.switch_to_pager),
             icon = if (isPagerViewModeOn) Icons.Default.GridView else Icons.Default.Pages
         ),
-        GalleryMenuItem(id = "reset tips", "Reset Tips", icon = Icons.Default.Cached),
+        GalleryMenuItem(id = "reset tips",
+            stringResource(R.string.reset_tips), icon = Icons.Default.Cached),
     )
     if (albums.isEmpty() || albums[0].id != Int.MIN_VALUE) {
         if (albums.isNotEmpty()) {
             TipDialog(
-                title = "Context menu",
+                title = stringResource(R.string.context_menu),
                 content = { Column {
-                    Text(text = "Use long press on album card to view context menu:")
+                    Text(text = stringResource(R.string.use_long_press_on_album_card_to_view_context_menu))
                     Row(modifier = Modifier.padding(top = 8.dp)) {
                         Icon(modifier = Modifier.padding(end = 4.dp), imageVector = Icons.Default.ArrowUpward, contentDescription = "camera switch explanation")
-                        Text(text = "Move album up on the list")
+                        Text(text = stringResource(R.string.move_album_up_on_the_list))
                     }
                     Row(modifier = Modifier.padding(top = 8.dp)) {
                         Icon(modifier = Modifier.padding(end = 4.dp),imageVector = Icons.Default.DeleteForever, contentDescription = "upload button explanation")
-                        Text(text = "Delete your album forever")
+                        Text(text = stringResource(R.string.delete_your_album_forever))
                     }
                 } },
                 viewTipDialog = !isContextMenuTipCompleted,
@@ -181,12 +183,16 @@ fun GalleryRoute(navController: NavHostController) {
                 }
             )
 
-            galleryDropDownItems.add(GalleryMenuItem(id = "file manager", "View files", icon = Icons.Default.Folder))
+            galleryDropDownItems.add(GalleryMenuItem(id = "file manager",
+                stringResource(R.string.view_files), icon = Icons.Default.Folder))
             TipDialog(
-                title = "Find your files",
+                title = stringResource(R.string.find_your_files),
                 content = { Column {
-                    Text(text = "Use Images and Videos folders to check your files:")
-                    GifImage(data = R.drawable.filemanager, modifier = Modifier.padding(top = 16.dp).height(250.dp).fillMaxWidth())
+                    Text(text = stringResource(R.string.use_images_and_videos_folders_to_check_your_files))
+                    GifImage(data = R.drawable.filemanager, modifier = Modifier
+                        .padding(top = 16.dp)
+                        .height(250.dp)
+                        .fillMaxWidth())
                 } },
                 viewTipDialog = !isFilemanagerTipCompleted && viewFilemanagerTipDialog,
                 saveTipViewed = {
@@ -196,7 +202,7 @@ fun GalleryRoute(navController: NavHostController) {
                     viewFilemanagerTipDialog = false
                     viewFileManager(context)
                 },
-                confirmButtonText = "Open file manager"
+                confirmButtonText = stringResource(R.string.open_file_manager)
             )
         }
 
@@ -213,13 +219,12 @@ fun GalleryRoute(navController: NavHostController) {
                 navController.navigate(SetupAlbumDestination)
             },
             albumDropDownItems = listOf(
-                GalleryMenuItem(id = "move up", text = "Move album up", Icons.Default.ArrowUpward),
-                GalleryMenuItem(id = "delete", text = "Delete album", Icons.Default.DeleteForever)
+                GalleryMenuItem(id = "move up", text = stringResource(R.string.move_album_up), Icons.Default.ArrowUpward),
+                GalleryMenuItem(id = "delete", text = stringResource(R.string.delete_album), Icons.Default.DeleteForever)
             ),
             onAlbumMenuItemClicked = { id, albumName ->
                 when (id) {
                     "delete" -> {
-                        Log.d(TAG, "delete: $albumName")
                         albumToRemove = albumName
                     }
 
@@ -327,7 +332,7 @@ private fun GalleryScreen(
         ) {
             Text(
                 style = MaterialTheme.typography.titleLarge,
-                text = "My albums"
+                text = stringResource(R.string.my_albums)
             )
             Box {
                 IconButton(onClick = { isMenuVisible = true }) {
@@ -533,13 +538,13 @@ private fun GalleryGrid(
 @Composable
 fun RemoveAlbumDialog(removeAlbum: () -> Unit, hideDialog: () -> Unit, albumName: String) {
     AlertDialog(
-        title = { Text(text = "Remove album") },
-        text = { Text(text = "Do you really want to remove '$albumName' album?") },
+        title = { Text(text = stringResource(R.string.remove_album)) },
+        text = { Text(text = stringResource(R.string.do_you_really_want_to_remove_album, albumName)) },
         onDismissRequest = hideDialog,
         confirmButton = {
             Row {
                 Spacer(modifier = Modifier.width(16.dp))
-                Text(text = "Yes",
+                Text(text = stringResource(R.string.yes),
                     modifier = Modifier.clickable {
                         removeAlbum()
                     })
@@ -547,7 +552,7 @@ fun RemoveAlbumDialog(removeAlbum: () -> Unit, hideDialog: () -> Unit, albumName
         },
         dismissButton = {
             Text(
-                text = "No",
+                text = stringResource(R.string.no),
                 modifier = Modifier.clickable { hideDialog() })
         }
     )

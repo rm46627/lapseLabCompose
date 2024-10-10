@@ -14,12 +14,17 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import com.michredk.lapselabcompose.R
 import kotlin.math.roundToInt
 
 @Composable
 fun PeaceSlider(currentValue: Int, peaceOnValueChange: (Int) -> Unit) {
-    val strValues = listOf("Super Slow", "Slow", "Moderate", "Fast", "Super Fast")
+    val strValues = listOf(stringResource(R.string.super_slow),
+        stringResource(R.string.slow), stringResource(R.string.moderate),
+        stringResource(R.string.fast), stringResource(R.string.super_fast)
+    )
     val intValues = listOf(20, 10, 5, 2, 1)
 
     val position = intValues.indexOf(currentValue).takeIf { it != -1 }?.toFloat() ?: 1f
@@ -32,7 +37,7 @@ fun PeaceSlider(currentValue: Int, peaceOnValueChange: (Int) -> Unit) {
         modifier = Modifier.padding(horizontal = 32.dp, vertical = 8.dp),
         horizontalAlignment = Alignment.Start
     ) {
-        Text(text = "Video Peace", style = MaterialTheme.typography.titleMedium)
+        Text(text = stringResource(R.string.video_peace), style = MaterialTheme.typography.titleMedium)
         Slider(
             value = sliderPosition,
             onValueChange = { newPosition ->
@@ -49,7 +54,11 @@ fun PeaceSlider(currentValue: Int, peaceOnValueChange: (Int) -> Unit) {
 
 @Composable
 fun BitrateSlider(currentValue: Int, bitrateOnValueChange: (Int) -> Unit) {
-    val strValues = listOf("Low", "Moderate", "High")
+    val strValues = listOf(stringResource(R.string.low), stringResource(R.string.moderate),
+        stringResource(
+            R.string.high
+        )
+    )
     val intValues = listOf(1000000, 1500000, 2000000)
 
     val position = intValues.indexOf(currentValue).takeIf { it != -1 }?.toFloat() ?: 1f
@@ -62,7 +71,7 @@ fun BitrateSlider(currentValue: Int, bitrateOnValueChange: (Int) -> Unit) {
         modifier = Modifier.padding(horizontal = 32.dp, vertical = 12.dp),
         horizontalAlignment = Alignment.Start
     ) {
-        Text(text = "Quality", style = MaterialTheme.typography.titleMedium)
+        Text(text = stringResource(R.string.quality), style = MaterialTheme.typography.titleMedium)
         Slider(
             value = sliderPosition,
             onValueChange = { newPosition ->

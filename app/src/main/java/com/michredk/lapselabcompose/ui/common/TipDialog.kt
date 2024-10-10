@@ -13,13 +13,16 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
+import com.michredk.lapselabcompose.R
 
 // TODO: add gif to visualize usage
 
 @Composable
 fun TipDialog(
     title: String, content: @Composable () -> Unit, viewTipDialog: Boolean,
-    saveTipViewed: () -> Unit, doOnConfirm: () -> Unit = {}, confirmButtonText: String = "Ok"
+    saveTipViewed: () -> Unit, doOnConfirm: () -> Unit = {}, confirmButtonText: String = stringResource(
+        R.string.ok)
 ) {
     if (viewTipDialog) {
         AlertDialog(

@@ -46,6 +46,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -185,12 +186,12 @@ fun PhotoBrowserScreen(
                 Column(Modifier.padding(4.dp)) {
                     Text(
                         style = TextStyle(color = MaterialTheme.colorScheme.primary),
-                        text = "Photo added"
+                        text = stringResource(R.string.photo_added)
                     )
                     Text(text = date)
                 }
                 DropdownMenuItem(
-                    text = { Text(text = "Remove photo") },
+                    text = { Text(text = stringResource(R.string.remove_photo)) },
                     leadingIcon = {
                         Icon(
                             imageVector = Icons.Default.DeleteForever,

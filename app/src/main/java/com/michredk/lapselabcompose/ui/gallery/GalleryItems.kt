@@ -47,6 +47,7 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringArrayResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -81,7 +82,7 @@ fun GridCreateCard(onCreateNewAlbumClick: () -> Unit, textSize: TextUnit = Mater
             )
         }
         Text(
-            text = "Create new album!",
+            text = stringResource(R.string.create_new_album),
             textAlign = TextAlign.Center,
             modifier = Modifier.fillMaxWidth(),
             fontSize = textSize
@@ -198,7 +199,7 @@ fun GalleryPagerItem(
         modifier = Modifier
             .fillMaxWidth()
             .padding(top = 16.dp),
-        text = "Number of photos",
+        text = stringResource(R.string.number_of_photos),
         textAlign = TextAlign.Center
     )
     val primaryContainerColor = MaterialTheme.colorScheme.primaryContainer
@@ -246,7 +247,7 @@ fun GalleryPagerItem(
         modifier = Modifier
             .fillMaxWidth()
             .padding(top = 16.dp),
-        text = "Latest photo was taken " + pluralStringResource(id = R.plurals.numberOfDaysAgo, count = daysPassed, daysPassed),
+        text = stringResource(R.string.latest_photo_was_taken) +" " + pluralStringResource(id = R.plurals.numberOfDaysAgo, count = daysPassed, daysPassed),
         textAlign = TextAlign.Center,
         maxLines = 1,
         overflow = TextOverflow.Ellipsis
@@ -270,7 +271,7 @@ fun PagerCreateCard(onCreateNewAlbumClick: () -> Unit) {
                 .padding(top = 16.dp)
                 .fillMaxWidth(),
             textAlign = TextAlign.Center,
-            text = "Ready to capture something new? How about...?",
+            text = stringResource(R.string.ready_to_capture_something_new_how_about),
         )
         val ideasArray: Array<String> =
             stringArrayResource(id = R.array.album_ideas)
@@ -292,7 +293,7 @@ fun PagerCreateCard(onCreateNewAlbumClick: () -> Unit) {
                 if (randIndex >= ideasArray.size) randIndex = 0
             }) {
             Text(
-                text = "Next idea"
+                text = stringResource(R.string.next_idea)
             )
         }
     }

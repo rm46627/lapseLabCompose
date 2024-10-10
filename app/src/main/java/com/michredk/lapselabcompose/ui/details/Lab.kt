@@ -58,6 +58,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -215,7 +216,7 @@ fun LabRoute(
                 } catch (e: IllegalArgumentException) {
                     SnackbarController.sendEvent(
                         event = SnackbarEvent(
-                            message = "Need at least two pictures to generate video",
+                            message = context.getString(R.string.need_at_least_two_pictures_to_generate_video),
                             duration = SnackbarDuration.Long
                         )
                     )
@@ -318,7 +319,7 @@ fun LabScreen(
             onClick = onGenerateVideoBtnClicked,
             enabled = uiState != videoProperties
         ) {
-            Text(text = "generate video")
+            Text(text = stringResource(R.string.generate_video))
         }
 
         PeaceSlider(uiState.framesPerImage, peaceOnValueChange = peaceOnValueChange)
@@ -361,7 +362,7 @@ fun LabScreen(
                             )
                             .padding(8.dp)
                             .width(200.dp),
-                        text = "Please don't leave the app until the video finishes generating.",
+                        text = stringResource(R.string.please_don_t_leave_the_app_until_the_video_finishes_generating),
                         style = TextStyle(
                             fontSize = MaterialTheme.typography.titleLarge.fontSize,
                             textAlign = TextAlign.Center
@@ -384,13 +385,16 @@ fun LabScreen(
 @Composable
 fun VideoStartSelector(startFromLatest: Boolean, startFromLatestOnValueChange: (Boolean) -> Unit) {
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        Text(text = "Start video from:", textAlign = TextAlign.Center)
+        Text(text = stringResource(R.string.start_video_from), textAlign = TextAlign.Center)
         OutlinedButton(onClick = { startFromLatestOnValueChange(!startFromLatest) }) {
             Icon(
                 imageVector = if (startFromLatest) Icons.Default.KeyboardDoubleArrowLeft else Icons.Default.KeyboardDoubleArrowRight,
                 contentDescription = ""
             )
-            Text(text = if (startFromLatest) "Latest photo" else "Newest photo")
+            Text(text = if (startFromLatest) stringResource(R.string.latest_photo) else stringResource(
+                R.string.newest_photo
+            )
+            )
         }
     }
 
@@ -412,7 +416,7 @@ fun RotationSelector(rotation: Float, rotationOnValueChange: (Float) -> Unit) {
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Text(
-            text = "Rotation",
+            text = stringResource(R.string.rotation),
             style = MaterialTheme.typography.titleMedium,
             textAlign = TextAlign.Center
         )

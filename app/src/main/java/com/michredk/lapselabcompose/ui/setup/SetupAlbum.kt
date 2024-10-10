@@ -129,15 +129,15 @@ fun SetupAlbumScreen(
             )
             DropDownMenu(
                 items = listOf(
-                    "I don't need a reminder",
-                    "Everyday",
-                    "Every 2 days",
-                    "Once a week",
-                    "Every 3 weeks",
-                    "Once a month",
-                    "Every 6 months"
+                    stringResource(R.string.i_don_t_need_a_reminder),
+                    stringResource(R.string.everyday),
+                    stringResource(R.string.every_2_days),
+                    stringResource(R.string.once_a_week),
+                    stringResource(R.string.every_3_weeks),
+                    stringResource(R.string.once_a_month),
+                    stringResource(R.string.every_6_months)
                 ),
-                "Select or type frequency",
+                stringResource(R.string.select_or_type_frequency),
                 onValueChanged = { value ->
                     if (frequencyIsValid(value)) {
                         notificationsSet = true
@@ -147,7 +147,7 @@ fun SetupAlbumScreen(
                         notificationsSet = false
                     }
                 },
-                supportingText = "You can edit the available options to e.g. 'Every 3 days' or 'Every 2 weeks'",
+                supportingText = stringResource(R.string.you_can_edit_the_available_options_to_e_g_every_3_days_or_every_2_weeks),
                 isError = frequencyError
             )
         }
@@ -156,14 +156,14 @@ fun SetupAlbumScreen(
             OutlinedButton(
                 onClick = onNextButtonClicked
             ) {
-                Text(text = "Next")
+                Text(text = stringResource(R.string.next))
             }
         }
     }
 
     BackHandlingDialog(
-        title = "Leave album creation?",
-        text = "If you exit now, you will lose your creation progress. Are you sure you want to do this?",
+        title = stringResource(R.string.leave_album_creation),
+        text = stringResource(R.string.if_you_exit_now_you_will_lose_your_creation_progress_are_you_sure_you_want_to_do_this),
         onLeaveClicked = onLeaveAlertClicked
 
     )
@@ -174,9 +174,9 @@ fun NameTextField(
     checkForNameConflict: (String) -> Boolean, onNameValidityChanged: (Boolean) -> Unit
 ) {
     var text by rememberSaveable { mutableStateOf("") }
-    val errorText = "Must be at least 3 characters long"
-    val conflictText = "Album name already taken"
-    val forbiddenText = "Album name must contain only letters and numbers"
+    val errorText = stringResource(R.string.must_be_at_least_3_characters_long)
+    val conflictText = stringResource(R.string.album_name_already_taken)
+    val forbiddenText = stringResource(R.string.album_name_must_contain_only_letters_and_numbers)
     var isError by rememberSaveable { mutableStateOf(false) }
     var isConflict by rememberSaveable { mutableStateOf(false) }
     var isForbidden by remember { mutableStateOf(false) }
@@ -184,7 +184,7 @@ fun NameTextField(
         if (isForbidden) Text(text = forbiddenText) else if (isError) Text(text = errorText) else if (isConflict) Text(
             text = conflictText
         )
-    }, value = text, label = { Text("Album name") }, onValueChange = { newText ->
+    }, value = text, label = { Text(stringResource(R.string.album_name)) }, onValueChange = { newText ->
         text = newText
         isConflict = checkForNameConflict(newText)
         isError = text.length < 3

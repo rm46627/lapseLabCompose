@@ -21,11 +21,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.util.lerp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.michredk.database.dataStore
+import com.michredk.lapselabcompose.R
 import com.michredk.lapselabcompose.ui.gallery.GalleryDestination
 import kotlinx.serialization.Serializable
 import kotlin.math.absoluteValue
@@ -113,7 +115,7 @@ fun OnBoardingScreen(onProceedClicked: () -> Unit) {
                         )
                         if (page == 2 || page == 0) {
                             Button(onClick = onProceedClicked) {
-                                Text(text = "Proceed")
+                                Text(text = stringResource(R.string.proceed))
                             }
                         }
 

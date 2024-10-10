@@ -67,6 +67,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -228,11 +229,11 @@ fun CameraRoute(
             }
             SnackbarController.sendEvent(
                 event = SnackbarEvent(
-                    message = if (successFlag && failedFlag) "Some uploads were successful, and some failed."
-                    else if (successFlag) "Uploaded photos successfully."
-                    else if (failedFlag) "Uploading photos failed."
-                    else if (noSelectionFlag) "No photos selected."
-                    else "A really obscure error.",
+                    message = if (successFlag && failedFlag) context.getString(R.string.some_uploads_were_successful_and_some_failed)
+                    else if (successFlag) context.getString(R.string.uploaded_photos_successfully)
+                    else if (failedFlag) context.getString(R.string.uploading_photos_failed)
+                    else if (noSelectionFlag) context.getString(R.string.no_photos_selected)
+                    else context.getString(R.string.a_really_obscure_error),
                     duration = SnackbarDuration.Short
                 )
             )
@@ -286,7 +287,7 @@ fun CameraScreen(
     val ghostModeEnabled = ghostPath != null || ghostBitmap != null
     if (navigatedFromAlbumDetails) {
         TipDialog(
-            title = "What these buttons do?",
+            title = stringResource(R.string.what_these_buttons_do),
             content = {
                 Column {
                     Row {
@@ -295,7 +296,7 @@ fun CameraScreen(
                             imageVector = Icons.Default.Cameraswitch,
                             contentDescription = "camera switch explanation"
                         )
-                        Text(text = "Change camera")
+                        Text(text = stringResource(R.string.change_camera))
                     }
                     Row(modifier = Modifier.padding(top = 8.dp)) {
                         Icon(
@@ -303,7 +304,7 @@ fun CameraScreen(
                             imageVector = Icons.Default.UploadFile,
                             contentDescription = "upload button explanation"
                         )
-                        Text(text = "Upload image from your phone")
+                        Text(text = stringResource(R.string.upload_image_from_your_phone))
                     }
                     Row(modifier = Modifier.padding(top = 8.dp)) {
                         Icon(
@@ -311,7 +312,7 @@ fun CameraScreen(
                             painter = painterResource(id = R.drawable.ic_ghost),
                             contentDescription = "ghost button explanation"
                         )
-                        Text(text = "Switch on/off preview of the last photo")
+                        Text(text = stringResource(R.string.switch_on_off_preview_of_the_last_photo))
                     }
                     Row(modifier = Modifier.padding(top = 8.dp)) {
                         Icon(
@@ -319,7 +320,7 @@ fun CameraScreen(
                             imageVector = Icons.Default.Photo,
                             contentDescription = "Switch camera mode explanation"
                         )
-                        Text(text = "Switch between normal and burst modes")
+                        Text(text = stringResource(R.string.switch_between_normal_and_burst_modes))
                     }
                 }
             },
@@ -336,7 +337,6 @@ fun CameraScreen(
         CameraPreview(controller = cameraController, modifier = Modifier.fillMaxSize())
         if (showGhost) {
             val data = ghostBitmap ?: ghostPath!!
-            Log.d(TAG, "data: $data")
             GhostImage(
                 modifier = Modifier
                     .fillMaxSize()
@@ -501,7 +501,7 @@ private fun BoxScope.CameraButtons(
 
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Text(
-                text = if (shootBurst) "Burst Mode" else "Photo Mode",
+                text = if (shootBurst) stringResource(R.string.burst_mode) else stringResource(R.string.photo_mode),
                 color = Color.Black,
                 textAlign = TextAlign.Center,
                 modifier = Modifier
