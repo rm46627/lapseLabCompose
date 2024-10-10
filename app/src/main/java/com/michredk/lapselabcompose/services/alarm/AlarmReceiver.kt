@@ -4,7 +4,10 @@ import android.app.NotificationManager
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
+import android.graphics.BitmapFactory
 import android.util.Log
+import androidx.compose.material3.Icon
+import androidx.compose.ui.res.painterResource
 import androidx.core.app.NotificationCompat
 import com.michredk.database.Repository
 import com.michredk.lapselabcompose.NOTIFICATION_CHANNEL
@@ -43,6 +46,7 @@ class AlarmReceiver: BroadcastReceiver() {
         val notification = NotificationCompat.Builder(ctx, NOTIFICATION_CHANNEL)
             .setContentText("It's your reminder to take a new photo for \"$albumName\".")
             .setContentTitle("Your album is waiting!")
+            .setLargeIcon(BitmapFactory.decodeResource(context.resources, R.drawable.logo_icon_light))
             .setSmallIcon(R.drawable.logofinal)
             .build()
         notificationManager.notify(1, notification)
