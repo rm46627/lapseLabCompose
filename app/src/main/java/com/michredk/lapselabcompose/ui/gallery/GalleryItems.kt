@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentSize
+import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DropdownMenu
@@ -238,16 +239,17 @@ fun GalleryPagerItem(
             overflow = TextOverflow.Ellipsis
         )
     }
-    val daysPassed = remember {
-        val lastPhotoDate = FreqUtils.filePathToLocalDateTime(album.coverPhotoPath)
-        FreqUtils.localDateToDaysPassed(lastPhotoDate).toInt()
+    var daysPassed = remember {
+//        val lastPhotoDate = FreqUtils.filePathToLocalDateTime(album.coverPhotoPath)
+//        FreqUtils.localDateToDaysPassed(lastPhotoDate).toInt()
+        2
     }
     Text(
         style = TextStyle(color = MaterialTheme.colorScheme.primary, fontSize = MaterialTheme.typography.bodyLarge.fontSize),
         modifier = Modifier
             .fillMaxWidth()
             .padding(top = 16.dp),
-        text = stringResource(R.string.latest_photo_was_taken) +" " + pluralStringResource(id = R.plurals.numberOfDaysAgo, count = daysPassed, daysPassed),
+        text = stringResource(R.string.latest_photo_was_taken) +" " + String.format(stringArrayResource(id = R.array.days_ago)[if (daysPassed > 1) 2 else daysPassed], daysPassed),
         textAlign = TextAlign.Center,
         maxLines = 1,
         overflow = TextOverflow.Ellipsis

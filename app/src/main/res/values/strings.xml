@@ -87,14 +87,11 @@
     <string name="reset_tips">Reset Tips</string>
     <string name="view_files">View files</string>
 
-    <plurals name="numberOfDaysAgo">
-        <item quantity="zero">today.</item>
-        <item quantity="one">yesterday.</item>
-        <item quantity="two">%d days ago.</item>
-        <item quantity="few">%d days ago.</item>
-        <item quantity="many">%d days ago.</item>
-        <item quantity="other">today.</item>
-    </plurals>
+    <string-array name="days_ago">
+        <item>today.</item>
+        <item>yesterday.</item>
+        <item>%d days ago.</item>
+    </string-array>
 
     <string-array name="album_ideas">
         <item>Cityscapes – traffic flow, pedestrians, day/night transitions</item>
