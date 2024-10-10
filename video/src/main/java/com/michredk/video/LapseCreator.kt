@@ -26,6 +26,7 @@ class LapseCreator(private val context: Context, private val album: Album) {
         bitrate: Int,
         rotation: Float,
         startFromLatest: Boolean,
+        rewindEffect: Boolean,
         encodingProgress: (Int, Int) -> Unit
     ): String {
         val date =
@@ -58,11 +59,12 @@ class LapseCreator(private val context: Context, private val album: Album) {
                 encodingProgress(current, end)
             }
         })
-
+        var photosDirecred = if (startFromLatest) photos.reversed() else photos
+        var photosDirecredRewinded = if(rewindEffect) photosDirecred + photosDirecred.reversed().drop(0) else photosDirecred
         var i = 0
         while (true) {
             when (val result = mediaProcessor.encodeMp4(
-                imageList = if (startFromLatest) photos.reversed() else photos,
+                imageList = photosDirecredRewinded,
                 width,
                 height,
                 effects = listOf(
@@ -73,7 +75,6 @@ class LapseCreator(private val context: Context, private val album: Album) {
                 is EncodingError -> {
                     Log.d(TAG, result.message)
                 }
-
                 is EncodingFormatError -> {
                     width -= 2
                     height -= 4

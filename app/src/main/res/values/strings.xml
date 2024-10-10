@@ -60,7 +60,7 @@
     <string name="start_video_from">Start video from:</string>
     <string name="latest_photo">Latest photo</string>
     <string name="newest_photo">Newest photo</string>
-    <string name="rotation">Rotation</string>
+    <string name="rotation">Rotate video</string>
     <string name="super_slow">Super Slow</string>
     <string name="slow">Slow</string>
     <string name="moderate">Moderate</string>
@@ -86,6 +86,9 @@
     <string name="add_you_first_photo">Add you first photo!</string>
     <string name="reset_tips">Reset Tips</string>
     <string name="view_files">View files</string>
+    <string name="on">On</string>
+    <string name="off">Off</string>
+    <string name="rewind_effect">Rewind Effect</string>
 
     <string-array name="days_ago">
         <item>today.</item>

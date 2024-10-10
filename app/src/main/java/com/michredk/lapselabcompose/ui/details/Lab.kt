@@ -1,8 +1,5 @@
 package com.michredk.lapselabcompose.ui.details
 
-import android.content.Intent
-import android.net.Uri
-import android.os.Environment
 import android.util.Log
 import androidx.activity.compose.BackHandler
 import androidx.annotation.OptIn
@@ -27,10 +24,10 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Folder
 import androidx.compose.material.icons.filled.Image
 import androidx.compose.material.icons.filled.KeyboardDoubleArrowLeft
 import androidx.compose.material.icons.filled.KeyboardDoubleArrowRight
+import androidx.compose.material.icons.filled.Loop
 import androidx.compose.material.icons.filled.Rotate90DegreesCcw
 import androidx.compose.material.icons.filled.Rotate90DegreesCw
 import androidx.compose.material3.Button
@@ -63,7 +60,6 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
-import androidx.core.content.ContextCompat.startActivity
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.media3.common.MediaItem
@@ -195,6 +191,7 @@ fun LabRoute(
                         bitrate = uiState.bitrate,
                         rotation = uiState.rotation,
                         startFromLatest = uiState.startFromLatest,
+                        rewindEffect = uiState.rewindEffect,
                         encodingProgress = { current, end ->
                             encodingProgressCurrent = current
                             encodingProgressEnd = end
@@ -244,7 +241,9 @@ fun LabRoute(
         },
         startFromLatestOnValueChange = { selectedValue ->
             detailsViewModel.updateLabUiState(uiState.copy(startFromLatest = selectedValue))
-
+        },
+        loopVideoOnValueChange = { selectedValue ->
+            detailsViewModel.updateLabUiState(uiState.copy(rewindEffect = selectedValue))
         }
     )
     DisposableEffect(Unit) {
@@ -269,7 +268,8 @@ fun LabScreen(
     peaceOnValueChange: (Int) -> Unit,
     bitrateOnValueChange: (Int) -> Unit,
     rotationOnValueChange: (Float) -> Unit,
-    startFromLatestOnValueChange: (Boolean) -> Unit
+    startFromLatestOnValueChange: (Boolean) -> Unit,
+    loopVideoOnValueChange: (Boolean) -> Unit
 ) {
     Column(
         Modifier
@@ -333,9 +333,10 @@ fun LabScreen(
             RotationSelector(uiState.rotation, rotationOnValueChange = rotationOnValueChange)
             VideoStartSelector(
                 uiState.startFromLatest,
-                startFromLatestOnValueChange = startFromLatestOnValueChange
+                startFromLatestOnValueChange
             )
         }
+        VideoLooperSelector(uiState.rewindEffect, loopVideoOnValueChange)
     }
     if (isLoading) {
         Box(
@@ -380,6 +381,21 @@ fun LabScreen(
             }
         }
     }
+}
+
+@Composable
+fun VideoLooperSelector(loopVideo: Boolean, loopVideoOnValueChange: (Boolean) -> Unit) {
+    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        Text(text = stringResource(R.string.rewind_effect), textAlign = TextAlign.Center)
+        OutlinedButton(onClick = { loopVideoOnValueChange(!loopVideo) }) {
+            Icon(
+                imageVector = Icons.Default.Loop,
+                contentDescription = ""
+            )
+            Text(text = if (loopVideo) stringResource(R.string.on) else stringResource(R.string.off))
+        }
+    }
+
 }
 
 @Composable

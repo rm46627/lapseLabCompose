@@ -1,15 +1,8 @@
 package com.michredk.lapselabcompose.ui.details
 
 import android.content.Context
-import androidx.compose.animation.core.Animatable
-import androidx.compose.animation.core.tween
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import androidx.media3.common.Player
-import androidx.media3.common.Player.REPEAT_MODE_ONE
-import androidx.media3.exoplayer.ExoPlayer
 import com.michredk.database.Album
 import com.michredk.database.DataStoreRepository
 import com.michredk.database.Repository
@@ -105,5 +98,6 @@ data class LabUiState(
     val bitrate: Int = 0,
     val rotation: Float = 0f,
     val startFromLatest: Boolean = true,
+    val rewindEffect: Boolean = false,
 
-)
+    )

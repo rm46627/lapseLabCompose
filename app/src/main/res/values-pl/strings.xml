@@ -60,7 +60,7 @@
     <string name="start_video_from">Rozpocznij wideo od:</string>
     <string name="latest_photo">Najstarsze zdjęcie</string>
     <string name="newest_photo">Najnowsze zdjęcie</string>
-    <string name="rotation">Obrót</string>
+    <string name="rotation">Obróć wideo</string>
     <string name="super_slow">Super Wolno</string>
     <string name="slow">Wolno</string>
     <string name="moderate">Średni</string>
@@ -86,6 +86,9 @@
     <string name="add_you_first_photo">Dodaj swoje pierwsze zdjęcie!</string>
     <string name="reset_tips">Resetuj podpowiedzi</string>
     <string name="view_files">Znajdź pliki</string>
+    <string name="on">Włącz</string>
+    <string name="off">Wyłącz</string>
+    <string name="rewind_effect">Efekt powrotu</string>
 
 
     <string-array name="days_ago">
