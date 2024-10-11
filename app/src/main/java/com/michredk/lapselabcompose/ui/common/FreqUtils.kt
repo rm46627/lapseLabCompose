@@ -12,12 +12,19 @@ object FreqUtils {
         if (value.isEmpty()) return false
         val patterns = listOf(
             "I don't need a reminder",
+            "Nie potrzebuję przypomnień",
             "Everyday",
+            "Codziennie",
             "Every\\s+\\d+\\s+days",
+            "Co\\s+\\d+\\s+dni",
             "Once\\s+a\\s+week",
+            "Raz\\s+w\\s+tygodniu",
             "Every\\s+\\d+\\s+weeks",
+            "Co\\s+\\d+\\s+tygodnie",
             "Once\\s+a\\s+month",
-            "Every\\s+\\d+\\s+months"
+            "Raz\\s+w\\s+miesiącu",
+            "Every\\s+\\d+\\s+months",
+            "Co\\s+\\d+\\s+miesiące"
         )
         val cleanedValue = value.trim().replace("\\s+".toRegex(), " ")
         val isValid = patterns.any { cleanedValue.matches(it.toRegex(RegexOption.IGNORE_CASE)) }
@@ -32,21 +39,32 @@ object FreqUtils {
 //    "Once a month",
 //    "Every 6 months"
 
+//    Codziennie
+//    Co 2 dni
+//    Raz w tygodniu
+//    Co 3 tygodnie
+//    Raz w miesiącu
+//    Co 6 miesięcy
+
     fun freqStrToDays(freq: String): Long {
         val words = freq.split(" ")
         val timeMap = mapOf(
-            "day" to 1L,
             "days" to 1L,
             "week" to 7L,
             "weeks" to 7L,
             "month" to 30L,
-            "months" to 30L
+            "months" to 30L,
+            "dni" to 1L,
+            "tygodniu" to 7L,
+            "tygodnie" to 7L,
+            "miesiącu" to 30L,
+            "miesięcy" to 30L
         )
         return when (words.size) {
             1 -> 1
             3 -> {
                 val timeUnit = timeMap[words[2]] ?: 0
-                val days = if (words[0] == "Once") {
+                val days = if (words[0] == "Once" || words[0] == "Raz") {
                     timeUnit
                 } else timeUnit * words[1].toLong()
                 days

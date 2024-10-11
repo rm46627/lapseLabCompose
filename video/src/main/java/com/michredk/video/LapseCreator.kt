@@ -60,7 +60,7 @@ class LapseCreator(private val context: Context, private val album: Album) {
             }
         })
         var photosDirecred = if (startFromLatest) photos.reversed() else photos
-        var photosDirecredRewinded = if(rewindEffect) photosDirecred + photosDirecred.reversed().drop(0) else photosDirecred
+        var photosDirecredRewinded = if(rewindEffect) photosDirecred + photosDirecred.reversed().drop(1) else photosDirecred
         var i = 0
         while (true) {
             when (val result = mediaProcessor.encodeMp4(

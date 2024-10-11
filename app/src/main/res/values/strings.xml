@@ -70,7 +70,7 @@
     <string name="low">Low</string>
     <string name="high">High</string>
     <string name="quality">Quality</string>
-    <string name="proceed">Proceed</string>
+    <string name="proceed">Go to LapseLab</string>
     <string name="grant_permission">Grant permission</string>
     <string name="ok">Ok</string>
     <string name="permission_required">Permission required</string>
@@ -89,6 +89,9 @@
     <string name="on">On</string>
     <string name="off">Off</string>
     <string name="rewind_effect">Rewind Effect</string>
+    <string name="create_albums_and_add_photos">Create albums and add photos</string>
+    <string name="then_make_unforgettable_memories">Then make unforgettable memories</string>
+    <string name="or_just_have_fun_creating_silly_videos">Or just have fun building silly videos</string>
 
     <string-array name="days_ago">
         <item>today.</item>

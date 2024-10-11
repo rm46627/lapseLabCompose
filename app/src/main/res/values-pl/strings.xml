@@ -30,7 +30,7 @@
     <string name="once_a_month">Raz w miesiącu</string>
     <string name="every_6_months">Co 6 miesięcy</string>
     <string name="select_or_type_frequency">Wybierz lub wpisz częstotliwość</string>
-    <string name="you_can_edit_the_available_options_to_e_g_every_3_days_or_every_2_weeks">Możesz edytować dostępne opcje, np. \'Co 3 dni\' lub \'Co 2 tygodnie\'</string>
+    <string name="you_can_edit_the_available_options_to_e_g_every_3_days_or_every_2_weeks">Możesz edytować wybraną opcję, np. \'Co 3 dni\' lub \'Co 2 tygodnie\'</string>
     <string name="apply">Zastosuj</string>
     <string name="back">Wstecz</string>
     <string name="switch_to_grid">Przełącz na siatkę</string>
@@ -70,7 +70,7 @@
     <string name="low">Niski</string>
     <string name="high">Wysoki</string>
     <string name="quality">Jakość</string>
-    <string name="proceed">Kontynuuj</string>
+    <string name="proceed">Idź do LapseLab</string>
     <string name="grant_permission">Przyznaj uprawnienia</string>
     <string name="ok">OK</string>
     <string name="permission_required">Wymagane uprawnienia</string>
@@ -89,6 +89,10 @@
     <string name="on">Włącz</string>
     <string name="off">Wyłącz</string>
     <string name="rewind_effect">Efekt powrotu</string>
+    <string name="create_albums_and_add_photos">Twórz albumy i dodawaj zdjęcia</string>
+    <string name="then_make_unforgettable_memories">Kolekcjonuj niezapomniane wspomnienia</string>
+    <string name="or_just_have_fun_creating_silly_videos">Lub baw się, kręcąc zabawne filmy</string>
+
 
 
     <string-array name="days_ago">

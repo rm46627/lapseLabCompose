@@ -314,7 +314,7 @@ fun LabScreen(
                 contentScale = ContentScale.Crop,
             )
         }
-        Button(
+        OutlinedButton(
             modifier = Modifier.padding(top = 8.dp),
             onClick = onGenerateVideoBtnClicked,
             enabled = uiState != videoProperties

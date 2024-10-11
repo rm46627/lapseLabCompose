@@ -47,7 +47,7 @@ class AlarmReceiver: BroadcastReceiver() {
             .setContentText("It's your reminder to take a new photo for \"$albumName\".")
             .setContentTitle("Your album is waiting!")
             .setLargeIcon(BitmapFactory.decodeResource(context.resources, R.drawable.logo_icon_light))
-            .setSmallIcon(R.drawable.logofinal)
+            .setSmallIcon(R.drawable.logo_icon_light)
             .build()
         notificationManager.notify(1, notification)
 

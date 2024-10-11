@@ -15,19 +15,27 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.TileMode
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.util.lerp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.michredk.database.dataStore
 import com.michredk.lapselabcompose.R
+import com.michredk.lapselabcompose.ui.common.GifImage
 import com.michredk.lapselabcompose.ui.gallery.GalleryDestination
 import kotlinx.serialization.Serializable
 import kotlin.math.absoluteValue
@@ -62,7 +70,7 @@ fun OnBoardingScreen(onProceedClicked: () -> Unit) {
             modifier = Modifier
                 .fillMaxWidth()
                 .height(400.dp)
-                .weight(3f),
+                .weight(4f),
             horizontalArrangement = Arrangement.Center,
             verticalAlignment = Alignment.CenterVertically
         ) {
@@ -83,7 +91,7 @@ fun OnBoardingScreen(onProceedClicked: () -> Unit) {
                     ),
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(400.dp)
+                        .height(700.dp)
                         .graphicsLayer {
                             // Calculate the absolute offset for the current page from the
                             // scroll position. We use the absolute value which allows us to mirror
@@ -107,14 +115,57 @@ fun OnBoardingScreen(onProceedClicked: () -> Unit) {
                             .fillMaxSize()
                             .padding(8.dp),
                         horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.SpaceBetween
+                        verticalArrangement = Arrangement.Center
                     ) {
-                        Text(
-                            text = "page: $page",
-                            fontSize = MaterialTheme.typography.titleLarge.fontSize,
+                        val offset = 400f
+                        val titleBrush = Brush.linearGradient(
+                            listOf(
+                                MaterialTheme.colorScheme.onPrimaryContainer, MaterialTheme.colorScheme.primary
+                            ), tileMode = TileMode.Mirror, start = Offset(0f, 0f), end = Offset(offset, offset)
                         )
-                        if (page == 2 || page == 0) {
-                            Button(onClick = onProceedClicked) {
+                        if(page == 0) {
+                            Text(
+                                textAlign = TextAlign.Center, style = TextStyle(
+                                    brush = titleBrush,
+                                    fontWeight = FontWeight.ExtraBold,
+                                    fontSize = MaterialTheme.typography.headlineLarge.fontSize
+                                ), text = stringResource(R.string.create_albums_and_add_photos)
+                            )
+                            GifImage(data = R.drawable.albums, modifier = Modifier
+                                .padding(top = 16.dp)
+                                .height(500.dp)
+                                .fillMaxWidth())
+                        }
+                        if(page == 1){
+                            Text(
+                                textAlign = TextAlign.Center, style = TextStyle(
+                                    brush = titleBrush,
+                                    fontWeight = FontWeight.ExtraBold,
+                                    fontSize = MaterialTheme.typography.headlineLarge.fontSize
+                                ), text = stringResource(R.string.then_make_unforgettable_memories)
+                            )
+                            GifImage(data = R.drawable.city, modifier = Modifier
+                                .padding(top = 16.dp)
+                                .height(175.dp)
+                                .fillMaxWidth())
+                            GifImage(data = R.drawable.city, modifier = Modifier
+                                .padding(top = 16.dp)
+                                .height(175.dp)
+                                .fillMaxWidth())
+                        }
+                        if (page == 2) {
+                            Text(
+                                textAlign = TextAlign.Center, style = TextStyle(
+                                    brush = titleBrush,
+                                    fontWeight = FontWeight.ExtraBold,
+                                    fontSize = MaterialTheme.typography.headlineLarge.fontSize
+                                ), text = stringResource(R.string.or_just_have_fun_creating_silly_videos)
+                            )
+                            GifImage(data = R.drawable.dragon, modifier = Modifier
+                                .padding(top = 16.dp, bottom = 8.dp)
+                                .height(400.dp)
+                                .fillMaxWidth())
+                            OutlinedButton(onClick = onProceedClicked) {
                                 Text(text = stringResource(R.string.proceed))
                             }
                         }
@@ -123,6 +174,6 @@ fun OnBoardingScreen(onProceedClicked: () -> Unit) {
                 }
             }
         }
-        Spacer(modifier = Modifier.weight(1f))
+//        Spacer(modifier = Modifier.weight(1f))
     }
 }
