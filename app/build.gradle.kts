@@ -5,14 +5,16 @@ plugins {
     alias(libs.plugins.kotlin.serialization)
     id("com.google.devtools.ksp")
     id("com.google.dagger.hilt.android")
+    id("com.google.gms.google-services")
+    id("com.google.firebase.crashlytics")
 }
 
 android {
-    namespace = "com.michredk.lapselabcompose"
+    namespace = "com.michredk.lapselab"
     compileSdk = 35
 
     defaultConfig {
-        applicationId = "com.example.lapselabcompose"
+        applicationId = "com.michredk.lapselab"
         minSdk = 24
         targetSdk = 35
         versionCode = 1
@@ -122,5 +124,9 @@ dependencies {
     implementation(libs.play.services.ads)
 
     implementation(libs.androidx.work.runtime.ktx)
+
+    implementation(platform("com.google.firebase:firebase-bom:33.4.0"))
+    implementation("com.google.firebase:firebase-crashlytics")
+    implementation("com.google.firebase:firebase-analytics")
 
 }

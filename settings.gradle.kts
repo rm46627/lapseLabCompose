@@ -19,7 +19,7 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "LapseLabCompose"
+rootProject.name = "LapseLab"
 include(":app")
 include(":data")
 include(":files")
