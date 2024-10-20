@@ -58,12 +58,40 @@ import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.michredk.database.Album
 import com.michredk.lapselab.R
+import com.michredk.lapselab.ui.common.FreqUtils
 import com.michredk.lapselab.ui.common.fireColors
 import kotlin.random.Random
 
 @Composable
 fun GridCreateCard(onCreateNewAlbumClick: () -> Unit, textSize: TextUnit = MaterialTheme.typography.bodyLarge.fontSize ) {
     Column(modifier = Modifier.padding(bottom = 64.dp)) {
+        Card(
+            modifier = Modifier
+                .wrapContentSize()
+                .padding(8.dp),
+            shape = ShapeDefaults.Medium,
+            onClick = onCreateNewAlbumClick
+        ) {
+            Image(
+                painter = painterResource(id = R.drawable.ic_add),
+                contentDescription = "Create new album icon",
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .size(200.dp)
+            )
+        }
+        Text(
+            text = stringResource(R.string.create_new_album),
+            textAlign = TextAlign.Center,
+            modifier = Modifier.fillMaxWidth(),
+            fontSize = textSize
+        )
+    }
+}
+
+@Composable
+fun PagerCreateBtn(onCreateNewAlbumClick: () -> Unit, textSize: TextUnit = MaterialTheme.typography.bodyLarge.fontSize ) {
+    Column(modifier = Modifier) {
         Card(
             modifier = Modifier
                 .wrapContentSize()
@@ -237,9 +265,8 @@ fun GalleryPagerItem(
         )
     }
     var daysPassed = remember {
-//        val lastPhotoDate = FreqUtils.filePathToLocalDateTime(album.coverPhotoPath)
-//        FreqUtils.localDateToDaysPassed(lastPhotoDate).toInt()
-        2
+        val lastPhotoDate = FreqUtils.filePathToLocalDateTime(album.coverPhotoPath)
+        FreqUtils.localDateToDaysPassed(lastPhotoDate).toInt()
     }
     Text(
         style = TextStyle(color = MaterialTheme.colorScheme.primary, fontSize = MaterialTheme.typography.bodyLarge.fontSize),
@@ -256,7 +283,7 @@ fun GalleryPagerItem(
 // TODO: add alpha animation for idea text
 @Composable
 fun PagerCreateCard(onCreateNewAlbumClick: () -> Unit) {
-    GridCreateCard(onCreateNewAlbumClick, MaterialTheme.typography.headlineSmall.fontSize)
+    PagerCreateBtn(onCreateNewAlbumClick, MaterialTheme.typography.headlineSmall.fontSize)
     Column(
         verticalArrangement = Arrangement.Bottom,
         horizontalAlignment = Alignment.CenterHorizontally,

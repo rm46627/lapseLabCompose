@@ -22,6 +22,7 @@ class DataStoreRepository(context: Context) {
         val filemanagerTipKey = booleanPreferencesKey(name = "filemanager_tip_completed")
         val ghostBtnTipKey = booleanPreferencesKey(name = "ghost_btn_tip_completed")
         val pagerViewMode = booleanPreferencesKey(name = "pager_view_mode")
+        val lapseCreatorViewed = booleanPreferencesKey(name = "lapse_creator_viewed")
     }
 
     private val dataStore = context.dataStore
@@ -56,12 +57,19 @@ class DataStoreRepository(context: Context) {
         }
     }
 
+    suspend fun saveLapseCreatorViewevState(viewed: Boolean) {
+        dataStore.edit { preferences ->
+            preferences[PreferencesKey.lapseCreatorViewed] = viewed
+        }
+    }
+
     suspend fun resetAllTips() {
         dataStore.edit { preferences ->
             preferences[PreferencesKey.onBoardingKey] = false
             preferences[PreferencesKey.contextMenuTipKey] = false
             preferences[PreferencesKey.filemanagerTipKey] = false
             preferences[PreferencesKey.ghostBtnTipKey] = false
+            preferences[PreferencesKey.lapseCreatorViewed] = false
         }
     }
 
@@ -75,7 +83,7 @@ class DataStoreRepository(context: Context) {
                 }
             }
             .map { preferences ->
-                val onBoardingState = preferences[PreferencesKey.onBoardingKey] ?: true
+                val onBoardingState = preferences[PreferencesKey.onBoardingKey] ?: false
                 onBoardingState
             }
     }
@@ -90,7 +98,7 @@ class DataStoreRepository(context: Context) {
                 }
             }
             .map { preferences ->
-                val contextMenuTipState = preferences[PreferencesKey.contextMenuTipKey] ?: true
+                val contextMenuTipState = preferences[PreferencesKey.contextMenuTipKey] ?: false
                 contextMenuTipState
             }
     }
@@ -105,7 +113,7 @@ class DataStoreRepository(context: Context) {
                 }
             }
             .map { preferences ->
-                val filemanagerTipState = preferences[PreferencesKey.filemanagerTipKey] ?: true
+                val filemanagerTipState = preferences[PreferencesKey.filemanagerTipKey] ?: false
                 filemanagerTipState
             }
     }
@@ -120,7 +128,7 @@ class DataStoreRepository(context: Context) {
                 }
             }
             .map { preferences ->
-                val ghostBtnTipState = preferences[PreferencesKey.ghostBtnTipKey] ?: true
+                val ghostBtnTipState = preferences[PreferencesKey.ghostBtnTipKey] ?: false
                 ghostBtnTipState
             }
     }
@@ -137,6 +145,21 @@ class DataStoreRepository(context: Context) {
             .map { preferences ->
                 val pagerViewModeState = preferences[PreferencesKey.pagerViewMode] ?: true
                 pagerViewModeState
+            }
+    }
+
+    fun readLapseCreatorViewed(): Flow<Boolean> {
+        return dataStore.data
+            .catch { exception ->
+                if (exception is IOException) {
+                    emit(emptyPreferences())
+                } else {
+                    throw exception
+                }
+            }
+            .map { preferences ->
+                val lapseCretorViewedState = preferences[PreferencesKey.lapseCreatorViewed] ?: false
+                lapseCretorViewedState
             }
     }
 

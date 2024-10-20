@@ -22,7 +22,7 @@
     <string name="daily_notifications_are_enabled_for">Codzienne powiadomienia są włączone dla %1$s.</string>
     <string name="you_will_be_notified_every_days_at">Otrzymasz powiadomienia co %1$s dni o %2$s.</string>
     <string name="configure_your_notifications">Skonfiguruj swoje powiadomienia</string>
-    <string name="i_don_t_need_a_reminder">Nie potrzebuję przypomnień</string>
+    <string name="i_don_t_need_a_reminder">Nie potrzebuję żadnych przypomnień</string>
     <string name="everyday">Codziennie</string>
     <string name="every_2_days">Co 2 dni</string>
     <string name="once_a_week">Raz w tygodniu</string>
@@ -63,14 +63,14 @@
     <string name="rotation">Obróć wideo</string>
     <string name="super_slow">Super Wolno</string>
     <string name="slow">Wolno</string>
-    <string name="moderate">Średni</string>
+    <string name="moderate">Średnie</string>
     <string name="fast">Szybko</string>
     <string name="super_fast">Super Szybko</string>
     <string name="video_peace">Tempo filmu</string>
     <string name="low">Niski</string>
     <string name="high">Wysoki</string>
     <string name="quality">Jakość</string>
-    <string name="proceed">Idź do LapseLab</string>
+    <string name="proceed">Przejdź do LapseLab</string>
     <string name="grant_permission">Przyznaj uprawnienia</string>
     <string name="ok">OK</string>
     <string name="permission_required">Wymagane uprawnienia</string>
@@ -92,6 +92,7 @@
     <string name="create_albums_and_add_photos">Twórz albumy i dodawaj zdjęcia</string>
     <string name="then_make_unforgettable_memories">Kolekcjonuj niezapomniane wspomnienia</string>
     <string name="or_just_have_fun_creating_silly_videos">Lub baw się, kręcąc zabawne filmy</string>
+    <string name="try_lapse_creator">Stwórz wideo!</string>
 
 
 

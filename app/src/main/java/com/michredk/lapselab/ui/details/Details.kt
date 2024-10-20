@@ -1,7 +1,9 @@
 package com.michredk.lapselab.ui.details
 
+import android.util.Log
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -10,11 +12,15 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.itemsIndexed
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
+import androidx.compose.foundation.shape.CornerSize
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -27,7 +33,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -37,6 +46,8 @@ import androidx.media3.exoplayer.ExoPlayer
 import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavHostController
 import com.michredk.database.Album
+import com.michredk.lapselab.R
+import com.michredk.lapselab.TAG
 import com.michredk.lapselab.files.MediaManagerFactory
 import com.michredk.lapselab.services.alarm.AlarmScheduler
 import com.michredk.lapselab.ui.PermissionViewModel
@@ -71,6 +82,10 @@ fun DetailsRoute(
     val album by detailsViewModel.album.collectAsStateWithLifecycle()
     val granted by permissionViewModel.allPermissionsGranted.collectAsStateWithLifecycle()
 
+    val wasLapseCreatorViewed by detailsViewModel.wasLapseCreatorViewed.collectAsStateWithLifecycle(
+        initialValue = true
+    )
+    Log.d(TAG, "wasLapseCreatorViewed $wasLapseCreatorViewed")
     val context = LocalContext.current
     val mediaManager = remember {
         MediaManagerFactory(context)
@@ -109,10 +124,10 @@ fun DetailsRoute(
             exoPlayer?.release()
         }
     }
-    photos?.let {
+    photos?.let { photos ->
         val albumSafe = album ?: throw IllegalArgumentException()
-        if (it.isNotEmpty()) {
-            detailsViewModel.updateCoverAndCounter(it.first().absolutePath)
+        if (photos.isNotEmpty()) {
+            detailsViewModel.updateCoverAndCounter(photos.first().absolutePath)
         }
 
         var videoUriState by remember { mutableStateOf<String?>(null) }
@@ -147,7 +162,7 @@ fun DetailsRoute(
             DetailsScreen(
                 alpha = alpha.value,
                 album = albumSafe,
-                photos = it,
+                photos = photos,
                 onAddPhotoClicked = {
                     if (granted) {
                         scope.launch {
@@ -192,8 +207,29 @@ fun DetailsRoute(
                     detailsViewModel.updateAlbum(albumSafe, freq, time, AlarmScheduler(context))
                 },
                 exoPlayer = exoPlayer!!,
-                showVideo = mediaSource != null && showVideo
+                showVideo = mediaSource != null && showVideo,
+                showCreatorBtnTip = !wasLapseCreatorViewed && photos.size > 1
             )
+//            if (viewCreatorTip) {
+//                val creatorTipAlpha by animateFloatAsState(
+//                    targetValue = 1f,
+//                    animationSpec = tween(durationMillis = 500), label = ""
+//                )
+//                Text(
+//                    text = stringResource(R.string.try_lapse_creator),
+//                    color = Color.Black,
+//                    textAlign = TextAlign.Center,
+//                    modifier = Modifier
+//                        .width(100.dp)
+//                        .padding(bottom = 8.dp)
+//                        .alpha(creatorTipAlpha)
+//                        .background(
+//                            MaterialTheme.colorScheme.primaryContainer, shape = RoundedCornerShape(
+//                                corner = CornerSize(8.dp)
+//                            )
+//                        )
+//                )
+//            }
         }
     }
 }
@@ -208,7 +244,8 @@ fun DetailsScreen(
     onPhotoClicked: (Int) -> Unit,
     onApplyNotificationDialogClicked: (LocalTime, String) -> Unit,
     exoPlayer: ExoPlayer,
-    showVideo: Boolean
+    showVideo: Boolean,
+    showCreatorBtnTip: Boolean
 ) {
     var showNotificationDialog by remember {
         mutableStateOf(false)
@@ -252,7 +289,8 @@ fun DetailsScreen(
             topBackgroundColor,
             exoPlayer = exoPlayer,
             showVideo = showVideo,
-            alpha
+            alpha,
+            showCreatorBtnTip
         )
 
         LazyVerticalGrid(

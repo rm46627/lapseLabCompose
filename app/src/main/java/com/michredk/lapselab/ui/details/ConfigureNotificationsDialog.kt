@@ -70,7 +70,7 @@ fun ConfigureNotificationsDialog(
                     Text(
                         textAlign = TextAlign.Start, text = currentConfig, modifier = Modifier
                             .fillMaxWidth()
-                            .padding(bottom = 4.dp)
+                            .padding(bottom = 8.dp)
                     )
                     DropDownMenu(
                         items = listOf(

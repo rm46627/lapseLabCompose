@@ -1,5 +1,7 @@
 package com.michredk.lapselab.ui.common
 
+import android.util.Log
+import com.michredk.lapselab.TAG
 import com.michredk.lapselab.files.FILES_NAME_DATE_FORMAT
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -12,7 +14,7 @@ object FreqUtils {
         if (value.isEmpty()) return false
         val patterns = listOf(
             "I don't need a reminder",
-            "Nie potrzebuję przypomnień",
+            "Nie potrzebuję żadnych przypomnień",
             "Everyday",
             "Codziennie",
             "Every\\s+\\d+\\s+days",
@@ -82,7 +84,9 @@ object FreqUtils {
 
     fun localDateToDaysPassed(date: LocalDateTime): Long {
         val inputDate = date.toLocalDate()
-        return ChronoUnit.DAYS.between(inputDate, LocalDate.now())
+        val passed = ChronoUnit.DAYS.between(inputDate, LocalDate.now())
+        Log.d(TAG, "passed: $passed")
+        return passed
     }
 
     fun filePathToFormatedDateTime(photoPath: String): String {

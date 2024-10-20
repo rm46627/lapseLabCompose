@@ -1,11 +1,13 @@
 package com.michredk.lapselab.ui.startup
 
+import android.util.Log
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.michredk.database.DataStoreRepository
+import com.michredk.lapselab.TAG
 import com.michredk.lapselab.ui.gallery.GalleryDestination
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
@@ -26,6 +28,7 @@ class StartupViewModel @Inject constructor(
     init {
         viewModelScope.launch {
             repository.readOnBoardingState().collect { completed ->
+                Log.d(TAG, "CO JEST KURWA $completed")
                 if (completed) {
                     _startDestination.value = GalleryDestination
                 } else {

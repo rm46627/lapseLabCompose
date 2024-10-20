@@ -10,6 +10,7 @@ import com.michredk.lapselab.services.alarm.AlarmScheduler
 import com.michredk.lapselab.ui.common.FreqUtils
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -41,10 +42,13 @@ class DetailsViewModel @Inject constructor(
     private val _videoProperties = MutableStateFlow(LabUiState())
     val videoProperties: StateFlow<LabUiState> = _videoProperties.asStateFlow()
 
-//    private val exoPlayer: ExoPlayer = ExoPlayer.Builder(applicationContext).build().apply {
-//            playWhenReady = true
-//            repeatMode = REPEAT_MODE_ONE
-//        }
+    val wasLapseCreatorViewed = dataStore.readLapseCreatorViewed()
+
+    fun updateLapseCreatorViewed(viewed: Boolean) {
+        viewModelScope.launch(Dispatchers.IO) {
+            dataStore.saveLapseCreatorViewevState(viewed)
+        }
+    }
 
     @OptIn(ExperimentalCoroutinesApi::class)
     private val _album = _albumName.flatMapLatest { albumName ->

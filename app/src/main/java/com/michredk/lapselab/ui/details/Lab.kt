@@ -219,6 +219,7 @@ fun LabRoute(
                     isVideoInProgress = false
                     encodingProgressEnd = 0
                     detailsViewModel.updateVideoProperties(uiState.copy())
+                    detailsViewModel.updateLapseCreatorViewed(true)
                 }
             }
         },

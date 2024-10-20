@@ -1,5 +1,6 @@
 package com.michredk.lapselab.ui.details
 
+import android.util.Log
 import androidx.annotation.OptIn
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
@@ -11,6 +12,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.CornerSize
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AddPhotoAlternate
@@ -27,8 +29,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -39,6 +43,8 @@ import androidx.media3.ui.PlayerView
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.michredk.database.Album
+import com.michredk.lapselab.R
+import com.michredk.lapselab.TAG
 
 @OptIn(UnstableApi::class)
 @Composable
@@ -50,8 +56,9 @@ fun DetailsHeader(
     onNotificationIconClicked: () -> Unit,
     backgroundColor: Brush,
     exoPlayer: ExoPlayer,
-    showVideo : Boolean,
-    alpha : Float
+    showVideo: Boolean,
+    alpha: Float,
+    viewCreatorTip: Boolean
 ) {
     val scale by animateFloatAsState(
         targetValue = if (expanded) 1f else 0f, animationSpec = tween(durationMillis = 1000),
@@ -69,18 +76,18 @@ fun DetailsHeader(
         verticalArrangement = Arrangement.SpaceBetween
     ) {
         if (showVideo) {
-                AndroidView(
-                    factory = { ctx ->
-                        PlayerView(ctx).apply {
-                            useController = false
-                            player = exoPlayer
-                        }
-                    },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .alpha(alpha)
-                        .height(300.dp * scale)
-                )
+            AndroidView(
+                factory = { ctx ->
+                    PlayerView(ctx).apply {
+                        useController = false
+                        player = exoPlayer
+                    }
+                },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .alpha(alpha)
+                    .height(300.dp * scale)
+            )
         }
         Text(
             modifier = Modifier
@@ -121,12 +128,14 @@ fun DetailsHeader(
                     contentDescription = "Add photo button"
                 )
             }
+
             IconButton(onClick = onEditVideoClicked) {
                 Icon(
                     imageVector = Icons.Default.SlowMotionVideo,
                     contentDescription = "Go to editor button"
                 )
             }
+
         }
     }
 }

@@ -92,6 +92,7 @@
     <string name="create_albums_and_add_photos">Create albums and add photos</string>
     <string name="then_make_unforgettable_memories">Then make unforgettable memories</string>
     <string name="or_just_have_fun_creating_silly_videos">Or just have fun building silly videos</string>
+    <string name="try_lapse_creator">Create video!</string>
 
     <string-array name="days_ago">
         <item>today.</item>
