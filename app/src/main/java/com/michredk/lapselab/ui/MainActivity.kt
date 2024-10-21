@@ -206,7 +206,7 @@ class MainActivity : ComponentActivity() {
         InterstitialAd.load(
             this,
 //            "ca-app-pub-3940256099942544/1033173712", real adUnitId: ca-app-pub-1091895857582029/1209168792
-            "ca-app-pub-3940256099942544/1033173712",
+            "ca-app-pub-1091895857582029/1209168792",
             AdRequest.Builder().build(),
             object : InterstitialAdLoadCallback() {
                 override fun onAdFailedToLoad(adError: LoadAdError) {
@@ -302,7 +302,7 @@ class PermissionViewModel @Inject constructor() : ViewModel() {
     }
 
     fun dismissDialog() {
-        visiblePermissionDialogQueue.removeFirst()
+        visiblePermissionDialogQueue.removeAt(0)
     }
 
     fun onPermissionResult(

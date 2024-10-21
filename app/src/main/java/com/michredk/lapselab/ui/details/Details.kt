@@ -210,26 +210,6 @@ fun DetailsRoute(
                 showVideo = mediaSource != null && showVideo,
                 showCreatorBtnTip = !wasLapseCreatorViewed && photos.size > 1
             )
-//            if (viewCreatorTip) {
-//                val creatorTipAlpha by animateFloatAsState(
-//                    targetValue = 1f,
-//                    animationSpec = tween(durationMillis = 500), label = ""
-//                )
-//                Text(
-//                    text = stringResource(R.string.try_lapse_creator),
-//                    color = Color.Black,
-//                    textAlign = TextAlign.Center,
-//                    modifier = Modifier
-//                        .width(100.dp)
-//                        .padding(bottom = 8.dp)
-//                        .alpha(creatorTipAlpha)
-//                        .background(
-//                            MaterialTheme.colorScheme.primaryContainer, shape = RoundedCornerShape(
-//                                corner = CornerSize(8.dp)
-//                            )
-//                        )
-//                )
-//            }
         }
     }
 }

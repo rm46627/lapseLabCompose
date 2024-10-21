@@ -17,8 +17,8 @@ android {
         applicationId = "com.michredk.lapselab"
         minSdk = 24
         targetSdk = 35
-        versionCode = 6
-        versionName = "1.03"
+        versionCode = 7
+        versionName = "1.04"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
