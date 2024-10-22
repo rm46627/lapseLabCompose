@@ -91,7 +91,8 @@ class DetailsViewModel @Inject constructor(
                     scheduler.schedule(
                         updatedAlbum.directoryName,
                         updatedAlbum.daysBetweenReminders,
-                        updatedAlbum.reminderTime
+                        updatedAlbum.reminderTime,
+                        updatedAlbum.lastReminderSentOn
                     )
                 }
             }

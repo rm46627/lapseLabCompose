@@ -46,14 +46,11 @@ class AlarmReceiver: BroadcastReceiver() {
         notificationManager.notify(1, notification)
 
         val album = repository.getAlbum(albumName).first()
-        repository.updateAlbum(album.copy(lastReminderSentOn = LocalDateTime.now()))
+        val now = LocalDateTime.now()
+        repository.updateAlbum(album.copy(lastReminderSentOn = now))
 
         val alarmScheduler = AlarmScheduler(context)
-        if (hour == -1){
-            alarmScheduler.schedule(albumName, daysBetween)
-        } else {
-            alarmScheduler.schedule(albumName, daysBetween, LocalTime.of(hour, minute))
-        }
+        alarmScheduler.schedule(albumName, daysBetween, LocalTime.of(hour, minute), lastReminderSentOn = now)
     }
 }
 

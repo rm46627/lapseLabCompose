@@ -11,6 +11,8 @@ import com.michredk.lapselab.ui.common.FreqUtils
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
+import java.time.LocalDateTime
+import java.time.LocalTime
 import javax.inject.Inject
 
 @HiltViewModel
@@ -28,16 +30,23 @@ class SetupViewModel @Inject constructor(
             val name = albumName ?: throw IllegalArgumentException("AlbumName is null")
             val freq = notificationFrequency ?: throw IllegalArgumentException("Frequency is null")
             val daysBetweenReminders = freqStrToDays(freq)
+            val now = LocalDateTime.now()
             val newAlbum = Album(
                 directoryName = name,
                 coverPhotoPath = imagePath,
-                daysBetweenReminders = daysBetweenReminders
+                daysBetweenReminders = daysBetweenReminders,
+                lastReminderSentOn = now
             )
 
             repository.addAlbum(newAlbum)
             Log.d(TAG, "daysBetweenReminders: $daysBetweenReminders ")
             if (daysBetweenReminders != 0L) {
-                alarmScheduler.schedule(name, daysBetweenReminders)
+                alarmScheduler.schedule(
+                    albumName = name,
+                    daysBetweenAlarms = daysBetweenReminders,
+                    notifyTime = LocalTime.now(),
+                    lastReminderSentOn = now
+                )
             }
         }
     }
@@ -45,7 +54,7 @@ class SetupViewModel @Inject constructor(
     fun frequencyIsValid(value: String): Boolean {
         val isValid = FreqUtils.frequencyIsValid(value)
         Log.d(TAG, "isValid $isValid")
-        if (isValid){
+        if (isValid) {
             notificationFrequency = value
         }
         return isValid

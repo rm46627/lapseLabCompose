@@ -19,7 +19,7 @@
     <string name="burst_mode">Tryb seryjny</string>
     <string name="photo_mode">Tryb zdjęć</string>
     <string name="no_notifications_set">Brak ustawionych powiadomień.</string>
-    <string name="daily_notifications_are_enabled_for">Codzienne powiadomienia są włączone dla %1$s.</string>
+    <string name="daily_notifications_are_enabled_for">Codzienne powiadomienia są włączone na %1$s.</string>
     <string name="you_will_be_notified_every_days_at">Otrzymasz powiadomienia co %1$s dni o %2$s.</string>
     <string name="configure_your_notifications">Skonfiguruj swoje powiadomienia</string>
     <string name="i_don_t_need_a_reminder">Nie potrzebuję żadnych przypomnień</string>

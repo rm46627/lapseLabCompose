@@ -1,6 +1,7 @@
 package com.michredk.lapselab.services.alarm
 
 import android.content.Context
+import android.util.Log
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
 import com.michredk.database.Repository
@@ -36,7 +37,7 @@ class AlarmReschedulerWorker(
                 alarmScheduler.schedule(
                     albumName = album.directoryName,
                     daysBetweenAlarms = album.daysBetweenReminders,
-                    time = album.lastReminderSentOn.toLocalTime(),
+                    notifyTime = album.reminderTime,
                     lastReminderSentOn = album.lastReminderSentOn
                 )
             }

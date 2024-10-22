@@ -40,19 +40,21 @@ fun ConfigureNotificationsDialog(
     dismissDialog: () -> Unit
 ) {
     val timePickerState = rememberTimePickerState(
-        initialMinute = album.lastReminderSentOn.minute,
-        initialHour = album.lastReminderSentOn.hour
+        initialMinute = album.reminderTime.minute,
+        initialHour = album.reminderTime.hour
     )
     var notificationsSet by remember { mutableStateOf(false) }
+    val initialDropDownText = stringResource(R.string.select_or_type_frequency)
+    var freqValue by remember {
+        mutableStateOf(initialDropDownText) }
     var frequencyError by remember { mutableStateOf(false) }
     val applyButtonEnabled by remember {
         derivedStateOf {
             notificationsSet
         }
     }
-    var freq by remember { mutableStateOf("") }
 
-    val timeSet = "${LocalTime.of(timePickerState.hour, timePickerState.minute)}"
+    val timeSet = "${LocalTime.of(album.reminderTime.hour, album.reminderTime.minute)}"
     val currentConfig = when (album.daysBetweenReminders) {
         0L -> stringResource(R.string.no_notifications_set)
         1L -> stringResource(R.string.daily_notifications_are_enabled_for, timeSet)
@@ -82,10 +84,10 @@ fun ConfigureNotificationsDialog(
                             stringResource(R.string.once_a_month),
                             stringResource(R.string.every_6_months)
                         ),
-                        stringResource(R.string.select_or_type_frequency),
+                        freqValue,
                         onValueChanged = { value ->
                             if (FreqUtils.frequencyIsValid(value)) {
-                                freq = value
+                                freqValue = value
                                 notificationsSet = true
                                 frequencyError = false
                             } else {
@@ -96,7 +98,7 @@ fun ConfigureNotificationsDialog(
                         supportingText = stringResource(R.string.you_can_edit_the_available_options_to_e_g_every_3_days_or_every_2_weeks),
                         isError = frequencyError
                     )
-                    if (freq.isNotEmpty() && freq != stringResource(R.string.i_don_t_need_a_reminder)) {
+                    if (freqValue.isNotEmpty() && freqValue != stringResource(R.string.i_don_t_need_a_reminder)) {
                         TimeInput(modifier = Modifier.padding(top = 4.dp), state = timePickerState)
                     }
                 }
@@ -112,7 +114,7 @@ fun ConfigureNotificationsDialog(
                                     LocalTime.of(
                                         timePickerState.hour,
                                         timePickerState.minute
-                                    ), freq
+                                    ), freqValue
                                 )
                                 dismissDialog()
                             }

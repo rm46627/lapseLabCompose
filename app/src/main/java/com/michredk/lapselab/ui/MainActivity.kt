@@ -54,6 +54,9 @@ import com.michredk.lapselab.TAG
 import com.michredk.lapselab.services.SnackbarController
 import com.michredk.lapselab.ui.common.CameraPermissionTextProvider
 import com.michredk.lapselab.ui.common.PermissionDialog
+import com.michredk.lapselab.ui.common.PostNotificationsPermissionTextProvider
+import com.michredk.lapselab.ui.common.ReadExternalStoragePermissionTextProvider
+import com.michredk.lapselab.ui.common.WriteExternalStoragePermissionTextProvider
 import com.michredk.lapselab.ui.theme.LapseLabComposeTheme
 import dagger.hilt.android.AndroidEntryPoint
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -170,16 +173,15 @@ class MainActivity : ComponentActivity() {
                     }
 
                     Manifest.permission.READ_EXTERNAL_STORAGE -> {
-                        // TODO: create proper classes
-                        CameraPermissionTextProvider()
+                        ReadExternalStoragePermissionTextProvider()
                     }
 
                     Manifest.permission.WRITE_EXTERNAL_STORAGE -> {
-                        CameraPermissionTextProvider()
+                        WriteExternalStoragePermissionTextProvider()
                     }
 
                     Manifest.permission.POST_NOTIFICATIONS -> {
-                        CameraPermissionTextProvider()
+                        PostNotificationsPermissionTextProvider()
                     }
 
                     else -> return@forEach

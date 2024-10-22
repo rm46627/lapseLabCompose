@@ -76,3 +76,36 @@ class CameraPermissionTextProvider: PermissionTextProvider {
         }
     }
 }
+
+class ReadExternalStoragePermissionTextProvider: PermissionTextProvider {
+    override fun getDescription(isPermanentlyDeclined: Boolean): String {
+        return if (isPermanentlyDeclined) {
+            "It seems you permanently declined permission to read external storage." +
+                    "You can go to the app settings to grant it."
+        } else {
+            "This app needs access to your external storage to read photos for your albums."
+        }
+    }
+}
+
+class WriteExternalStoragePermissionTextProvider: PermissionTextProvider {
+    override fun getDescription(isPermanentlyDeclined: Boolean): String {
+        return if (isPermanentlyDeclined) {
+            "It seems you permanently declined permission to write to external storage." +
+                    "You can go to the app settings to grant it."
+        } else {
+            "This app needs access to your external storage to save photos and video files."
+        }
+    }
+}
+
+class PostNotificationsPermissionTextProvider: PermissionTextProvider {
+    override fun getDescription(isPermanentlyDeclined: Boolean): String {
+        return if (isPermanentlyDeclined) {
+            "It seems you permanently declined permission for notifications." +
+                    "You can go to the app settings to grant it."
+        } else {
+            "This app needs permission to send you notifications with the reminders you set for your albums."
+        }
+    }
+}

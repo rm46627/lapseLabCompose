@@ -6,6 +6,7 @@ import android.content.Context
 import android.content.Intent
 import android.util.Log
 import com.michredk.lapselab.TAG
+import okhttp3.internal.notify
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.LocalTime
@@ -19,27 +20,27 @@ class AlarmScheduler(
 
     private val alarmManager = context.getSystemService(AlarmManager::class.java)
 
-    fun schedule(albumName: String, daysBetweenAlarms: Long, time: LocalTime? = null, lastReminderSentOn: LocalDateTime = LocalDateTime.now()) {
+    fun schedule(
+        albumName: String,
+        daysBetweenAlarms: Long,
+        notifyTime: LocalTime,
+        lastReminderSentOn: LocalDateTime
+    ) {
         val intent = Intent(context, AlarmReceiver::class.java).apply {
             putExtra("ALBUM_NAME", albumName)
             putExtra("DAYS_BETWEEN", daysBetweenAlarms)
-            time?.let {
-                putExtra("HOUR", time.hour)
-                putExtra("MINUTE", time.minute)
-            }
+            putExtra("HOUR", notifyTime.hour)
+            putExtra("MINUTE", notifyTime.minute)
         }
 
-        val now = lastReminderSentOn
-        val notifyTime = LocalTime.of(time?.hour ?: now.hour, time?.minute ?: now.minute)
-        val timeHasPassedToday = !now.isBefore(LocalDateTime.of(LocalDate.now(), notifyTime))
-        val notifyDate = if (timeHasPassedToday){
-            now.toLocalDate().plusDays(daysBetweenAlarms)
-        } else {
-            now.toLocalDate().plusDays(daysBetweenAlarms-1)
-        }
+        val nowTime = LocalTime.now()
+
+        val notifyDate = if (nowTime.isBefore(notifyTime))
+            lastReminderSentOn.plusDays(daysBetweenAlarms - 1).toLocalDate()
+        else
+            lastReminderSentOn.plusDays(daysBetweenAlarms).toLocalDate()
 
         val notifyAt = LocalDateTime.of(notifyDate, notifyTime)
-//        val notifyAt = LocalDateTime.of(now.toLocalDate(), now.plusSeconds(10).toLocalTime())
         val zonedDateTime = notifyAt.atZone(ZoneId.systemDefault())
         val timeInMillis = zonedDateTime.toInstant().toEpochMilli()
 
@@ -53,7 +54,7 @@ class AlarmScheduler(
                 PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
             )
         )
-        Log.d(TAG, "schedudled alarm")
+        Log.d(TAG, "schedudled alarm for $notifyDate and $nowTime")
     }
 
     fun cancel(albumName: String) {
