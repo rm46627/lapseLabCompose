@@ -32,9 +32,9 @@ class AlarmReceiver: BroadcastReceiver() {
     override fun onReceive(context: Context?, intent: Intent?) = goAsync {
         val ctx = context ?: throw IllegalStateException("Context cannot be null")
         val albumName = intent?.getStringExtra("ALBUM_NAME") ?: return@goAsync
-        val daysBetween = intent.getLongExtra("DAYS_BETWEEN", 0)
-        val hour = intent.getIntExtra("HOUR", -1)
-        val minute = intent.getIntExtra("MINUTE", -1)
+        val daysBetween = intent.getLongExtra("DAYS_BETWEEN", 1)
+        val hour = intent.getIntExtra("HOUR", 12)
+        val minute = intent.getIntExtra("MINUTE", 0)
 
         val notificationManager = ctx.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
         val notification = NotificationCompat.Builder(ctx, NOTIFICATION_CHANNEL)
