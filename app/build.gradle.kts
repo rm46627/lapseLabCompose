@@ -17,8 +17,8 @@ android {
         applicationId = "com.michredk.lapselab"
         minSdk = 24
         targetSdk = 35
-        versionCode = 10
-        versionName = "1.06"
+        versionCode = 11
+        versionName = "1.07"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
@@ -125,7 +125,7 @@ dependencies {
 
     implementation(libs.androidx.work.runtime.ktx)
 
-    implementation(platform("com.google.firebase:firebase-bom:33.4.0"))
+    implementation(platform("com.google.firebase:firebase-bom:33.5.1"))
     implementation("com.google.firebase:firebase-crashlytics")
     implementation("com.google.firebase:firebase-analytics")
 

@@ -1,14 +1,19 @@
 package com.michredk.lapselab.services.alarm
 
 import android.app.NotificationManager
+import android.app.PendingIntent
+import android.app.TaskStackBuilder
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
+import android.content.Intent.getIntent
 import android.graphics.BitmapFactory
 import androidx.core.app.NotificationCompat
+import androidx.core.content.ContextCompat.startActivity
 import com.michredk.database.Repository
 import com.michredk.lapselab.NOTIFICATION_CHANNEL
 import com.michredk.lapselab.R
+import com.michredk.lapselab.ui.MainActivity
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.DelicateCoroutinesApi
@@ -20,6 +25,7 @@ import java.time.LocalTime
 import javax.inject.Inject
 import kotlin.coroutines.CoroutineContext
 import kotlin.coroutines.EmptyCoroutineContext
+
 
 // TODO: add button to notification to send reminder again in one hour
 
@@ -36,12 +42,22 @@ class AlarmReceiver: BroadcastReceiver() {
         val hour = intent.getIntExtra("HOUR", 12)
         val minute = intent.getIntExtra("MINUTE", 0)
 
+        val startAppIntent: Intent = Intent(
+            context,
+            MainActivity::class.java
+        )
+        val resultPendingIntent: PendingIntent? = TaskStackBuilder.create(context).run {
+            addNextIntentWithParentStack(startAppIntent)
+            getPendingIntent(0,
+                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
+        }
         val notificationManager = ctx.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
         val notification = NotificationCompat.Builder(ctx, NOTIFICATION_CHANNEL)
             .setContentText("It's your reminder to take a new photo for \"$albumName\".")
             .setContentTitle("Your album is waiting!")
             .setLargeIcon(BitmapFactory.decodeResource(context.resources, R.drawable.logo_icon_light))
             .setSmallIcon(R.drawable.logo_icon_light)
+            .setContentIntent(resultPendingIntent)
             .build()
         notificationManager.notify(1, notification)
 

@@ -81,6 +81,7 @@ import coil.request.ImageRequest
 import com.michredk.files.appPicturesDir
 import com.michredk.lapselab.files.MediaManagerFactory
 import com.michredk.lapselab.R
+import com.michredk.lapselab.services.SnackbarAction
 import com.michredk.lapselab.services.SnackbarController
 import com.michredk.lapselab.services.SnackbarEvent
 import com.michredk.lapselab.ui.CameraGraph
@@ -205,49 +206,77 @@ fun CameraRoute(
         alpha = alphaAnim.value
     )
 
-    PhotoPicker(showPhotoPicker = showPhotoPicker, onResult = { uris ->
-        showPhotoPicker = false
-        scope.launch {
-            var successFlag: Boolean = false
-            var failedFlag: Boolean = false
-            var noSelectionFlag: Boolean = false
-            if (uris.isNotEmpty()) {
-                uris.forEach { uri ->
-                    val bitmap = uriToBitmap(context, uri)
-                    if (bitmap == null) {
-                        failedFlag = true
-                    } else {
-                        mediaManager.saveBitmap(
-                            bitmap = bitmap, subfolder = "$appPicturesDir/${albumName}"
-                        )
-                        successFlag = true
+    PhotoPicker(
+        showPhotoPicker = showPhotoPicker,
+        navigatedFromAlbumDetails = navigatedFromAlbumDetails,
+        navigateToPreview = {
+            navController.navigate(PhotoPreviewDestination(navigatedFromAlbumDetails))
+        },
+        onResult = { uris ->
+            showPhotoPicker = false
+            scope.launch {
+                var successFlag: Boolean = false
+                var failedFlag: Boolean = false
+                var noSelectionFlag: Boolean = false
+                if (uris.isNotEmpty()) {
+                    uris.forEachIndexed { idx, uri ->
+                        val bitmap = uriToBitmap(context, uri)
+                        if (bitmap == null) {
+                            failedFlag = true
+                        } else {
+                            mediaManager.saveBitmap(
+                                bitmap = bitmap, subfolder = "$appPicturesDir/${albumName}"
+                            )
+                            if (idx == uris.lastIndex) {
+                                cameraViewModel.bitmap = bitmap
+                            }
+                            successFlag = true
+                        }
                     }
+                } else {
+                    noSelectionFlag = true
                 }
-            } else {
-                noSelectionFlag = true
-            }
-            SnackbarController.sendEvent(
-                event = SnackbarEvent(
-                    message = if (successFlag && failedFlag) context.getString(R.string.some_uploads_were_successful_and_some_failed)
-                    else if (successFlag) context.getString(R.string.uploaded_photos_successfully)
-                    else if (failedFlag) context.getString(R.string.uploading_photos_failed)
-                    else if (noSelectionFlag) context.getString(R.string.no_photos_selected)
-                    else context.getString(R.string.a_really_obscure_error),
-                    duration = SnackbarDuration.Short
+                SnackbarController.sendEvent(
+                    event = SnackbarEvent(
+                        message = if (successFlag && failedFlag) context.getString(R.string.some_uploads_were_successful_and_some_failed)
+                        else if (successFlag) context.getString(R.string.uploaded_photos_successfully)
+                        else if (failedFlag) context.getString(R.string.uploading_photos_failed)
+                        else if (noSelectionFlag) context.getString(R.string.no_photos_selected)
+                        else context.getString(R.string.a_really_obscure_error),
+                        duration = SnackbarDuration.Short,
+                        actionObj = SnackbarAction(
+                            name = "Ok",
+                            action = {  }
+                        )
+                    )
                 )
-            )
-        }
-    })
+            }
+        })
 }
 
 @Composable
-private fun PhotoPicker(showPhotoPicker: Boolean, onResult: (List<Uri>) -> Unit) {
-    val pickMultipleMedia =
+private fun PhotoPicker(
+    showPhotoPicker: Boolean,
+    navigatedFromAlbumDetails: Boolean,
+    onResult: (List<Uri>) -> Unit,
+    navigateToPreview: () -> Unit
+) {
+    val pickMedia = if (navigatedFromAlbumDetails) {
         rememberLauncherForActivityResult(
             ActivityResultContracts.PickMultipleVisualMedia(),
             onResult = { uris -> onResult(uris) })
+    } else {
+        rememberLauncherForActivityResult(
+            ActivityResultContracts.PickVisualMedia(),
+            onResult = { uri ->
+                if (uri != null) {
+                    onResult(listOf(uri))
+                    navigateToPreview()
+                }
+            })
+    }
     if (showPhotoPicker) {
-        pickMultipleMedia.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
+        pickMedia.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
     }
 }
 
@@ -436,10 +465,8 @@ private fun BoxScope.CameraButtons(
             modifier = Modifier
                 .size(btnSize)
                 .background(
-                    if (otherFunctionBtnsEnabled) btnBackgroundColor else btnBackgroundColor.copy(
-                        alpha = 0.5f
-                    ), shape = CircleShape
-                ), enabled = otherFunctionBtnsEnabled
+                    btnBackgroundColor, shape = CircleShape
+                )
         ) {
             Icon(
                 modifier = Modifier.size(iconSize),

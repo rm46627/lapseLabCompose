@@ -17,6 +17,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
@@ -34,6 +35,7 @@ import androidx.navigation.NavController
 import com.michredk.lapselab.R
 import com.michredk.lapselab.ui.common.GifImage
 import com.michredk.lapselab.ui.gallery.GalleryDestination
+import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 import kotlin.math.absoluteValue
 
@@ -77,6 +79,7 @@ fun OnBoardingScreen(onProceedClicked: () -> Unit) {
             val pagerState = rememberPagerState(pageCount = {
                 3
             })
+            val coroutineScope = rememberCoroutineScope()
             HorizontalPager(
                 state = pagerState,
                 pageSpacing = 12.dp,
@@ -100,7 +103,6 @@ fun OnBoardingScreen(onProceedClicked: () -> Unit) {
                                     (pagerState.currentPage - page) + pagerState
                                         .currentPageOffsetFraction
                                     ).absoluteValue
-
                             // We animate the alpha, between 50% and 100%
                             alpha = lerp(
                                 start = 0.5f,
@@ -120,10 +122,14 @@ fun OnBoardingScreen(onProceedClicked: () -> Unit) {
                         val offset = 400f
                         val titleBrush = Brush.linearGradient(
                             listOf(
-                                MaterialTheme.colorScheme.onPrimaryContainer, MaterialTheme.colorScheme.primary
-                            ), tileMode = TileMode.Mirror, start = Offset(0f, 0f), end = Offset(offset, offset)
+                                MaterialTheme.colorScheme.onPrimaryContainer,
+                                MaterialTheme.colorScheme.primary
+                            ),
+                            tileMode = TileMode.Mirror,
+                            start = Offset(0f, 0f),
+                            end = Offset(offset, offset)
                         )
-                        if(page == 0) {
+                        if (page == 0) {
                             Text(
                                 textAlign = TextAlign.Center, style = TextStyle(
                                     brush = titleBrush,
@@ -131,12 +137,21 @@ fun OnBoardingScreen(onProceedClicked: () -> Unit) {
                                     fontSize = MaterialTheme.typography.headlineLarge.fontSize
                                 ), text = stringResource(R.string.create_albums_and_add_photos)
                             )
-                            GifImage(data = R.drawable.albums, modifier = Modifier
-                                .padding(top = 16.dp)
-                                .height(500.dp)
-                                .fillMaxWidth())
+                            GifImage(
+                                data = R.drawable.albums, modifier = Modifier
+                                    .padding(top = 16.dp)
+                                    .height(400.dp)
+                                    .fillMaxWidth()
+                            )
+                            OutlinedButton(onClick = {
+                                coroutineScope.launch {
+                                    pagerState.animateScrollToPage(1)
+                                }
+                            }) {
+                                Text(text = stringResource(R.string.next))
+                            }
                         }
-                        if(page == 1){
+                        if (page == 1) {
                             Text(
                                 textAlign = TextAlign.Center, style = TextStyle(
                                     brush = titleBrush,
@@ -144,27 +159,42 @@ fun OnBoardingScreen(onProceedClicked: () -> Unit) {
                                     fontSize = MaterialTheme.typography.headlineLarge.fontSize
                                 ), text = stringResource(R.string.then_make_unforgettable_memories)
                             )
-                            GifImage(data = R.drawable.oliwa, modifier = Modifier
-                                .padding(top = 16.dp)
-                                .height(175.dp)
-                                .fillMaxWidth())
-                            GifImage(data = R.drawable.city, modifier = Modifier
-                                .padding(top = 16.dp)
-                                .height(175.dp)
-                                .fillMaxWidth())
+                            GifImage(
+                                data = R.drawable.oliwa, modifier = Modifier
+                                    .padding(top = 16.dp)
+                                    .height(175.dp)
+                                    .fillMaxWidth()
+                            )
+                            GifImage(
+                                data = R.drawable.city, modifier = Modifier
+                                    .padding(top = 16.dp)
+                                    .height(175.dp)
+                                    .fillMaxWidth()
+                            )
+                            OutlinedButton(onClick = {
+                                coroutineScope.launch {
+                                    pagerState.animateScrollToPage(2)
+                                }
+                            }) {
+                                Text(text = stringResource(R.string.next))
+                            }
                         }
                         if (page == 2) {
                             Text(
-                                textAlign = TextAlign.Center, style = TextStyle(
+                                textAlign = TextAlign.Center,
+                                style = TextStyle(
                                     brush = titleBrush,
                                     fontWeight = FontWeight.ExtraBold,
                                     fontSize = MaterialTheme.typography.headlineLarge.fontSize
-                                ), text = stringResource(R.string.or_just_have_fun_creating_silly_videos)
+                                ),
+                                text = stringResource(R.string.or_just_have_fun_creating_silly_videos)
                             )
-                            GifImage(data = R.drawable.dragon, modifier = Modifier
-                                .padding(top = 16.dp, bottom = 8.dp)
-                                .height(400.dp)
-                                .fillMaxWidth())
+                            GifImage(
+                                data = R.drawable.dragon, modifier = Modifier
+                                    .padding(top = 16.dp, bottom = 8.dp)
+                                    .height(400.dp)
+                                    .fillMaxWidth()
+                            )
                             OutlinedButton(onClick = onProceedClicked) {
                                 Text(text = stringResource(R.string.proceed))
                             }
