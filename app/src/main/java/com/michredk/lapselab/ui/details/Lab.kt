@@ -83,10 +83,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.Serializable
 
-
-// TODO: make screen animate alpha to 0f in BackHandler and on generate video btn click with showScreen
 // TODO: add bitmap overlay with lapseLab logo
-// TODO: add Proper progress bar with num/photos indicator
 // TODO: add RGB, HSL and Contrast adjustments from media/demos/demo-transformer
 
 @Serializable

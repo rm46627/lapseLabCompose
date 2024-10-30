@@ -8,8 +8,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import com.michredk.lapselab.R
 
-// TODO: add gif to visualize usage
-
 @Composable
 fun TipDialog(
     title: String, content: @Composable () -> Unit, viewTipDialog: Boolean,

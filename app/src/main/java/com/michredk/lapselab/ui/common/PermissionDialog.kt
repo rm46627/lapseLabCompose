@@ -15,8 +15,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.michredk.lapselab.R
 
-// TODO: create another PermissionDialog and which dont use shouldShowRequestPermissionRationale(). display it based on lower API
-
 @Composable
 fun PermissionDialog(
     permissionTextProvider: PermissionTextProvider,

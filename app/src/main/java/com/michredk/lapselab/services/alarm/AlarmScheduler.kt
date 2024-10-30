@@ -12,8 +12,6 @@ import java.time.LocalDateTime
 import java.time.LocalTime
 import java.time.ZoneId
 
-// TODO: Reschedule alarms after phone restart - save last notification time in entity
-
 class AlarmScheduler(
     private val context: Context
 ) {

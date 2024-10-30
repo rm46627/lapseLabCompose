@@ -86,13 +86,8 @@ import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 import kotlin.math.absoluteValue
 
-// TODO: animate grid after deleting the album
-// TODO: fix bug with list not updating changed albums order
 
 // TODO: different frames for better streak and stars for photos counter
-
-// TODO: add daily streak counter
-// TODO: add click animation for photos in cards in pager
 
 @Serializable
 object GalleryDestination

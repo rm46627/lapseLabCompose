@@ -234,7 +234,7 @@ private fun nextPrev() {
         Box(modifier = Modifier.fillMaxSize()) {
             PrevNextButtons(
                 index = 1,
-                onPreviousButtonClicked = { /*TODO*/ },
+                onPreviousButtonClicked = {  },
                 isLastPhoto = false
             ) {
 
