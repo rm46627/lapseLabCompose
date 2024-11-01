@@ -57,8 +57,7 @@ fun DetailsHeader(
     backgroundColor: Brush,
     exoPlayer: ExoPlayer,
     showVideo: Boolean,
-    alpha: Float,
-    viewCreatorTip: Boolean
+    alpha: Float
 ) {
     val scale by animateFloatAsState(
         targetValue = if (expanded) 1f else 0f, animationSpec = tween(durationMillis = 1000),

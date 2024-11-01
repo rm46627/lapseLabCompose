@@ -22,8 +22,9 @@ class DataStoreRepository(context: Context) {
         val filemanagerTipKey = booleanPreferencesKey(name = "filemanager_tip_completed")
         val ghostBtnTipKey = booleanPreferencesKey(name = "ghost_btn_tip_completed")
         val pagerViewMode = booleanPreferencesKey(name = "pager_view_mode")
-        val lapseCreatorViewed = booleanPreferencesKey(name = "lapse_creator_viewed")
+        val firstAlbumEverCreated = booleanPreferencesKey(name = "first_album_ever_created")
     }
+
 
     private val dataStore = context.dataStore
 
@@ -57,9 +58,9 @@ class DataStoreRepository(context: Context) {
         }
     }
 
-    suspend fun saveLapseCreatorViewevState(viewed: Boolean) {
+    suspend fun saveFirstAlbumEverCreated() {
         dataStore.edit { preferences ->
-            preferences[PreferencesKey.lapseCreatorViewed] = viewed
+            preferences[PreferencesKey.firstAlbumEverCreated] = true
         }
     }
 
@@ -69,7 +70,7 @@ class DataStoreRepository(context: Context) {
             preferences[PreferencesKey.contextMenuTipKey] = false
             preferences[PreferencesKey.filemanagerTipKey] = false
             preferences[PreferencesKey.ghostBtnTipKey] = false
-            preferences[PreferencesKey.lapseCreatorViewed] = false
+            preferences[PreferencesKey.firstAlbumEverCreated] = false
         }
     }
 
@@ -148,7 +149,7 @@ class DataStoreRepository(context: Context) {
             }
     }
 
-    fun readLapseCreatorViewed(): Flow<Boolean> {
+    fun readFirstAlbumEverCreated(): Flow<Boolean> {
         return dataStore.data
             .catch { exception ->
                 if (exception is IOException) {
@@ -158,10 +159,8 @@ class DataStoreRepository(context: Context) {
                 }
             }
             .map { preferences ->
-                val lapseCretorViewedState = preferences[PreferencesKey.lapseCreatorViewed] ?: false
-                lapseCretorViewedState
+                val firstAlbumEverCreated = preferences[PreferencesKey.firstAlbumEverCreated] ?: false
+                firstAlbumEverCreated
             }
     }
-
-
 }

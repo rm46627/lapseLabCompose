@@ -34,6 +34,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LocalLifecycleOwner
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.NavHostController
 import com.michredk.lapselab.files.MediaManagerFactory
@@ -48,6 +49,7 @@ import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.michredk.lapselab.TAG
 import com.michredk.lapselab.services.alarm.AlarmScheduler
+import com.michredk.lapselab.ui.details.LabDestination
 import kotlinx.serialization.Serializable
 
 //TODO: Display modal explaining storing photos and how to exclude them from the system app gallery
@@ -70,11 +72,13 @@ fun SetupPhotoRoute(
     val coroutineScope = rememberCoroutineScope()
     val mediaManager = MediaManagerFactory(context)
     val alarmScheduler = AlarmScheduler(context)
+    val wasFirstAlbumEverCreated by setupViewModel.wasFirstAlbumEverCreated.collectAsStateWithLifecycle(
+        initialValue = false
+    )
 
     setupViewModel.albumName?.let {
         SetupPhotoScreen(
             onFirstImagePreviewClicked = { albumName ->
-
                     navController.navigate(CameraDestination(albumName)) {
                         popUpTo(SetupPhotoDestination()) {
                             inclusive = true
@@ -82,16 +86,24 @@ fun SetupPhotoRoute(
                     }
             },
             onCreateAlbumClicked = { imagePath ->
-                navController.navigate(GalleryDestination) {
-                    popUpTo(GalleryDestination) {
-                        inclusive = true
+                if (wasFirstAlbumEverCreated) {
+                    navController.popBackStack()
+                } else {
+                    navController.navigate(LabDestination(albumName, true)){
+                        popUpTo(SetupGraph) {
+                            inclusive = true
+                        }
                     }
                 }
+                setupViewModel.createNewAlbum(imagePath, alarmScheduler)
                 coroutineScope.launch {
                     Log.d(TAG, "media manager: ${Thread.currentThread().name}")
-                    mediaManager.removeLeftoverPhotosFromNewAlbum(it, imagePath)
+                    if (wasFirstAlbumEverCreated) {
+                        mediaManager.removeLeftoverPhotosFromNewAlbum(it, imagePath)
+                    } else {
+                        setupViewModel.updateWasFirstAlbumEverCreated()
+                    }
                 }
-                setupViewModel.createNewAlbum(imagePath, alarmScheduler)
             },
             onLeaveAlertClicked = {
                 coroutineScope.launch {
@@ -100,7 +112,7 @@ fun SetupPhotoRoute(
                 navController.popBackStack()
             },
             albumName = it,
-
+            wasFirstAlbumEverCreated = wasFirstAlbumEverCreated
             )
     } ?: albumName.let {
         setupViewModel.albumName = it
@@ -112,7 +124,8 @@ fun SetupPhotoScreen(
     onFirstImagePreviewClicked: (String) -> Unit,
     onCreateAlbumClicked: (String) -> Unit,
     onLeaveAlertClicked: () -> Unit,
-    albumName: String
+    albumName: String,
+    wasFirstAlbumEverCreated: Boolean
 ) {
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
@@ -145,7 +158,7 @@ fun SetupPhotoScreen(
                     fontWeight = FontWeight.Bold,
                     fontSize = MaterialTheme.typography.headlineSmall.fontSize
                 ),
-                text = stringResource(R.string.add_you_first_photo)
+                text = stringResource(R.string.add_you_first_photos)
             )
             AsyncImage(
                 modifier = Modifier
@@ -165,7 +178,13 @@ fun SetupPhotoScreen(
                 Button(onClick = {
                     onCreateAlbumClicked(photoPath!!)
                 }) {
-                    Text(text = stringResource(R.string.create_new_album))
+                    Text(text = stringResource(
+                            if (wasFirstAlbumEverCreated)
+                                R.string.create_new_album
+                        else
+                            R.string.continue_to_lab
+                        )
+                    )
                 }
             }
             else {

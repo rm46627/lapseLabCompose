@@ -169,7 +169,7 @@ class LapselabNavController(
             }
             composable<LabDestination> { backStackEntry ->
                 val args = backStackEntry.toRoute<LabDestination>()
-                LabRoute(backStackEntry, navController, args.albumName, showInterstialAd)
+                LabRoute(backStackEntry, navController, args.albumName, showInterstialAd, args.creatingFirstAlbumEver)
             }
         }
     }

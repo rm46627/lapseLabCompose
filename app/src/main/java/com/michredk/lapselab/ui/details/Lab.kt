@@ -87,7 +87,7 @@ import kotlinx.serialization.Serializable
 // TODO: add RGB, HSL and Contrast adjustments from media/demos/demo-transformer
 
 @Serializable
-data class LabDestination(val albumName: String? = null)
+data class LabDestination(val albumName: String? = null, val creatingFirstAlbumEver: Boolean = false)
 
 @OptIn(UnstableApi::class)
 @Composable
@@ -95,17 +95,30 @@ fun LabRoute(
     backStackEntry: NavBackStackEntry,
     navController: NavHostController,
     albumName: String?,
-    showInterstitialAd: () -> Unit
+    showInterstitialAd: () -> Unit,
+    creatingFirstAlbumEver: Boolean
 ) {
     val parentEntry = remember(backStackEntry) {
         navController.getBackStackEntry(DetailsGraph)
     }
     val detailsViewModel: DetailsViewModel = hiltViewModel(parentEntry)
+
+    val context = LocalContext.current
+    val mediaManager = remember {
+        MediaManagerFactory(context)
+    }
+    LaunchedEffect(mediaManager) {
+        if (creatingFirstAlbumEver){
+            detailsViewModel.setAlbumName(albumName!!)
+            val photos = mediaManager.getPhotoFiles(albumName)
+            photos.let { detailsViewModel.setPhotos(it) }
+        }
+    }
+
     val album by detailsViewModel.album.collectAsStateWithLifecycle()
     val photos by detailsViewModel.photos.collectAsStateWithLifecycle()
     val uiState by detailsViewModel.labUiState.collectAsStateWithLifecycle()
     val videoProperties by detailsViewModel.videoProperties.collectAsStateWithLifecycle()
-    val context = LocalContext.current
 
     val exoPlayer = remember {
         ExoPlayer.Builder(context).build().apply {
@@ -118,10 +131,6 @@ fun LabRoute(
         Animatable(initialValue = 0f)
     }
     var isVideoInProgress by remember { mutableStateOf(false) }
-
-    val mediaManager = remember {
-        MediaManagerFactory(context)
-    }
     BackHandler {
         scope.launch(Dispatchers.Main) {
             alpha.animateTo(
@@ -197,15 +206,22 @@ fun LabRoute(
                         filename,
                         "$appMoviesDir/${album!!.directoryName}"
                     )
-
                     withContext(Dispatchers.Main) {
-                        navController.navigate(LabDestination(albumName)) {
-                            popUpTo(LabDestination(albumName)) {
-                                inclusive = true
+                        if (creatingFirstAlbumEver){
+                            navController.navigate(DetailsDestination(albumName)){
+                                popUpTo(LabDestination(albumName, creatingFirstAlbumEver)) {
+                                    inclusive = true
+                                }
+                            }
+                        } else {
+                            navController.navigate(LabDestination(albumName)) {
+                                popUpTo(LabDestination(albumName)) {
+                                    inclusive = true
+                                }
                             }
                         }
                     }
-                } catch (e: IllegalArgumentException) {
+                } catch (e: Exception) {
                     SnackbarController.sendEvent(
                         event = SnackbarEvent(
                             message = context.getString(R.string.need_at_least_two_pictures_to_generate_video),
@@ -216,7 +232,6 @@ fun LabRoute(
                     isVideoInProgress = false
                     encodingProgressEnd = 0
                     detailsViewModel.updateVideoProperties(uiState.copy())
-                    detailsViewModel.updateLapseCreatorViewed(true)
                 }
             }
         },

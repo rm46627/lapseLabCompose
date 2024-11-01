@@ -83,7 +83,7 @@
     <string name="album_name_already_taken">Album name already taken</string>
     <string name="album_name_must_contain_only_letters_and_numbers">Album name must contain only letters and numbers</string>
     <string name="album_name">Album name</string>
-    <string name="add_you_first_photo">Add you first photo!</string>
+    <string name="add_you_first_photos">Add you first photos!</string>
     <string name="reset_tips">Reset Tips</string>
     <string name="view_files">View files</string>
     <string name="on">On</string>
@@ -93,6 +93,8 @@
     <string name="then_make_unforgettable_memories">Then make unforgettable memories</string>
     <string name="or_just_have_fun_creating_silly_videos">Or just have fun building silly videos</string>
     <string name="try_lapse_creator">Create video!</string>
+    <string name="take_two_pictures">Take a second photo to continue creating the album</string>
+    <string name="continue_to_lab">Continue to Lapse Creator</string>
 
     <string-array name="days_ago">
         <item>today.</item>

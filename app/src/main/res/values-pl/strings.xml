@@ -83,7 +83,7 @@
     <string name="album_name_already_taken">Ta nazwa albumu jest już zajęta</string>
     <string name="album_name_must_contain_only_letters_and_numbers">Nazwa albumu może zawierać tylko litery i cyfry</string>
     <string name="album_name">Nazwa albumu</string>
-    <string name="add_you_first_photo">Dodaj swoje pierwsze zdjęcie!</string>
+    <string name="add_you_first_photos">Dodaj swoje pierwsze zdjęcia!</string>
     <string name="reset_tips">Resetuj podpowiedzi</string>
     <string name="view_files">Znajdź pliki</string>
     <string name="on">Włącz</string>
@@ -93,6 +93,8 @@
     <string name="then_make_unforgettable_memories">Kolekcjonuj niezapomniane wspomnienia</string>
     <string name="or_just_have_fun_creating_silly_videos">Lub baw się, kręcąc zabawne filmy</string>
     <string name="try_lapse_creator">Stwórz wideo!</string>
+    <string name="take_two_pictures">Zrób drugie zdjęcie aby kontynuować tworzenie albumu</string>
+    <string name="continue_to_lab">Przejdź do tworzenia filmu</string>
 
 
 

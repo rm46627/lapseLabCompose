@@ -51,7 +51,7 @@ fun OnBoardingRoute(navController: NavController) {
         onProceedClicked = {
             startupViewModel.saveOnBoardingState(true)
             navController.navigate(GalleryDestination) {
-                popUpTo(navController.graph.startDestinationId) {
+                popUpTo(OnBoardingDestination) {
                     inclusive = true
                 }
             }

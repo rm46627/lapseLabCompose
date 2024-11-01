@@ -27,8 +27,7 @@ import javax.inject.Inject
 @HiltViewModel
 class DetailsViewModel @Inject constructor(
     @ApplicationContext private val applicationContext: Context,
-    private val repository: Repository,
-    private val dataStore: DataStoreRepository
+    private val repository: Repository
 ) : ViewModel() {
     private val _albumName = MutableStateFlow<String?>(null)
     val albumName: StateFlow<String?> = _albumName.asStateFlow()
@@ -41,14 +40,6 @@ class DetailsViewModel @Inject constructor(
 
     private val _videoProperties = MutableStateFlow(LabUiState())
     val videoProperties: StateFlow<LabUiState> = _videoProperties.asStateFlow()
-
-    val wasLapseCreatorViewed = dataStore.readLapseCreatorViewed()
-
-    fun updateLapseCreatorViewed(viewed: Boolean) {
-        viewModelScope.launch(Dispatchers.IO) {
-            dataStore.saveLapseCreatorViewevState(viewed)
-        }
-    }
 
     @OptIn(ExperimentalCoroutinesApi::class)
     private val _album = _albumName.flatMapLatest { albumName ->
@@ -130,5 +121,4 @@ data class LabUiState(
     val rotation: Float = 0f,
     val startFromLatest: Boolean = true,
     val rewindEffect: Boolean = false,
-
-    )
+)

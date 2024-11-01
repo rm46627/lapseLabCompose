@@ -4,11 +4,13 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.michredk.database.Album
+import com.michredk.database.DataStoreRepository
 import com.michredk.database.Repository
 import com.michredk.lapselab.TAG
 import com.michredk.lapselab.services.alarm.AlarmScheduler
 import com.michredk.lapselab.ui.common.FreqUtils
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
 import java.time.LocalDateTime
@@ -17,12 +19,21 @@ import javax.inject.Inject
 
 @HiltViewModel
 class SetupViewModel @Inject constructor(
-    private val repository: Repository
+    private val repository: Repository,
+    private val dataStore: DataStoreRepository
 ) : ViewModel() {
 
     val albums: Flow<List<Album>> = repository.getAlbums()
     var albumName: String? = null
     private var notificationFrequency: String? = null
+
+    val wasFirstAlbumEverCreated = dataStore.readFirstAlbumEverCreated()
+
+    fun updateWasFirstAlbumEverCreated() {
+        viewModelScope.launch(Dispatchers.IO) {
+            dataStore.saveFirstAlbumEverCreated()
+        }
+    }
 
     fun createNewAlbum(imagePath: String, alarmScheduler: AlarmScheduler) {
         viewModelScope.launch {

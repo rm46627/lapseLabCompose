@@ -13,8 +13,12 @@ import javax.inject.Inject
 class CameraViewModel @Inject constructor(private val dataStore: DataStoreRepository): ViewModel(){
     var albumName: String? = null
     var bitmap: Bitmap? = null
+    var secondPhoto: Boolean = false
+    var tipSended: Boolean = false
 
     val isGhostBtnTipCompleted = dataStore.readGhostBtnTipState()
+
+    val wasFirstAlbumEverCreated = dataStore.readFirstAlbumEverCreated()
 
     fun updateGhostBtnTipValue(isCompleted: Boolean) {
         viewModelScope.launch(Dispatchers.IO) {

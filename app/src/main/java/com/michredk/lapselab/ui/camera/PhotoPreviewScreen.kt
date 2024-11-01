@@ -2,6 +2,7 @@ package com.michredk.lapselab.ui.camera
 
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -32,12 +33,15 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavHostController
+import com.michredk.lapselab.TAG
 import com.michredk.lapselab.files.MediaManagerFactory
 import com.michredk.lapselab.ui.details.DetailsDestination
 import com.michredk.lapselab.ui.CameraGraph
 import com.michredk.lapselab.ui.DetailsGraph
+import com.michredk.lapselab.ui.details.LabDestination
 import com.michredk.lapselab.ui.setup.SetupPhotoDestination
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -56,22 +60,25 @@ fun PhotoPreviewRoute(
     val parentEntry = remember(backStackEntry) {
         navController.getBackStackEntry(CameraGraph)
     }
-    val viewModel: CameraViewModel = hiltViewModel(parentEntry)
+    val cameraViewModel: CameraViewModel = hiltViewModel(parentEntry)
 
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val mediaManager = MediaManagerFactory(context)
+    val wasFirstAlbumEverCreated by cameraViewModel.wasFirstAlbumEverCreated.collectAsStateWithLifecycle(
+        initialValue = false
+    )
 
-    viewModel.bitmap?.let { bitmap ->
+    cameraViewModel.bitmap?.let { bitmap ->
         PhotoPreviewScreen(
             bitmap = bitmap,
             onDiscardClicked = {
                 scope.launch(Dispatchers.IO) {
-                    mediaManager.deleteLatestPhoto(viewModel.albumName)
-                    viewModel.bitmap = BitmapFactory.decodeFile(mediaManager.getLatestPhotoFile(viewModel.albumName!!)?.path)
+                    mediaManager.deleteLatestPhoto(cameraViewModel.albumName)
+                    cameraViewModel.bitmap = BitmapFactory.decodeFile(mediaManager.getLatestPhotoFile(cameraViewModel.albumName!!)?.path)
                 }
-                navController.navigate(CameraDestination(viewModel.albumName, navigatedFromAlbumDetails)) {
-                    popUpTo(CameraDestination(viewModel.albumName, navigatedFromAlbumDetails)) {
+                navController.navigate(CameraDestination(cameraViewModel.albumName, navigatedFromAlbumDetails)) {
+                    popUpTo(CameraDestination(cameraViewModel.albumName, navigatedFromAlbumDetails)) {
                         inclusive = true
                     }
                 }
@@ -79,12 +86,18 @@ fun PhotoPreviewRoute(
             onAcceptClicked = {
                 val navFromDest: Any
                 val popUpToDest: Any
+                Log.d(TAG, "logs: $wasFirstAlbumEverCreated and ${cameraViewModel.secondPhoto}")
                 if (navigatedFromAlbumDetails) {
-                    navFromDest = DetailsDestination(viewModel.albumName)
+                    navFromDest = DetailsDestination(cameraViewModel.albumName)
                     popUpToDest = DetailsGraph
-                } else {
-                    navFromDest = SetupPhotoDestination(viewModel.albumName)
+                } else if (wasFirstAlbumEverCreated || cameraViewModel.secondPhoto == true){
+                    navFromDest = SetupPhotoDestination(cameraViewModel.albumName)
                     popUpToDest = CameraGraph
+                } else {
+                    cameraViewModel.secondPhoto = true
+                    Log.d(TAG, "logs: $wasFirstAlbumEverCreated and ${cameraViewModel.secondPhoto}")
+                    navFromDest = CameraDestination(cameraViewModel.albumName)
+                    popUpToDest = CameraDestination(cameraViewModel.albumName, navigatedFromAlbumDetails)
                 }
                 navController.navigate(navFromDest) {
                     popUpTo(popUpToDest) {

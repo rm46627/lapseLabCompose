@@ -81,10 +81,6 @@ fun DetailsRoute(
     val album by detailsViewModel.album.collectAsStateWithLifecycle()
     val granted by permissionViewModel.allPermissionsGranted.collectAsStateWithLifecycle()
 
-    val wasLapseCreatorViewed by detailsViewModel.wasLapseCreatorViewed.collectAsStateWithLifecycle(
-        initialValue = true
-    )
-    Log.d(TAG, "wasLapseCreatorViewed $wasLapseCreatorViewed")
     val context = LocalContext.current
     val mediaManager = remember {
         MediaManagerFactory(context)
@@ -206,8 +202,7 @@ fun DetailsRoute(
                     detailsViewModel.updateAlbum(albumSafe, freq, time, AlarmScheduler(context))
                 },
                 exoPlayer = exoPlayer!!,
-                showVideo = mediaSource != null && showVideo,
-                showCreatorBtnTip = !wasLapseCreatorViewed && photos.size > 1
+                showVideo = mediaSource != null && showVideo
             )
         }
     }
@@ -223,8 +218,7 @@ fun DetailsScreen(
     onPhotoClicked: (Int) -> Unit,
     onApplyNotificationDialogClicked: (LocalTime, String) -> Unit,
     exoPlayer: ExoPlayer,
-    showVideo: Boolean,
-    showCreatorBtnTip: Boolean
+    showVideo: Boolean
 ) {
     var showNotificationDialog by remember {
         mutableStateOf(false)
@@ -268,8 +262,7 @@ fun DetailsScreen(
             topBackgroundColor,
             exoPlayer = exoPlayer,
             showVideo = showVideo,
-            alpha,
-            showCreatorBtnTip
+            alpha
         )
 
         LazyVerticalGrid(

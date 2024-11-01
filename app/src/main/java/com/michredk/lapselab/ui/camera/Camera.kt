@@ -123,6 +123,10 @@ fun CameraRoute(
     val isGhostBtnTipCompleted by cameraViewModel.isGhostBtnTipCompleted.collectAsStateWithLifecycle(
         initialValue = true
     )
+    val wasFirstAlbumEverCreated by cameraViewModel.wasFirstAlbumEverCreated.collectAsStateWithLifecycle(
+        initialValue = false
+    )
+
 
     val cameraController = remember {
         LifecycleCameraController(context).apply {
@@ -184,7 +188,6 @@ fun CameraRoute(
 
                     override fun onError(exception: ImageCaptureException) {
                         super.onError(exception)
-                        Log.e(TAG, "HERE !!!!!!!! Couldn't take photo: ", exception)
                     }
                 })
         },
@@ -197,13 +200,31 @@ fun CameraRoute(
         photosTaken = photosTaken,
         ghostBitmap = cameraViewModel.bitmap,
         isGhostBtnTipCompleted = isGhostBtnTipCompleted,
+        wasFirstAlbumEverCreated = wasFirstAlbumEverCreated,
         updateGhostBtnTipValue = {
             cameraViewModel.updateGhostBtnTipValue(true)
         },
         navigatedFromAlbumDetails = navigatedFromAlbumDetails,
         captureBtnEnabled = captureBtnEnabled,
         onUploadClicked = { showPhotoPicker = true },
-        alpha = alphaAnim.value
+        alpha = alphaAnim.value,
+        showTipSnackbar = {
+            scope.launch {
+                if (cameraViewModel.secondPhoto == true && cameraViewModel.tipSended == false) {
+                    cameraViewModel.tipSended = true
+                    SnackbarController.sendEvent(
+                        event = SnackbarEvent(
+                            message = context.getString(R.string.take_two_pictures),
+                            duration = SnackbarDuration.Short,
+                            actionObj = SnackbarAction(
+                                name = "Ok",
+                                action = { }
+                            )
+                        )
+                    )
+                }
+            }
+        }
     )
 
     PhotoPicker(
@@ -259,13 +280,16 @@ private fun PhotoPicker(
     showPhotoPicker: Boolean,
     navigatedFromAlbumDetails: Boolean,
     onResult: (List<Uri>) -> Unit,
-    navigateToPreview: () -> Unit
+    navigateToPreview: () -> Unit,
 ) {
     val pickMedia = if (navigatedFromAlbumDetails) {
         rememberLauncherForActivityResult(
             ActivityResultContracts.PickMultipleVisualMedia(),
-            onResult = { uris -> onResult(uris) })
-    } else {
+            onResult = {
+                uris -> onResult(uris)
+            })
+    }
+    else {
         rememberLauncherForActivityResult(
             ActivityResultContracts.PickVisualMedia(),
             onResult = { uri ->
@@ -289,11 +313,13 @@ fun CameraScreen(
     photosTaken: Int,
     ghostBitmap: Bitmap?,
     isGhostBtnTipCompleted: Boolean,
+    wasFirstAlbumEverCreated: Boolean,
     updateGhostBtnTipValue: () -> Unit,
     navigatedFromAlbumDetails: Boolean,
     captureBtnEnabled: Boolean,
     onUploadClicked: () -> Unit,
-    alpha: Float
+    alpha: Float,
+    showTipSnackbar: () -> Unit,
 ) {
     val context = LocalContext.current
     var ghostPath by remember { mutableStateOf<String?>(null) }
@@ -355,6 +381,8 @@ fun CameraScreen(
             viewTipDialog = !isGhostBtnTipCompleted,
             saveTipViewed = updateGhostBtnTipValue
         )
+    } else if (!wasFirstAlbumEverCreated) {
+        showTipSnackbar()
     }
 
     Box(
@@ -391,7 +419,8 @@ fun CameraScreen(
                 showGhost = !showGhost
             },
             onUploadClicked = onUploadClicked,
-            captureBtnEnabled = captureBtnEnabled
+            captureBtnEnabled = captureBtnEnabled,
+            wasFirstAlbumEverCreated = wasFirstAlbumEverCreated
         )
     }
 }
@@ -419,7 +448,8 @@ private fun BoxScope.CameraButtons(
     otherFunctionBtnsEnabled: Boolean,
     onGhostImageClicked: () -> Unit,
     onUploadClicked: () -> Unit,
-    captureBtnEnabled: Boolean
+    captureBtnEnabled: Boolean,
+    wasFirstAlbumEverCreated: Boolean
 ) {
     var shootBurst by remember {
         mutableStateOf(false)
@@ -466,7 +496,8 @@ private fun BoxScope.CameraButtons(
                 .size(btnSize)
                 .background(
                     btnBackgroundColor, shape = CircleShape
-                )
+                ),
+            enabled = wasFirstAlbumEverCreated
         ) {
             Icon(
                 modifier = Modifier.size(iconSize),

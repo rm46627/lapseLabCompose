@@ -33,7 +33,7 @@ fun SplashScreenRoute(navController: NavController) {
         navigateAfterAnimation = {
             val nextScreen by startupViewModel.startDestination
             navController.navigate(nextScreen) {
-                popUpTo(navController.graph.startDestinationId) {
+                popUpTo(SplashScreenDestination) {
                     inclusive = true
                 }
             }
