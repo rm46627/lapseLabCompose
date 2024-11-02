@@ -5,6 +5,7 @@ import android.util.Log
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
 import com.michredk.database.Repository
+import com.michredk.lapselab.TAG
 import dagger.hilt.EntryPoint
 import dagger.hilt.InstallIn
 import dagger.hilt.android.EntryPointAccessors
@@ -34,6 +35,7 @@ class AlarmReschedulerWorker(
             val albums = repository.getAlbums().first()
             val alarmScheduler = AlarmScheduler(context)
             albums.forEach { album ->
+                Log.d(TAG, "${album.directoryName}, days:${album.daysBetweenReminders}, notif: ${album.reminderTime}, last: ${album.lastReminderSentOn}")
                 alarmScheduler.schedule(
                     albumName = album.directoryName,
                     daysBetweenAlarms = album.daysBetweenReminders,

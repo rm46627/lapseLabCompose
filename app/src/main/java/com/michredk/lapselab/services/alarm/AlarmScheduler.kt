@@ -24,6 +24,7 @@ class AlarmScheduler(
         notifyTime: LocalTime,
         lastReminderSentOn: LocalDateTime
     ) {
+        if (daysBetweenAlarms == 0L) return
         val intent = Intent(context, AlarmReceiver::class.java).apply {
             putExtra("ALBUM_NAME", albumName)
             putExtra("DAYS_BETWEEN", daysBetweenAlarms)
@@ -32,13 +33,13 @@ class AlarmScheduler(
         }
 
         val nowTime = LocalTime.now()
-
         val notifyDate = if (nowTime.isBefore(notifyTime))
             lastReminderSentOn.plusDays(daysBetweenAlarms - 1).toLocalDate()
         else
             lastReminderSentOn.plusDays(daysBetweenAlarms).toLocalDate()
 
         val notifyAt = LocalDateTime.of(notifyDate, notifyTime)
+        Log.d(TAG, "$albumName, $notifyAt")
         val zonedDateTime = notifyAt.atZone(ZoneId.systemDefault())
         val timeInMillis = zonedDateTime.toInstant().toEpochMilli()
 
