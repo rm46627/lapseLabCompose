@@ -95,6 +95,7 @@
     <string name="try_lapse_creator">Create video!</string>
     <string name="take_two_pictures">Take a second photo to continue creating the album</string>
     <string name="continue_to_lab">Continue to Lapse Creator</string>
+    <string name="uploading_files_in_progress">Uploading files in progress...</string>
 
     <string-array name="days_ago">
         <item>today.</item>

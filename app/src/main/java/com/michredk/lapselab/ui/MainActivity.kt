@@ -47,8 +47,8 @@ import com.google.android.gms.ads.interstitial.InterstitialAd
 import com.google.android.gms.ads.interstitial.InterstitialAdLoadCallback
 import com.google.android.ump.ConsentInformation
 import com.google.android.ump.UserMessagingPlatform.showPrivacyOptionsForm
-import com.google.firebase.analytics.ktx.analytics
-import com.google.firebase.ktx.Firebase
+//import com.google.firebase.analytics.ktx.analytics
+//import com.google.firebase.ktx.Firebase
 import com.michredk.lapselab.ui.common.ObserveAsEvents
 import com.michredk.lapselab.TAG
 import com.michredk.lapselab.services.SnackbarController
@@ -208,7 +208,7 @@ class MainActivity : ComponentActivity() {
         InterstitialAd.load(
             this,
 //            "ca-app-pub-3940256099942544/1033173712", real adUnitId: ca-app-pub-1091895857582029/1209168792
-            "ca-app-pub-1091895857582029/1209168792",
+            "ca-app-pub-3940256099942544/1033173712",
             AdRequest.Builder().build(),
             object : InterstitialAdLoadCallback() {
                 override fun onAdFailedToLoad(adError: LoadAdError) {

@@ -72,6 +72,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
+import androidx.core.net.toUri
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavBackStackEntry
@@ -81,12 +82,12 @@ import coil.request.ImageRequest
 import com.michredk.files.appPicturesDir
 import com.michredk.lapselab.files.MediaManagerFactory
 import com.michredk.lapselab.R
+import com.michredk.lapselab.TAG
 import com.michredk.lapselab.services.SnackbarAction
 import com.michredk.lapselab.services.SnackbarController
 import com.michredk.lapselab.services.SnackbarEvent
 import com.michredk.lapselab.ui.CameraGraph
 import com.michredk.lapselab.ui.common.TipDialog
-import com.michredk.video.TAG
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -167,7 +168,7 @@ fun CameraRoute(
                 object : ImageCapture.OnImageCapturedCallback() {
                     override fun onCaptureSuccess(image: ImageProxy) {
                         super.onCaptureSuccess(image)
-                        val finalBitmap = scaleCropRotateBitmap(
+                        val finalBitmap = scaleCropRotateCameraImage(
                             image,
                             cameraController.cameraSelector == CameraSelector.DEFAULT_FRONT_CAMERA
                         )
@@ -236,17 +237,27 @@ fun CameraRoute(
         onResult = { uris ->
             showPhotoPicker = false
             scope.launch {
+                SnackbarController.sendEvent(
+                    event = SnackbarEvent(
+                        message = context.getString(R.string.uploading_files_in_progress),
+                        duration = SnackbarDuration.Long
+                    )
+                )
                 var successFlag: Boolean = false
                 var failedFlag: Boolean = false
                 var noSelectionFlag: Boolean = false
+                var lastBitmap = cameraViewModel.bitmap ?: uriToBitmap(context, MediaManagerFactory(context).getLatestPhotoFile(albumName)?.toUri())
                 if (uris.isNotEmpty()) {
                     uris.forEachIndexed { idx, uri ->
                         val bitmap = uriToBitmap(context, uri)
                         if (bitmap == null) {
                             failedFlag = true
                         } else {
+                            val previousBitmapSize = Pair(lastBitmap?.height, lastBitmap?.width)
+                            Log.d(TAG, "prev: ${previousBitmapSize.toString()}")
+                            val finalbitmap = scaleCropRotatePickedBitmap(bitmap, previousBitmapSize)
                             mediaManager.saveBitmap(
-                                bitmap = bitmap, subfolder = "$appPicturesDir/${albumName}"
+                                bitmap = finalbitmap, subfolder = "$appPicturesDir/${albumName}"
                             )
                             if (idx == uris.lastIndex) {
                                 cameraViewModel.bitmap = bitmap
@@ -414,7 +425,7 @@ fun CameraScreen(
             onChangeCameraClicked,
             onTakePictureClicked,
             ghostModeEnabled = ghostModeEnabled,
-            otherFunctionBtnsEnabled = navigatedFromAlbumDetails,
+            navigatedFromAlbumDetails = navigatedFromAlbumDetails,
             onGhostImageClicked = {
                 showGhost = !showGhost
             },
@@ -445,7 +456,7 @@ private fun BoxScope.CameraButtons(
     onChangeCameraClicked: () -> Unit,
     onTakePictureClicked: (Boolean) -> Unit,
     ghostModeEnabled: Boolean,
-    otherFunctionBtnsEnabled: Boolean,
+    navigatedFromAlbumDetails: Boolean,
     onGhostImageClicked: () -> Unit,
     onUploadClicked: () -> Unit,
     captureBtnEnabled: Boolean,
@@ -497,7 +508,7 @@ private fun BoxScope.CameraButtons(
                 .background(
                     btnBackgroundColor, shape = CircleShape
                 ),
-            enabled = wasFirstAlbumEverCreated
+            enabled = wasFirstAlbumEverCreated || navigatedFromAlbumDetails
         ) {
             Icon(
                 modifier = Modifier.size(iconSize),
@@ -575,7 +586,7 @@ private fun BoxScope.CameraButtons(
                 modifier = Modifier
                     .size(btnSize)
                     .background(
-                        if (otherFunctionBtnsEnabled) btnBackgroundColor else btnBackgroundColor.copy(
+                        if (navigatedFromAlbumDetails) btnBackgroundColor else btnBackgroundColor.copy(
                             alpha = 0.5f
                         ), shape = CircleShape
                     ),
@@ -583,7 +594,7 @@ private fun BoxScope.CameraButtons(
                     shootBurst = !shootBurst
                     modeIcon = if (shootBurst) R.drawable.bursts_mode else R.drawable.image_mode
                     animateModeText = true
-                }, enabled = otherFunctionBtnsEnabled
+                }, enabled = navigatedFromAlbumDetails
             ) {
                 Icon(
                     painter = painterResource(id = modeIcon),
@@ -619,7 +630,7 @@ private fun CaptureButton(
     }
 }
 
-fun scaleCropRotateBitmap(
+fun scaleCropRotateCameraImage(
     image: ImageProxy,
     mirrorImage: Boolean
 ): Bitmap {
@@ -634,10 +645,9 @@ fun scaleCropRotateBitmap(
         )
     }
     val targetRatio = 4000f / 2024f
-//    val targetRatio = 1280f / 646f
 
     // Calculate the target dimensions, ensuring the aspect ratio is maintained and no scaling/stretching occurs
-    val (targetWidth, targetHeight) = if (bitmap.width.toFloat() / bitmap.height.toFloat() > targetRatio) {
+    var (targetWidth, targetHeight) = if (bitmap.width.toFloat() / bitmap.height.toFloat() > targetRatio) {
         // Width is too large, so adjust the width to match the target aspect ratio
         val adjustedWidth = (bitmap.height * targetRatio).toInt()
         adjustedWidth to bitmap.height
@@ -656,22 +666,71 @@ fun scaleCropRotateBitmap(
     val y = (bitmap.height - finalHeight) / 2
 
     // Create the cropped bitmap centered on the original image
-    val croppedBitmap = Bitmap.createBitmap(
+    var croppedBitmap = Bitmap.createBitmap(
         bitmap, x,             // X coordinate to start the crop
         y,             // Y coordinate to start the crop
         finalWidth,    // Width of the cropped image
         finalHeight,   // Height of the cropped image
-        matrix, true
+        matrix,
+        true
     )
 
-    Log.d(
-        TAG,
-        "From: height = ${bitmap.height} width = ${bitmap.width} to Final dimensions height = $finalHeight width = $finalWidth "
-    )
     return croppedBitmap
 }
 
-fun uriToBitmap(context: Context, uri: Uri): Bitmap? {
+fun scaleCropRotatePickedBitmap(
+    bitmap: Bitmap,
+    previousSize: Pair<Int?, Int?>
+): Bitmap {
+    // Determine if the photo is vertical
+    val isPhotoVertical = if(previousSize.second != null) previousSize.first!! >= previousSize.second!! else bitmap.height >= bitmap.width
+
+    // Create a matrix for rotation
+    val matrix = Matrix().apply {
+        if (!isPhotoVertical) postRotate(90f)
+    }
+
+    // Set target dimensions based on previousSize
+    val targetWidth = previousSize.second ?: bitmap.width
+    val targetHeight = previousSize.first ?: bitmap.height
+
+    // Calculate scale factors to ensure dimensions are equal to or greater than previousSize
+    val scaleFactorWidth = targetWidth.toFloat() / bitmap.width
+    val scaleFactorHeight = targetHeight.toFloat() / bitmap.height
+    val scaleFactor = maxOf(scaleFactorWidth, scaleFactorHeight)
+
+    // Scale the bitmap
+    val scaledBitmap = Bitmap.createScaledBitmap(
+        bitmap,
+        (bitmap.width * scaleFactor).toInt(),
+        (bitmap.height * scaleFactor).toInt(),
+        true
+    )
+
+    // Ensure target dimensions are even numbers
+    var finalWidth = targetWidth - targetWidth % 2
+    var finalHeight = targetHeight - targetHeight % 2
+
+    // Calculate the x and y coordinates to center the crop
+    val x = (scaledBitmap.width - finalWidth) / 2
+    val y = (scaledBitmap.height - finalHeight) / 2
+
+    // Ensure x and y are not negative
+    val adjustedX = maxOf(x, 0)
+    val adjustedY = maxOf(y, 0)
+
+    // Create the cropped bitmap centered on the scaled image
+    return Bitmap.createBitmap(
+        scaledBitmap,
+        adjustedX, adjustedY,     // X and Y coordinates to start the crop
+        finalWidth, finalHeight,   // Width and Height of the cropped image
+        matrix,
+        true
+    )
+}
+
+fun uriToBitmap(context: Context, uri: Uri?): Bitmap? {
+    if (uri == null) return null
     // Obtain the content resolver from the context
     val contentResolver: ContentResolver = context.contentResolver
 
