@@ -237,25 +237,29 @@ fun CameraRoute(
         onResult = { uris ->
             showPhotoPicker = false
             scope.launch {
-                SnackbarController.sendEvent(
-                    event = SnackbarEvent(
-                        message = context.getString(R.string.uploading_files_in_progress),
-                        duration = SnackbarDuration.Long
-                    )
-                )
                 var successFlag: Boolean = false
                 var failedFlag: Boolean = false
                 var noSelectionFlag: Boolean = false
-                var lastBitmap = cameraViewModel.bitmap ?: uriToBitmap(context, MediaManagerFactory(context).getLatestPhotoFile(albumName)?.toUri())
+                var lastBitmap = cameraViewModel.bitmap ?: uriToBitmap(
+                    context,
+                    MediaManagerFactory(context).getLatestPhotoFile(albumName)?.toUri()
+                )
                 if (uris.isNotEmpty()) {
                     uris.forEachIndexed { idx, uri ->
+                        SnackbarController.sendEvent(
+                            event = SnackbarEvent(
+                                message = context.getString(R.string.uploading_files_in_progress) + "\t${idx + 1}/${uris.size}",
+                                duration = SnackbarDuration.Long
+                            )
+                        )
                         val bitmap = uriToBitmap(context, uri)
                         if (bitmap == null) {
                             failedFlag = true
                         } else {
                             val previousBitmapSize = Pair(lastBitmap?.height, lastBitmap?.width)
                             Log.d(TAG, "prev: ${previousBitmapSize.toString()}")
-                            val finalbitmap = scaleCropRotatePickedBitmap(bitmap, previousBitmapSize)
+                            val finalbitmap =
+                                scaleCropRotatePickedBitmap(bitmap, previousBitmapSize)
                             mediaManager.saveBitmap(
                                 bitmap = finalbitmap, subfolder = "$appPicturesDir/${albumName}"
                             )
@@ -278,7 +282,7 @@ fun CameraRoute(
                         duration = SnackbarDuration.Short,
                         actionObj = SnackbarAction(
                             name = "Ok",
-                            action = {  }
+                            action = { }
                         )
                     )
                 )
@@ -296,11 +300,10 @@ private fun PhotoPicker(
     val pickMedia = if (navigatedFromAlbumDetails) {
         rememberLauncherForActivityResult(
             ActivityResultContracts.PickMultipleVisualMedia(),
-            onResult = {
-                uris -> onResult(uris)
+            onResult = { uris ->
+                onResult(uris)
             })
-    }
-    else {
+    } else {
         rememberLauncherForActivityResult(
             ActivityResultContracts.PickVisualMedia(),
             onResult = { uri ->
@@ -683,7 +686,8 @@ fun scaleCropRotatePickedBitmap(
     previousSize: Pair<Int?, Int?>
 ): Bitmap {
     // Determine if the photo is vertical
-    val isPhotoVertical = if(previousSize.second != null) previousSize.first!! >= previousSize.second!! else bitmap.height >= bitmap.width
+    val isPhotoVertical =
+        if (previousSize.second != null) previousSize.first!! >= previousSize.second!! else bitmap.height >= bitmap.width
 
     // Create a matrix for rotation
     val matrix = Matrix().apply {
