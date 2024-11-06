@@ -14,6 +14,7 @@ import android.os.Build
 import android.util.Log
 import android.view.Surface
 import java.io.File
+import java.io.IOException
 import java.nio.ByteBuffer
 
 
@@ -53,6 +54,7 @@ class VideoEncoder(
     private var rect: Rect? = null
 
     fun start() {
+        throw IOException()
         mediaCodec.configure(mediaFormat, null, null, MediaCodec.CONFIGURE_FLAG_ENCODE)
         surface = mediaCodec.createInputSurface()
         mediaCodec.start()

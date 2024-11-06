@@ -45,6 +45,7 @@ import com.google.android.gms.ads.MobileAds
 import com.google.android.gms.ads.RequestConfiguration
 import com.google.android.gms.ads.interstitial.InterstitialAd
 import com.google.android.gms.ads.interstitial.InterstitialAdLoadCallback
+import com.google.android.gms.ads.rewardedinterstitial.RewardedInterstitialAd
 import com.google.android.ump.ConsentInformation
 import com.google.android.ump.UserMessagingPlatform.showPrivacyOptionsForm
 //import com.google.firebase.analytics.ktx.analytics

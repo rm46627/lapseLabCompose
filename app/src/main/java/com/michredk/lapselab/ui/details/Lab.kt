@@ -24,12 +24,15 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Cameraswitch
 import androidx.compose.material.icons.filled.Image
 import androidx.compose.material.icons.filled.KeyboardDoubleArrowLeft
 import androidx.compose.material.icons.filled.KeyboardDoubleArrowRight
 import androidx.compose.material.icons.filled.Loop
+import androidx.compose.material.icons.filled.Photo
 import androidx.compose.material.icons.filled.Rotate90DegreesCcw
 import androidx.compose.material.icons.filled.Rotate90DegreesCw
+import androidx.compose.material.icons.filled.UploadFile
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -62,20 +65,24 @@ import androidx.compose.ui.viewinterop.AndroidView
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.media3.common.MediaItem
+import androidx.media3.common.PlaybackException
+import androidx.media3.common.Player
 import androidx.media3.common.Player.REPEAT_MODE_ONE
 import androidx.media3.common.util.UnstableApi
+import androidx.media3.exoplayer.ExoPlaybackException
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.ui.PlayerView
 import androidx.media3.ui.PlayerView.SHOW_BUFFERING_ALWAYS
 import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavHostController
 import com.michredk.files.appMoviesDir
-import com.michredk.lapselab.files.MediaManagerFactory
 import com.michredk.lapselab.R
 import com.michredk.lapselab.TAG
+import com.michredk.lapselab.files.MediaManagerFactory
 import com.michredk.lapselab.services.SnackbarController
 import com.michredk.lapselab.services.SnackbarEvent
 import com.michredk.lapselab.ui.DetailsGraph
+import com.michredk.lapselab.ui.common.TipDialog
 import com.michredk.video.LapseCreator
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
@@ -83,11 +90,15 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.Serializable
 
+
 // TODO: add bitmap overlay with lapseLab logo
 // TODO: add RGB, HSL and Contrast adjustments from media/demos/demo-transformer
 
 @Serializable
-data class LabDestination(val albumName: String? = null, val creatingFirstAlbumEver: Boolean = false)
+data class LabDestination(
+    val albumName: String? = null,
+    val creatingFirstAlbumEver: Boolean = false
+)
 
 @OptIn(UnstableApi::class)
 @Composable
@@ -108,7 +119,7 @@ fun LabRoute(
         MediaManagerFactory(context)
     }
     LaunchedEffect(mediaManager) {
-        if (creatingFirstAlbumEver){
+        if (creatingFirstAlbumEver) {
             detailsViewModel.setAlbumName(albumName!!)
             val photos = mediaManager.getPhotoFiles(albumName)
             photos.let { detailsViewModel.setPhotos(it) }
@@ -124,8 +135,27 @@ fun LabRoute(
         ExoPlayer.Builder(context).build().apply {
             repeatMode = REPEAT_MODE_ONE
             playWhenReady = true
+            addListener(object : Player.Listener {
+                override fun onPlayerError(error: PlaybackException) {
+                    when (error.errorCode) {
+                        ExoPlaybackException.TYPE_SOURCE -> Log.e(
+                            TAG,
+                            "TYPE_SOURCE: " + error.message
+                        )
+                        ExoPlaybackException.TYPE_RENDERER -> Log.e(
+                            TAG,
+                            "TYPE_RENDERER: " + error.message
+                        )
+                        ExoPlaybackException.TYPE_UNEXPECTED -> Log.e(
+                            TAG,
+                            "TYPE_UNEXPECTED: " + error.message
+                        )
+                    }
+                }
+            })
         }
     }
+
     val scope = rememberCoroutineScope()
     val alpha = remember {
         Animatable(initialValue = 0f)
@@ -177,6 +207,9 @@ fun LabRoute(
     var encodingProgressEnd by remember {
         mutableIntStateOf(0)
     }
+    var showErrorDialog by remember {
+        mutableStateOf(false)
+    }
     LabScreen(
         alpha.value,
         exoPlayer,
@@ -190,7 +223,8 @@ fun LabRoute(
                     if (photosSafe.size < 2) throw IllegalArgumentException()
 
                     val lab = LapseCreator(context, album!!)
-                    val filename = lab.createVideo(
+                    var filename: String
+                    filename = lab.createVideo(
                         photos = photosSafe,
                         framesPerImage = uiState.framesPerImage,
                         bitrate = uiState.bitrate,
@@ -199,7 +233,7 @@ fun LabRoute(
                         rewindEffect = uiState.rewindEffect,
                         encodingProgress = { current, end ->
                             encodingProgressCurrent = current
-                            encodingProgressEnd = end
+                            encodingProgressEnd = end + 1
                         }
                     )
                     mediaManager.saveVideo(
@@ -207,8 +241,8 @@ fun LabRoute(
                         "$appMoviesDir/${album!!.directoryName}"
                     )
                     withContext(Dispatchers.Main) {
-                        if (creatingFirstAlbumEver){
-                            navController.navigate(DetailsDestination(albumName)){
+                        if (creatingFirstAlbumEver) {
+                            navController.navigate(DetailsDestination(albumName)) {
                                 popUpTo(LabDestination(albumName, creatingFirstAlbumEver)) {
                                     inclusive = true
                                 }
@@ -222,12 +256,20 @@ fun LabRoute(
                         }
                     }
                 } catch (e: Exception) {
-                    SnackbarController.sendEvent(
-                        event = SnackbarEvent(
-                            message = context.getString(R.string.need_at_least_two_pictures_to_generate_video),
-                            duration = SnackbarDuration.Long
-                        )
-                    )
+                    when (e) {
+                        is IllegalArgumentException, is NullPointerException -> {
+                            SnackbarController.sendEvent(
+                                event = SnackbarEvent(
+                                    message = context.getString(R.string.need_at_least_two_pictures_to_generate_video),
+                                    duration = SnackbarDuration.Long
+                                )
+                            )
+                        }
+                        else -> {
+                            Log.e(TAG, "Unexpected error occurred: ${e.localizedMessage}")
+                            showErrorDialog = true
+                        }
+                    }
                 } finally {
                     isVideoInProgress = false
                     encodingProgressEnd = 0
@@ -255,6 +297,16 @@ fun LabRoute(
         },
         loopVideoOnValueChange = { selectedValue ->
             detailsViewModel.updateLabUiState(uiState.copy(rewindEffect = selectedValue))
+        }
+    )
+    TipDialog(
+        title = stringResource(R.string.generate_video_error_title),
+        content = {
+           Text(text = stringResource(R.string.generate_video_error_desc))
+        },
+        viewTipDialog = showErrorDialog,
+        saveTipViewed = {
+            showErrorDialog = false
         }
     )
     DisposableEffect(Unit) {
@@ -287,7 +339,7 @@ fun LabScreen(
             .verticalScroll(rememberScrollState())
             .fillMaxSize()
             .padding(
-                top = 32.dp,
+                top = 48.dp,
                 bottom = WindowInsets.systemBars
                     .asPaddingValues()
                     .calculateBottomPadding()
@@ -418,9 +470,10 @@ fun VideoStartSelector(startFromLatest: Boolean, startFromLatestOnValueChange: (
                 imageVector = if (startFromLatest) Icons.Default.KeyboardDoubleArrowLeft else Icons.Default.KeyboardDoubleArrowRight,
                 contentDescription = ""
             )
-            Text(text = if (startFromLatest) stringResource(R.string.latest_photo) else stringResource(
-                R.string.newest_photo
-            )
+            Text(
+                text = if (startFromLatest) stringResource(R.string.latest_photo) else stringResource(
+                    R.string.newest_photo
+                )
             )
         }
     }

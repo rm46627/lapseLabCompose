@@ -9,8 +9,10 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
@@ -20,6 +22,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.TileMode
@@ -85,16 +88,17 @@ fun OnBoardingScreen(onProceedClicked: () -> Unit) {
                 pageSpacing = 12.dp,
                 contentPadding = PaddingValues(
                     horizontal = 32.dp,
-                    vertical = 8.dp
+                    vertical = 64.dp
                 )
             ) { page ->
                 Card(
                     colors = CardDefaults.cardColors(
                         containerColor = MaterialTheme.colorScheme.secondaryContainer,
                     ),
+                    shape = RoundedCornerShape(8.dp),
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(700.dp)
+                        .height(625.dp)
                         .graphicsLayer {
                             // Calculate the absolute offset for the current page from the
                             // scroll position. We use the absolute value which allows us to mirror
@@ -115,9 +119,9 @@ fun OnBoardingScreen(onProceedClicked: () -> Unit) {
                     Column(
                         modifier = Modifier
                             .fillMaxSize()
-                            .padding(8.dp),
+                            .padding(horizontal = 8.dp, vertical = 8.dp),
                         horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.Center
+                        verticalArrangement = Arrangement.SpaceAround
                     ) {
                         val offset = 400f
                         val titleBrush = Brush.linearGradient(
@@ -138,9 +142,10 @@ fun OnBoardingScreen(onProceedClicked: () -> Unit) {
                                 ), text = stringResource(R.string.create_albums_and_add_photos)
                             )
                             GifImage(
-                                data = R.drawable.albums, modifier = Modifier
-                                    .padding(top = 16.dp)
-                                    .height(400.dp)
+                                data = R.drawable.albums,
+                                modifier = Modifier
+                                    .clip(RoundedCornerShape(10.dp))
+                                    .height(425.dp)
                                     .fillMaxWidth()
                             )
                             OutlinedButton(onClick = {
@@ -161,14 +166,14 @@ fun OnBoardingScreen(onProceedClicked: () -> Unit) {
                             )
                             GifImage(
                                 data = R.drawable.oliwa, modifier = Modifier
-                                    .padding(top = 16.dp)
-                                    .height(175.dp)
+                                    .height(180.dp)
+                                    .clip(RoundedCornerShape(10.dp))
                                     .fillMaxWidth()
                             )
                             GifImage(
                                 data = R.drawable.city, modifier = Modifier
-                                    .padding(top = 16.dp)
-                                    .height(175.dp)
+                                    .height(180.dp)
+                                    .clip(RoundedCornerShape(10.dp))
                                     .fillMaxWidth()
                             )
                             OutlinedButton(onClick = {
@@ -191,8 +196,8 @@ fun OnBoardingScreen(onProceedClicked: () -> Unit) {
                             )
                             GifImage(
                                 data = R.drawable.dragon, modifier = Modifier
-                                    .padding(top = 16.dp, bottom = 8.dp)
-                                    .height(400.dp)
+                                    .height(425.dp)
+                                    .clip(RoundedCornerShape(10.dp))
                                     .fillMaxWidth()
                             )
                             OutlinedButton(onClick = onProceedClicked) {

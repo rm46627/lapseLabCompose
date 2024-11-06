@@ -260,10 +260,13 @@ fun CameraRoute(
                             Log.d(TAG, "prev: ${previousBitmapSize.toString()}")
                             val finalbitmap =
                                 scaleCropRotatePickedBitmap(bitmap, previousBitmapSize)
+                            Log.d(TAG, "save")
                             mediaManager.saveBitmap(
                                 bitmap = finalbitmap, subfolder = "$appPicturesDir/${albumName}"
                             )
+                            Log.d(TAG, "saved")
                             if (idx == uris.lastIndex) {
+                                Log.d(TAG, "bitmap")
                                 cameraViewModel.bitmap = bitmap
                             }
                             successFlag = true
@@ -504,14 +507,16 @@ private fun BoxScope.CameraButtons(
                 contentDescription = "Switch camera"
             )
         }
+        val enabled = wasFirstAlbumEverCreated || navigatedFromAlbumDetails
         IconButton(
             onClick = onUploadClicked,
             modifier = Modifier
                 .size(btnSize)
+                .alpha(if (enabled) 1f else 0f)
                 .background(
                     btnBackgroundColor, shape = CircleShape
                 ),
-            enabled = wasFirstAlbumEverCreated || navigatedFromAlbumDetails
+            enabled = enabled
         ) {
             Icon(
                 modifier = Modifier.size(iconSize),
@@ -688,7 +693,7 @@ fun scaleCropRotatePickedBitmap(
     // Determine if the photo is vertical
     val isPhotoVertical =
         if (previousSize.second != null) previousSize.first!! >= previousSize.second!! else bitmap.height >= bitmap.width
-
+    Log.d(TAG, "isPhotoVertical: $isPhotoVertical")
     // Create a matrix for rotation
     val matrix = Matrix().apply {
         if (!isPhotoVertical) postRotate(90f)
@@ -697,7 +702,8 @@ fun scaleCropRotatePickedBitmap(
     // Set target dimensions based on previousSize
     val targetWidth = previousSize.second ?: bitmap.width
     val targetHeight = previousSize.first ?: bitmap.height
-
+    Log.d(TAG, "targetWidth: $targetWidth")
+    Log.d(TAG, "targetHeight: $targetHeight")
     // Calculate scale factors to ensure dimensions are equal to or greater than previousSize
     val scaleFactorWidth = targetWidth.toFloat() / bitmap.width
     val scaleFactorHeight = targetHeight.toFloat() / bitmap.height
@@ -710,7 +716,7 @@ fun scaleCropRotatePickedBitmap(
         (bitmap.height * scaleFactor).toInt(),
         true
     )
-
+    Log.d(TAG, "scaled")
     // Ensure target dimensions are even numbers
     var finalWidth = targetWidth - targetWidth % 2
     var finalHeight = targetHeight - targetHeight % 2
@@ -722,7 +728,13 @@ fun scaleCropRotatePickedBitmap(
     // Ensure x and y are not negative
     val adjustedX = maxOf(x, 0)
     val adjustedY = maxOf(y, 0)
-
+    Log.d(
+        TAG, "createBitmap start:" +
+                "scaled: ${scaledBitmap.width}, ${scaledBitmap.height}\n" +
+                "adjust: $adjustedX, $adjustedY\n" +
+                "final: $finalWidth, $finalHeight\n" +
+                "mat: $matrix\n"
+    )
     // Create the cropped bitmap centered on the scaled image
     return Bitmap.createBitmap(
         scaledBitmap,

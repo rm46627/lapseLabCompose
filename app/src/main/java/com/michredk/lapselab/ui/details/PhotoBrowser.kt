@@ -1,5 +1,6 @@
 package com.michredk.lapselab.ui.details
 
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -42,11 +43,14 @@ import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.michredk.lapselab.files.MediaManagerFactory
 import com.michredk.lapselab.R
+import com.michredk.lapselab.TAG
 import com.michredk.lapselab.ui.DetailsGraph
 import com.michredk.lapselab.ui.PhotosGraph
 import com.michredk.lapselab.ui.common.FreqUtils
 import com.michredk.lapselab.ui.theme.LapseLabComposeTheme
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import kotlinx.serialization.Serializable
 import java.lang.NullPointerException
 
@@ -66,9 +70,7 @@ fun PhotoBrowserRoute(
     }
     if (parentEntry != null) {
         val viewModel: DetailsViewModel = hiltViewModel(parentEntry)
-        val albumNameState by viewModel.albumName.collectAsStateWithLifecycle()
         val photosState by viewModel.photos.collectAsStateWithLifecycle()
-        val albumName = albumNameState ?: throw NullPointerException()
 
         photosState?.let { photos ->
             val photoPath = photos[index].absolutePath
@@ -88,20 +90,24 @@ fun PhotoBrowserRoute(
                     }
                 },
                 onDeleteButtonClicked = {
-                    scope.launch {
+                    scope.launch(Dispatchers.IO) {
                         MediaManagerFactory(context).deletePhoto(photos[index].absolutePath)
-                        val updatedPhotos = MediaManagerFactory(context).getPhotoFiles(albumName)
-                        viewModel.setPhotos(updatedPhotos)
-
+                        val updatedPhotos = photos.filterIndexed { deletedIdx, _ -> deletedIdx != index }
                         if (photos.size > 1) {
                             val destIndex = if (index == 0) 0 else index - 1
-                            navController.navigate(PhotoBrowserDestination(destIndex)) {
-                                popUpTo(PhotosGraph) {
-                                    inclusive = true
+                            Log.d(TAG, "idx: $index, dest: $destIndex")
+                            withContext(Dispatchers.Main) {
+                                navController.navigate(PhotoBrowserDestination(destIndex)) {
+                                    popUpTo(PhotosGraph) {
+                                        inclusive = true
+                                    }
                                 }
                             }
+                            viewModel.setPhotos(updatedPhotos)
                         } else {
-                            navController.popBackStack()
+                            withContext(Dispatchers.Main) {
+                                navController.popBackStack()
+                            }
                         }
                     }
                 },

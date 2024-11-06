@@ -10,6 +10,7 @@ import androidx.media3.common.util.UnstableApi
 import androidx.media3.effect.ScaleAndRotateTransformation
 import com.michredk.database.Album
 import java.io.File
+import java.io.IOException
 import java.text.SimpleDateFormat
 import java.util.Locale
 
@@ -73,7 +74,7 @@ class LapseCreator(private val context: Context, private val album: Album) {
                 )
             )) {
                 is EncodingError -> {
-                    Log.d(TAG, result.message)
+                    throw IOException()
                 }
                 is EncodingFormatError -> {
                     width -= 2
@@ -83,7 +84,7 @@ class LapseCreator(private val context: Context, private val album: Album) {
                             width = 3264
                             height = 1650
                         } else {
-                            break
+                            throw IOException()
                         }
                     }
                 }

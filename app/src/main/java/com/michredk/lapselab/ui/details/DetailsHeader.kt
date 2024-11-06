@@ -70,7 +70,9 @@ fun DetailsHeader(
             .background(
                 backgroundColor,
                 RoundedCornerShape(bottomEnd = 16.dp, bottomStart = 16.dp)
-            ),
+            )
+            .padding(top = 16.dp)
+        ,
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.SpaceBetween
     ) {

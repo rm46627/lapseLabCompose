@@ -76,7 +76,7 @@
     <string name="permission_required">Wymagane uprawnienia</string>
     <string name="photo_added">Zdjęcie dodane</string>
     <string name="remove_photo">Usuń zdjęcie</string>
-    <string name="next">Następny</string>
+    <string name="next">Dalej</string>
     <string name="leave_album_creation">Opuścić tworzenie albumu?</string>
     <string name="if_you_exit_now_you_will_lose_your_creation_progress_are_you_sure_you_want_to_do_this">Jeśli teraz wyjdziesz, stracisz wprowadzone dane. Czy na pewno chcesz to zrobić?</string>
     <string name="must_be_at_least_3_characters_long">Musi mieć co najmniej 3 znaki</string>
@@ -90,14 +90,14 @@
     <string name="off">Wyłącz</string>
     <string name="rewind_effect">Efekt powrotu</string>
     <string name="create_albums_and_add_photos">Twórz albumy i dodawaj zdjęcia</string>
-    <string name="then_make_unforgettable_memories">Kolekcjonuj niezapomniane wspomnienia</string>
-    <string name="or_just_have_fun_creating_silly_videos">Lub baw się, kręcąc zabawne filmy</string>
+    <string name="then_make_unforgettable_memories">Kolekcjonuj wspomnienia</string>
+    <string name="or_just_have_fun_creating_silly_videos">Baw się, kręcąc zabawne filmy</string>
     <string name="try_lapse_creator">Stwórz wideo!</string>
     <string name="take_two_pictures">Zrób drugie zdjęcie aby kontynuować tworzenie albumu</string>
     <string name="continue_to_lab">Przejdź do tworzenia filmu</string>
     <string name="uploading_files_in_progress">Załączanie plików w toku...</string>
-
-
+    <string name="generate_video_error_title">Błąd podczas generowania wideo</string>
+    <string name="generate_video_error_desc">Może to być spowodowane różną rozdzielczością zdjęć lub użyciem zdjęć z różnych aparatów. Dla lepszych rezultatów używaj zdjęć o tej samej rozdzielczości i z jednego aparatu.</string>
 
     <string-array name="days_ago">
         <item>dzisiaj.</item>
