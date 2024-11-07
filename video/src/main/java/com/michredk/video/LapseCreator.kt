@@ -40,19 +40,23 @@ class LapseCreator(private val context: Context, private val album: Album) {
         Log.d(TAG, "creating videofile, ${videoFile.name}")
 
         var (width, height) = getImageDimensions(photos[0])
+        Log.d(TAG, "bit: $bitrate frames: $framesPerImage" )
+        val finalbitrate =
+            if (bitrate == 2000000 && framesPerImage <= 5)
+                bitrate * 5 - framesPerImage
+            else if (framesPerImage >= 10 && bitrate == 2000000)
+                1500000
+            else bitrate
 
-        Log.d(
-            TAG,
-            "bitrate: ${if (bitrate == 2000000 && framesPerImage <= 5) bitrate * 5 - framesPerImage else bitrate}"
-        )
+        Log.d(TAG, "finalbitrate: $finalbitrate")
 
         val encoderConfig = EncoderConfig(
             videoFile,
             MediaFormat.MIMETYPE_VIDEO_AVC,
             framesPerImage,
             10F,
-            if (bitrate == 2000000 && framesPerImage <= 5) bitrate * 5 - framesPerImage else bitrate
-        )
+            finalbitrate
+            )
 
         val mediaProcessor = MediaProcessor(context, encoderConfig)
         mediaProcessor.setOnEncodingProgressListener(object : EncodingProgressListener {
@@ -61,7 +65,8 @@ class LapseCreator(private val context: Context, private val album: Album) {
             }
         })
         var photosDirecred = if (startFromLatest) photos.reversed() else photos
-        var photosDirecredRewinded = if(rewindEffect) photosDirecred + photosDirecred.reversed().drop(1) else photosDirecred
+        var photosDirecredRewinded =
+            if (rewindEffect) photosDirecred + photosDirecred.reversed().drop(1) else photosDirecred
         var i = 0
         while (true) {
             when (val result = mediaProcessor.encodeMp4(
@@ -76,6 +81,7 @@ class LapseCreator(private val context: Context, private val album: Album) {
                 is EncodingError -> {
                     throw IOException()
                 }
+
                 is EncodingFormatError -> {
                     width -= 2
                     height -= 4

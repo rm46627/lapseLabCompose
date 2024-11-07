@@ -91,6 +91,7 @@ import com.michredk.lapselab.ui.common.TipDialog
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import kotlinx.serialization.Serializable
 
 // TODO: add slider to control transparency of the ghost image
@@ -168,22 +169,42 @@ fun CameraRoute(
                 object : ImageCapture.OnImageCapturedCallback() {
                     override fun onCaptureSuccess(image: ImageProxy) {
                         super.onCaptureSuccess(image)
-                        val finalBitmap = scaleCropRotateCameraImage(
-                            image,
-                            cameraController.cameraSelector == CameraSelector.DEFAULT_FRONT_CAMERA
-                        )
-                        image.close()
-                        cameraViewModel.bitmap = finalBitmap
                         scope.launch {
+                            val finalBitmap = scaleCropRotateCameraImage(
+                                bitmap = image.toBitmap(),
+                                rotationDegrees = image.imageInfo.rotationDegrees.toFloat(),
+                                mirrorImage = cameraController.cameraSelector == CameraSelector.DEFAULT_FRONT_CAMERA,
+                                getLatestBitmapSize = {
+                                    withContext(Dispatchers.IO) {
+                                        val latestBitmap = cameraViewModel.bitmap ?: uriToBitmap(
+                                            context,
+                                            MediaManagerFactory(context).getLatestPhotoFile(
+                                                albumName
+                                            )?.toUri()
+                                        )
+                                        Pair(latestBitmap?.height, latestBitmap?.width)
+                                    }
+                                }
+                            )
+                            image.close()
+                            cameraViewModel.bitmap = finalBitmap
+
                             mediaManager.saveBitmap(
                                 bitmap = finalBitmap, subfolder = "$appPicturesDir/${albumName}"
                             )
-                        }
-                        captureBtnEnabled = true
-                        if (shootBurst) {
-                            photosTaken++
-                        } else {
-                            navController.navigate(PhotoPreviewDestination(navigatedFromAlbumDetails))
+
+                            captureBtnEnabled = true
+                            if (shootBurst) {
+                                photosTaken++
+                            } else {
+                                withContext(Dispatchers.Main) {
+                                    navController.navigate(
+                                        PhotoPreviewDestination(
+                                            navigatedFromAlbumDetails
+                                        )
+                                    )
+                                }
+                            }
                         }
                     }
 
@@ -320,6 +341,86 @@ private fun PhotoPicker(
         pickMedia.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
     }
 }
+
+suspend fun scaleCropRotateCameraImage(
+    bitmap: Bitmap,
+    rotationDegrees: Float,
+    mirrorImage: Boolean,
+    getLatestBitmapSize: suspend () -> Pair<Int?, Int?>
+): Bitmap {
+
+    val isPhotoVertical = rotationDegrees == 90f || rotationDegrees == 270f
+    val previousSize = getLatestBitmapSize()
+
+    val matrix = Matrix().apply {
+        if (mirrorImage) preScale(1f, -1f);
+        if (isPhotoVertical) postRotate(rotationDegrees) else postRotate(
+            rotationDegrees + 90f
+        )
+    }
+    val targetRatio = 4000f / 2024f
+
+    var finalWidth: Int
+    var finalHeight: Int
+
+
+    // Calculate the target dimensions, ensuring the aspect ratio is maintained and no scaling/stretching occurs
+    var (targetWidth, targetHeight) = if (bitmap.width.toFloat() / bitmap.height.toFloat() > targetRatio) {
+        // Width is too large, so adjust the width to match the target aspect ratio
+        val adjustedWidth = (bitmap.height * targetRatio).toInt()
+        adjustedWidth to bitmap.height
+    } else {
+        // Height is too large, so adjust the height to match the target aspect ratio
+        val adjustedHeight = (bitmap.width / targetRatio).toInt()
+        bitmap.width to adjustedHeight
+    }
+    // Ensure target dimensions are even numbers
+    finalWidth = targetWidth - targetWidth % 2
+    finalHeight = targetHeight - targetHeight % 2
+
+    // Calculate the x and y coordinates to center the crop
+    val x = (bitmap.width - finalWidth) / 2
+    val y = (bitmap.height - finalHeight) / 2
+
+    // Create the cropped bitmap centered on the original image
+    var croppedBitmap = Bitmap.createBitmap(
+        bitmap, x,             // X coordinate to start the crop
+        y,             // Y coordinate to start the crop
+        finalWidth,    // Width of the cropped image
+        finalHeight,   // Height of the cropped image
+        Matrix(),
+        true
+    )
+
+    var rotatedBitmap = if (previousSize.first != null && previousSize.second != null) {
+        val scaledBitmap = Bitmap.createScaledBitmap(
+            croppedBitmap,
+            previousSize.first!!,
+            previousSize.second!!,
+            true
+        )
+        Bitmap.createBitmap(
+            scaledBitmap, 0,             // X coordinate to start the crop
+            0,             // Y coordinate to start the crop
+            previousSize.first!!,    // Width of the cropped image
+            previousSize.second!!,   // Height of the cropped image
+            matrix,
+            true
+        )
+    } else {
+        Bitmap.createBitmap(
+            croppedBitmap, 0,             // X coordinate to start the crop
+            0,             // Y coordinate to start the crop
+            finalWidth,    // Width of the cropped image
+            finalHeight,   // Height of the cropped image
+            matrix,
+            true
+        )
+    }
+
+    return rotatedBitmap
+}
+
 
 @Composable
 fun CameraScreen(
@@ -636,54 +737,6 @@ private fun CaptureButton(
             modifier = iconModifier
         )
     }
-}
-
-fun scaleCropRotateCameraImage(
-    image: ImageProxy,
-    mirrorImage: Boolean
-): Bitmap {
-    val bitmap = image.toBitmap()
-    val isPhotoVertical =
-        image.imageInfo.rotationDegrees.toFloat() == 90f || image.imageInfo.rotationDegrees.toFloat() == 270f
-
-    val matrix = Matrix().apply {
-        if (mirrorImage) preScale(1f, -1f);
-        if (isPhotoVertical) postRotate(image.imageInfo.rotationDegrees.toFloat()) else postRotate(
-            image.imageInfo.rotationDegrees.toFloat() + 90f
-        )
-    }
-    val targetRatio = 4000f / 2024f
-
-    // Calculate the target dimensions, ensuring the aspect ratio is maintained and no scaling/stretching occurs
-    var (targetWidth, targetHeight) = if (bitmap.width.toFloat() / bitmap.height.toFloat() > targetRatio) {
-        // Width is too large, so adjust the width to match the target aspect ratio
-        val adjustedWidth = (bitmap.height * targetRatio).toInt()
-        adjustedWidth to bitmap.height
-    } else {
-        // Height is too large, so adjust the height to match the target aspect ratio
-        val adjustedHeight = (bitmap.width / targetRatio).toInt()
-        bitmap.width to adjustedHeight
-    }
-
-    // Ensure target dimensions are even numbers
-    var finalWidth = targetWidth - targetWidth % 2
-    var finalHeight = targetHeight - targetHeight % 2
-
-    // Calculate the x and y coordinates to center the crop
-    val x = (bitmap.width - finalWidth) / 2
-    val y = (bitmap.height - finalHeight) / 2
-
-    // Create the cropped bitmap centered on the original image
-    var croppedBitmap = Bitmap.createBitmap(
-        bitmap, x,             // X coordinate to start the crop
-        y,             // Y coordinate to start the crop
-        finalWidth,    // Width of the cropped image
-        finalHeight,   // Height of the cropped image
-        matrix,
-        true
-    )
-
-    return croppedBitmap
 }
 
 fun scaleCropRotatePickedBitmap(

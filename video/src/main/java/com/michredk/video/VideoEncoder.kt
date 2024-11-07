@@ -54,7 +54,6 @@ class VideoEncoder(
     private var rect: Rect? = null
 
     fun start() {
-        throw IOException()
         mediaCodec.configure(mediaFormat, null, null, MediaCodec.CONFIGURE_FLAG_ENCODE)
         surface = mediaCodec.createInputSurface()
         mediaCodec.start()

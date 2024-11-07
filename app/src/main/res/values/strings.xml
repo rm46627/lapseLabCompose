@@ -97,7 +97,7 @@
     <string name="continue_to_lab">Continue to Lapse Creator</string>
     <string name="uploading_files_in_progress">Uploading files in progress...</string>
     <string name="generate_video_error_title">Error Generating Video</string>
-    <string name="generate_video_error_desc">This may be due to different photo resolutions or using photos from different cameras. For better results, use photos with the same resolution and from one camera.</string>
+    <string name="generate_video_error_desc">This may be due to incorrect photo resolution. Try using a different camera or cropping the first photo before adding it to the album, as its resolution determines the video size.</string>
 
     <string-array name="days_ago">
         <item>today.</item>

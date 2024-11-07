@@ -66,7 +66,7 @@ fun DetailsHeader(
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .height(350.dp * scale + 50.dp)
+            .height(350.dp * scale + 70.dp)
             .background(
                 backgroundColor,
                 RoundedCornerShape(bottomEnd = 16.dp, bottomStart = 16.dp)

@@ -117,8 +117,8 @@ class DetailsViewModel @Inject constructor(
 }
 
 data class LabUiState(
-    val framesPerImage: Int = 0,
-    val bitrate: Int = 0,
+    val framesPerImage: Int = 10,
+    val bitrate: Int = 1500000,
     val rotation: Float = 0f,
     val startFromLatest: Boolean = true,
     val rewindEffect: Boolean = false,

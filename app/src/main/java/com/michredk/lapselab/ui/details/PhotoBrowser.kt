@@ -152,7 +152,7 @@ fun PhotoBrowserScreen(
         Box(
             Modifier
                 .align(Alignment.TopEnd)
-                .padding(top = 24.dp)
+                .padding(top = 28.dp)
         ) {
             IconButton(
                 onClick = { isMenuVisible = true },

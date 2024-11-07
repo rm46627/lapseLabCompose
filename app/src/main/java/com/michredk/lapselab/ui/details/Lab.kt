@@ -86,9 +86,11 @@ import com.michredk.lapselab.ui.common.TipDialog
 import com.michredk.video.LapseCreator
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.Serializable
+import kotlin.system.measureTimeMillis
 
 
 // TODO: add bitmap overlay with lapseLab logo
@@ -224,22 +226,26 @@ fun LabRoute(
 
                     val lab = LapseCreator(context, album!!)
                     var filename: String
-                    filename = lab.createVideo(
-                        photos = photosSafe,
-                        framesPerImage = uiState.framesPerImage,
-                        bitrate = uiState.bitrate,
-                        rotation = uiState.rotation,
-                        startFromLatest = uiState.startFromLatest,
-                        rewindEffect = uiState.rewindEffect,
-                        encodingProgress = { current, end ->
-                            encodingProgressCurrent = current
-                            encodingProgressEnd = end + 1
-                        }
-                    )
+                    val measuredTime = measureTimeMillis {
+                        filename = lab.createVideo(
+                            photos = photosSafe,
+                            framesPerImage = uiState.framesPerImage,
+                            bitrate = uiState.bitrate,
+                            rotation = uiState.rotation,
+                            startFromLatest = uiState.startFromLatest,
+                            rewindEffect = uiState.rewindEffect,
+                            encodingProgress = { current, end ->
+                                encodingProgressCurrent = current
+                                encodingProgressEnd = end + 1
+                            }
+                        )
+                    }
                     mediaManager.saveVideo(
                         filename,
                         "$appMoviesDir/${album!!.directoryName}"
                     )
+                    delay((measuredTime * 0.2).toLong())
+                    encodingProgressCurrent += 1
                     withContext(Dispatchers.Main) {
                         if (creatingFirstAlbumEver) {
                             navController.navigate(DetailsDestination(albumName)) {

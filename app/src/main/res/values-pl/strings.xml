@@ -97,7 +97,7 @@
     <string name="continue_to_lab">Przejdź do tworzenia filmu</string>
     <string name="uploading_files_in_progress">Załączanie plików w toku...</string>
     <string name="generate_video_error_title">Błąd podczas generowania wideo</string>
-    <string name="generate_video_error_desc">Może to być spowodowane różną rozdzielczością zdjęć lub użyciem zdjęć z różnych aparatów. Dla lepszych rezultatów używaj zdjęć o tej samej rozdzielczości i z jednego aparatu.</string>
+    <string name="generate_video_error_desc">Może to wynikać z błędnej rozdzielczości zdjęć. Spróbuj użyć innej kamery lub przyciąć pierwsze ze zdjęć przed ich dodaniem do albumu – jego rozdzielczość ustala rozmiar filmu.</string>
 
     <string-array name="days_ago">
         <item>dzisiaj.</item>
