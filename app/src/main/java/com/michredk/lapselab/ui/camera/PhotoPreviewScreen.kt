@@ -3,6 +3,10 @@ package com.michredk.lapselab.ui.camera
 import android.content.res.Configuration
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.graphics.Color
+import android.graphics.Paint
+import androidx.compose.ui.unit.LayoutDirection
+import android.util.LayoutDirection.*
 import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -10,7 +14,9 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -23,17 +29,23 @@ import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.draw.scale
+import androidx.compose.ui.graphics.Canvas
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalLayoutDirection
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -44,8 +56,10 @@ import com.michredk.lapselab.files.MediaManagerFactory
 import com.michredk.lapselab.ui.details.DetailsDestination
 import com.michredk.lapselab.ui.CameraGraph
 import com.michredk.lapselab.ui.DetailsGraph
+import com.michredk.lapselab.ui.common.createLabeledPlaceholderBitmap
 import com.michredk.lapselab.ui.details.LabDestination
 import com.michredk.lapselab.ui.setup.SetupPhotoDestination
+import com.michredk.lapselab.ui.theme.LapseLabComposeTheme
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
@@ -134,38 +148,69 @@ fun PhotoPreviewScreen(
         modifier = Modifier
             .fillMaxSize()
     ) {
-
         val configuration = LocalConfiguration.current
         val horizontalOrientation =
             when (configuration.orientation) {
                 Configuration.ORIENTATION_LANDSCAPE -> {
                     true
                 }
-
                 else -> {
                     false
                 }
             }
         Image(
             bitmap = bitmap.asImageBitmap(),
-            contentScale = ContentScale.FillWidth,
+            contentScale = if (horizontalOrientation) ContentScale.FillHeight else ContentScale.FillWidth,
             contentDescription = null,
             modifier = Modifier
+                .rotate(if (horizontalOrientation) -90f else 0f)
+                .scale(if (horizontalOrientation) 2f else 1f)
                 .fillMaxSize()
-                .rotate(if(horizontalOrientation) 90f else  0f)
         )
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .safeContentPadding()
-                .align(Alignment.BottomCenter)
-                .padding(horizontal = 16.dp, vertical = 32.dp),
-            horizontalArrangement = Arrangement.SpaceAround
-        ) {
-            Buttons(onDiscardClicked, onAcceptClicked)
+        if (horizontalOrientation) {
+            Column(
+                modifier = Modifier
+                    .fillMaxHeight()
+                    .safeContentPadding()
+                    .align(Alignment.CenterEnd)
+                    .padding(vertical = 16.dp, horizontal = 32.dp),
+                verticalArrangement = Arrangement.SpaceAround
+            ) {
+                Buttons(onDiscardClicked, onAcceptClicked)
+            }
+
+        } else {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .safeContentPadding()
+                    .align(Alignment.BottomCenter)
+                    .padding(horizontal = 16.dp, vertical = 32.dp),
+                horizontalArrangement = Arrangement.SpaceAround
+            ) {
+                Buttons(onDiscardClicked, onAcceptClicked)
+            }
+        }
+
+    }
+}
+
+@Composable
+@Preview(
+    showSystemUi = true,
+    device = "spec:width=411dp,height=891dp,dpi=420,isRound=false,chinSize=0dp, orientation=landscape"
+)
+fun Preview() {
+    LapseLabComposeTheme {
+        Scaffold { it ->
+            val dada = it
+            PhotoPreviewScreen(
+                createLabeledPlaceholderBitmap(),
+                {},
+                {}
+            )
         }
     }
-
 }
 
 @Composable

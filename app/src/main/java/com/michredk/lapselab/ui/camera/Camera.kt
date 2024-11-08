@@ -2,11 +2,11 @@ package com.michredk.lapselab.ui.camera
 
 import android.content.ContentResolver
 import android.content.Context
+import android.content.res.Configuration
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.ImageDecoder
 import android.graphics.Matrix
-import android.media.Image
 import android.net.Uri
 import android.os.Build
 import android.util.Log
@@ -23,6 +23,7 @@ import androidx.camera.view.LifecycleCameraController
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
@@ -32,6 +33,7 @@ import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -51,6 +53,7 @@ import androidx.compose.material.icons.filled.UploadFile
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -64,12 +67,18 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
@@ -89,10 +98,11 @@ import com.michredk.lapselab.services.SnackbarController
 import com.michredk.lapselab.services.SnackbarEvent
 import com.michredk.lapselab.ui.CameraGraph
 import com.michredk.lapselab.ui.common.TipDialog
+import com.michredk.lapselab.ui.common.createLabeledPlaceholderBitmap
+import com.michredk.lapselab.ui.theme.LapseLabComposeTheme
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import kotlinx.serialization.Serializable
 
 // TODO: add slider to control transparency of the ghost image
@@ -191,9 +201,7 @@ fun CameraRoute(
                                     navigatedFromAlbumDetails
                                 )
                             )
-
                         }
-
                     }
 
                     override fun onError(exception: ImageCaptureException) {
@@ -462,6 +470,18 @@ fun CameraScreen(
         showTipSnackbar()
     }
 
+    val configuration = LocalConfiguration.current
+    val horizontalOrientation =
+        when (configuration.orientation) {
+            Configuration.ORIENTATION_LANDSCAPE -> {
+                true
+            }
+
+            else -> {
+                false
+            }
+        }
+
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -470,10 +490,21 @@ fun CameraScreen(
         CameraPreview(controller = cameraController, modifier = Modifier.fillMaxSize())
         if (showGhost) {
             val data = ghostBitmap ?: ghostPath!!
+
+//            contentScale = ContentScale.Inside,
+//            contentDescription = null,
+//            modifier = Modifier
+//                .matchParentSize()
+//                .rotate(-90f)
+//                .scale(4f)
+
             GhostImage(
                 modifier = Modifier
                     .fillMaxSize()
-                    .alpha(0.5f), data = data
+                    .rotate(if (horizontalOrientation) -90f else 0f)
+                    .scale(if (horizontalOrientation) 2.17f else 1f)
+                    .alpha(0.5f), data = data,
+                contentScale = if (horizontalOrientation) ContentScale.FillHeight else ContentScale.Crop,
             )
         }
         if (showFlash) {
@@ -497,21 +528,78 @@ fun CameraScreen(
             },
             onUploadClicked = onUploadClicked,
             captureBtnEnabled = captureBtnEnabled,
-            wasFirstAlbumEverCreated = wasFirstAlbumEverCreated
+            wasFirstAlbumEverCreated = wasFirstAlbumEverCreated,
+            horizontalOrientation = horizontalOrientation
         )
     }
 }
 
 @Composable
-fun GhostImage(modifier: Modifier = Modifier, data: Any) {
+fun GhostImage(modifier: Modifier = Modifier, data: Any, contentScale: ContentScale) {
     AsyncImage(
         modifier = modifier,
         model = ImageRequest.Builder(LocalContext.current).data(data).build(),
-        contentScale = ContentScale.Crop,
-        contentDescription = "Ghost image"
-    )
+        contentScale = contentScale,
+        contentDescription = "Ghost image",
 
+    )
 }
+
+@Composable
+@Preview(
+    showSystemUi = true,
+    device = "spec:width=700dp,height=1600dp,dpi=420,isRound=false,chinSize=0dp, orientation=portrait"
+)
+fun PreviewCameraButtons() {
+    LapseLabComposeTheme {
+        Scaffold { it ->
+            val dada = it
+            val configuration = LocalConfiguration.current
+            val horizontalOrientation =
+                when (configuration.orientation) {
+                    Configuration.ORIENTATION_LANDSCAPE -> {
+                        true
+                    }
+                    else -> {
+                        false
+                    }
+                }
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+            ) {
+                Image(
+                    bitmap = createLabeledPlaceholderBitmap().asImageBitmap(),
+                    contentScale = if (horizontalOrientation) ContentScale.FillHeight else ContentScale.Crop,
+                    contentDescription = null,
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .rotate(if (horizontalOrientation) -90f else 0f)
+                        .scale(if (horizontalOrientation) 2.17f else 1f)
+                )
+
+                CameraButtons(
+                    30.dp,
+                    40.dp,
+                    btnBackgroundColor = MaterialTheme.colorScheme.primaryContainer,
+                    pressedCaptureBackgroundColor = MaterialTheme.colorScheme.primary,
+                    { },
+                    {},
+                    ghostModeEnabled = true,
+                    navigatedFromAlbumDetails = true,
+                    onGhostImageClicked = {
+
+                    },
+                    onUploadClicked = {},
+                    captureBtnEnabled = true,
+                    wasFirstAlbumEverCreated = true,
+                    horizontalOrientation
+                )
+            }
+        }
+    }
+}
+
 
 @Composable
 private fun BoxScope.CameraButtons(
@@ -526,7 +614,8 @@ private fun BoxScope.CameraButtons(
     onGhostImageClicked: () -> Unit,
     onUploadClicked: () -> Unit,
     captureBtnEnabled: Boolean,
-    wasFirstAlbumEverCreated: Boolean
+    wasFirstAlbumEverCreated: Boolean,
+    horizontalOrientation: Boolean
 ) {
     var shootBurst by remember {
         mutableStateOf(false)
@@ -545,132 +634,238 @@ private fun BoxScope.CameraButtons(
         targetValue = if (animateModeText) 1f else 0f,
         animationSpec = tween(durationMillis = 500), label = ""
     )
-
-
-    Row(
-        modifier = Modifier
-            .padding(horizontal = 16.dp, vertical = 38.dp)
-            .fillMaxWidth()
-            .align(Alignment.TopCenter),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.Top
-    ) {
-        IconButton(
-            onClick = onChangeCameraClicked,
-            modifier = Modifier
-                .size(btnSize)
-                .background(btnBackgroundColor, shape = CircleShape),
-        ) {
-            Icon(
-                modifier = Modifier.size(iconSize),
-                imageVector = Icons.Default.Cameraswitch,
-                contentDescription = "Switch camera"
-            )
-        }
-        val enabled = wasFirstAlbumEverCreated || navigatedFromAlbumDetails
-        IconButton(
-            onClick = onUploadClicked,
-            modifier = Modifier
-                .size(btnSize)
-                .alpha(if (enabled) 1f else 0f)
-                .background(
-                    btnBackgroundColor, shape = CircleShape
-                ),
-            enabled = enabled
-        ) {
-            Icon(
-                modifier = Modifier.size(iconSize),
-                imageVector = Icons.Default.UploadFile,
-                contentDescription = "Upload photo"
-            )
-        }
-    }
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .align(Alignment.BottomCenter)
-            .padding(bottom = 38.dp)
-            .windowInsetsPadding(WindowInsets.systemBars),
-        horizontalArrangement = Arrangement.SpaceAround,
-        verticalAlignment = Alignment.Bottom
-    ) {
+    if (horizontalOrientation) {
         Column(
-            modifier = Modifier.width(100.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
+            modifier = Modifier
+                .padding(horizontal = 16.dp, vertical = 38.dp)
+                .fillMaxHeight()
+                .align(Alignment.CenterStart),
+            verticalArrangement = Arrangement.SpaceBetween,
+            horizontalAlignment = Alignment.Start
         ) {
-            IconButton(
-                modifier = Modifier
-                    .size(btnSize)
-                    .background(
-                        if (ghostModeEnabled) btnBackgroundColor else btnBackgroundColor.copy(
-                            alpha = 0.5f
-                        ), shape = CircleShape
-                    ), enabled = ghostModeEnabled, onClick = onGhostImageClicked
-            ) {
-                Icon(
-                    imageVector = Icons.Default.PeopleAlt,
-                    contentDescription = "Ghost photo",
-                    modifier = Modifier.size(iconSize)
-                )
-            }
+            ChangeCameraUploadButtons(
+                onChangeCameraClicked,
+                btnSize,
+                btnBackgroundColor,
+                iconSize,
+                wasFirstAlbumEverCreated,
+                navigatedFromAlbumDetails,
+                onUploadClicked
+            )
         }
-
-        val interactionSource = remember { MutableInteractionSource() }
-        val captureIsPressed by interactionSource.collectIsPressedAsState()
-        val finalBackgroundColor =
-            if (captureIsPressed) pressedCaptureBackgroundColor else btnBackgroundColor
         Column(
-            modifier = Modifier.width(100.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
+            modifier = Modifier
+                .fillMaxHeight()
+                .align(Alignment.CenterEnd)
+                .padding(end = 38.dp)
+                .windowInsetsPadding(WindowInsets.systemBars),
+            verticalArrangement = Arrangement.SpaceAround,
+            horizontalAlignment = Alignment.Start
         ) {
-            CaptureButton(
-                interactionSource = interactionSource,
-                btnModifier = Modifier
-                    .size(btnSize + 30.dp)
-                    .background(finalBackgroundColor, shape = CircleShape),
-                iconModifier = Modifier.size(iconSize + 10.dp),
-                onTakePictureClicked = onTakePictureClicked,
-                shootBurst = shootBurst,
-                captureBtnEnabled = captureBtnEnabled
-            )
-        }
-
-        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Text(
-                text = if (shootBurst) stringResource(R.string.burst_mode) else stringResource(R.string.photo_mode),
-                color = Color.Black,
-                textAlign = TextAlign.Center,
-                modifier = Modifier
-                    .width(100.dp)
-                    .alpha(modeAlpha)
-                    .padding(bottom = 8.dp)
-                    .background(
-                        btnBackgroundColor, shape = RoundedCornerShape(
-                            corner = CornerSize(8.dp)
-                        )
-                    )
-            )
-            IconButton(
-                modifier = Modifier
-                    .size(btnSize)
-                    .background(
-                        if (navigatedFromAlbumDetails) btnBackgroundColor else btnBackgroundColor.copy(
-                            alpha = 0.5f
-                        ), shape = CircleShape
-                    ),
-                onClick = {
+            GhostCaptureSeriesButtons(
+                btnSize,
+                ghostModeEnabled,
+                btnBackgroundColor,
+                onGhostImageClicked,
+                iconSize,
+                pressedCaptureBackgroundColor,
+                onTakePictureClicked,
+                shootBurst,
+                captureBtnEnabled,
+                modeAlpha,
+                navigatedFromAlbumDetails,
+                modeIcon,
+                animateModeText,
+                {
                     shootBurst = !shootBurst
                     modeIcon = if (shootBurst) R.drawable.bursts_mode else R.drawable.image_mode
                     animateModeText = true
-                }, enabled = navigatedFromAlbumDetails
-            ) {
-                Icon(
-                    painter = painterResource(id = modeIcon),
-                    contentDescription = "Photo mode switch",
-                    modifier = Modifier.size(iconSize)
-                )
-            }
+                }
+            )
         }
+
+    } else {
+        Row(
+            modifier = Modifier
+                .padding(horizontal = 16.dp, vertical = 38.dp)
+                .fillMaxWidth()
+                .align(Alignment.TopCenter),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.Top
+        ) {
+            ChangeCameraUploadButtons(
+                onChangeCameraClicked,
+                btnSize,
+                btnBackgroundColor,
+                iconSize,
+                wasFirstAlbumEverCreated,
+                navigatedFromAlbumDetails,
+                onUploadClicked
+            )
+        }
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .align(Alignment.BottomCenter)
+                .padding(bottom = 38.dp)
+                .windowInsetsPadding(WindowInsets.systemBars),
+            horizontalArrangement = Arrangement.SpaceAround,
+            verticalAlignment = Alignment.Bottom
+        ) {
+            GhostCaptureSeriesButtons(
+                btnSize,
+                ghostModeEnabled,
+                btnBackgroundColor,
+                onGhostImageClicked,
+                iconSize,
+                pressedCaptureBackgroundColor,
+                onTakePictureClicked,
+                shootBurst,
+                captureBtnEnabled,
+                modeAlpha,
+                navigatedFromAlbumDetails,
+                modeIcon,
+                animateModeText,
+                {
+                    shootBurst = !shootBurst
+                    modeIcon = if (shootBurst) R.drawable.bursts_mode else R.drawable.image_mode
+                    animateModeText = true
+                }
+            )
+        }
+    }
+}
+
+@Composable
+private fun GhostCaptureSeriesButtons(
+    btnSize: Dp,
+    ghostModeEnabled: Boolean,
+    btnBackgroundColor: Color,
+    onGhostImageClicked: () -> Unit,
+    iconSize: Dp,
+    pressedCaptureBackgroundColor: Color,
+    onTakePictureClicked: (Boolean) -> Unit,
+    shootBurst: Boolean,
+    captureBtnEnabled: Boolean,
+    modeAlpha: Float,
+    navigatedFromAlbumDetails: Boolean,
+    modeIcon: Int,
+    animateModeText: Boolean,
+    shootBurstClicked: () -> Unit
+) {
+    Column(
+        modifier = Modifier.width(100.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        IconButton(
+            modifier = Modifier
+                .size(btnSize)
+                .background(
+                    if (ghostModeEnabled) btnBackgroundColor else btnBackgroundColor.copy(
+                        alpha = 0.5f
+                    ), shape = CircleShape
+                ), enabled = ghostModeEnabled, onClick = onGhostImageClicked
+        ) {
+            Icon(
+                imageVector = Icons.Default.PeopleAlt,
+                contentDescription = "Ghost photo",
+                modifier = Modifier.size(iconSize)
+            )
+        }
+    }
+
+    val interactionSource = remember { MutableInteractionSource() }
+    val captureIsPressed by interactionSource.collectIsPressedAsState()
+    val finalBackgroundColor =
+        if (captureIsPressed) pressedCaptureBackgroundColor else btnBackgroundColor
+    Column(
+        modifier = Modifier.width(100.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        CaptureButton(
+            interactionSource = interactionSource,
+            btnModifier = Modifier
+                .size(btnSize + 30.dp)
+                .background(finalBackgroundColor, shape = CircleShape),
+            iconModifier = Modifier.size(iconSize + 10.dp),
+            onTakePictureClicked = onTakePictureClicked,
+            shootBurst = shootBurst,
+            captureBtnEnabled = captureBtnEnabled
+        )
+    }
+
+    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        Text(
+            text = if (shootBurst) stringResource(R.string.burst_mode) else stringResource(R.string.photo_mode),
+            color = Color.Black,
+            textAlign = TextAlign.Center,
+            modifier = Modifier
+                .width(100.dp)
+                .alpha(modeAlpha)
+                .padding(bottom = 8.dp)
+                .background(
+                    btnBackgroundColor, shape = RoundedCornerShape(
+                        corner = CornerSize(8.dp)
+                    )
+                )
+        )
+        IconButton(
+            modifier = Modifier
+                .size(btnSize)
+                .background(
+                    if (navigatedFromAlbumDetails) btnBackgroundColor else btnBackgroundColor.copy(
+                        alpha = 0.5f
+                    ), shape = CircleShape
+                ),
+            onClick = shootBurstClicked, enabled = navigatedFromAlbumDetails
+        ) {
+            Icon(
+                painter = painterResource(id = modeIcon),
+                contentDescription = "Photo mode switch",
+                modifier = Modifier.size(iconSize)
+            )
+        }
+    }
+}
+
+@Composable
+private fun ChangeCameraUploadButtons(
+    onChangeCameraClicked: () -> Unit,
+    btnSize: Dp,
+    btnBackgroundColor: Color,
+    iconSize: Dp,
+    wasFirstAlbumEverCreated: Boolean,
+    navigatedFromAlbumDetails: Boolean,
+    onUploadClicked: () -> Unit
+) {
+    IconButton(
+        onClick = onChangeCameraClicked,
+        modifier = Modifier
+            .size(btnSize)
+            .background(btnBackgroundColor, shape = CircleShape),
+    ) {
+        Icon(
+            modifier = Modifier.size(iconSize),
+            imageVector = Icons.Default.Cameraswitch,
+            contentDescription = "Switch camera"
+        )
+    }
+    val enabled = wasFirstAlbumEverCreated || navigatedFromAlbumDetails
+    IconButton(
+        onClick = onUploadClicked,
+        modifier = Modifier
+            .size(btnSize)
+            .alpha(if (enabled) 1f else 0f)
+            .background(
+                btnBackgroundColor, shape = CircleShape
+            ),
+        enabled = enabled
+    ) {
+        Icon(
+            modifier = Modifier.size(iconSize),
+            imageVector = Icons.Default.UploadFile,
+            contentDescription = "Upload photo"
+        )
     }
 }
 
