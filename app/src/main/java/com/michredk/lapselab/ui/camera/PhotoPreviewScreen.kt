@@ -1,5 +1,6 @@
 package com.michredk.lapselab.ui.camera
 
+import android.content.res.Configuration
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.util.Log
@@ -28,8 +29,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -75,10 +78,21 @@ fun PhotoPreviewRoute(
             onDiscardClicked = {
                 scope.launch(Dispatchers.IO) {
                     mediaManager.deleteLatestPhoto(cameraViewModel.albumName)
-                    cameraViewModel.bitmap = BitmapFactory.decodeFile(mediaManager.getLatestPhotoFile(cameraViewModel.albumName!!)?.path)
+                    cameraViewModel.bitmap =
+                        BitmapFactory.decodeFile(mediaManager.getLatestPhotoFile(cameraViewModel.albumName!!)?.path)
                 }
-                navController.navigate(CameraDestination(cameraViewModel.albumName, navigatedFromAlbumDetails)) {
-                    popUpTo(CameraDestination(cameraViewModel.albumName, navigatedFromAlbumDetails)) {
+                navController.navigate(
+                    CameraDestination(
+                        cameraViewModel.albumName,
+                        navigatedFromAlbumDetails
+                    )
+                ) {
+                    popUpTo(
+                        CameraDestination(
+                            cameraViewModel.albumName,
+                            navigatedFromAlbumDetails
+                        )
+                    ) {
                         inclusive = true
                     }
                 }
@@ -90,14 +104,15 @@ fun PhotoPreviewRoute(
                 if (navigatedFromAlbumDetails) {
                     navFromDest = DetailsDestination(cameraViewModel.albumName)
                     popUpToDest = DetailsGraph
-                } else if (wasFirstAlbumEverCreated || cameraViewModel.secondPhoto == true){
+                } else if (wasFirstAlbumEverCreated || cameraViewModel.secondPhoto == true) {
                     navFromDest = SetupPhotoDestination(cameraViewModel.albumName)
                     popUpToDest = CameraGraph
                 } else {
                     cameraViewModel.secondPhoto = true
                     Log.d(TAG, "logs: $wasFirstAlbumEverCreated and ${cameraViewModel.secondPhoto}")
                     navFromDest = CameraDestination(cameraViewModel.albumName)
-                    popUpToDest = CameraDestination(cameraViewModel.albumName, navigatedFromAlbumDetails)
+                    popUpToDest =
+                        CameraDestination(cameraViewModel.albumName, navigatedFromAlbumDetails)
                 }
                 navController.navigate(navFromDest) {
                     popUpTo(popUpToDest) {
@@ -119,12 +134,25 @@ fun PhotoPreviewScreen(
         modifier = Modifier
             .fillMaxSize()
     ) {
+
+        val configuration = LocalConfiguration.current
+        val horizontalOrientation =
+            when (configuration.orientation) {
+                Configuration.ORIENTATION_LANDSCAPE -> {
+                    true
+                }
+
+                else -> {
+                    false
+                }
+            }
         Image(
             bitmap = bitmap.asImageBitmap(),
-            contentScale = ContentScale.FillWidth ,
+            contentScale = ContentScale.FillWidth,
             contentDescription = null,
             modifier = Modifier
                 .fillMaxSize()
+                .rotate(if(horizontalOrientation) 90f else  0f)
         )
         Row(
             modifier = Modifier

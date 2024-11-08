@@ -740,13 +740,7 @@ fun scaleCropRotatePickedBitmap(
     // Ensure x and y are not negative
     val adjustedX = maxOf(x, 0)
     val adjustedY = maxOf(y, 0)
-    Log.d(
-        TAG, "createBitmap start:" +
-                "scaled: ${scaledBitmap.width}, ${scaledBitmap.height}\n" +
-                "adjust: $adjustedX, $adjustedY\n" +
-                "final: $finalWidth, $finalHeight\n" +
-                "mat: $matrix\n"
-    )
+
     // Create the cropped bitmap centered on the scaled image
     return Bitmap.createBitmap(
         scaledBitmap,
