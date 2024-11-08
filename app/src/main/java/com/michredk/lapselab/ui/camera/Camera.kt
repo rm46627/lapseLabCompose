@@ -344,7 +344,13 @@ fun scaleCropRotateCameraImage(
     mirrorImage: Boolean
 ): Bitmap {
 
-    val isPhotoVertical = rotationDegrees == 90f || rotationDegrees == 270f
+    val isPhotoVertical = when (rotationDegrees) {
+        0f -> image.height > image.width  // Original orientation, portrait if height > width
+        90f -> image.width > image.height  // 90 degrees rotated, portrait if width > height
+        180f -> image.height > image.width  // 180 degrees rotated, portrait if height > width
+        270f -> image.width > image.height  // 270 degrees rotated, portrait if width > height
+        else -> false
+    }
 
     val matrix = Matrix().apply {
         if (mirrorImage) preScale(1f, -1f);
@@ -503,7 +509,8 @@ fun CameraScreen(
                     .fillMaxSize()
                     .rotate(if (horizontalOrientation) -90f else 0f)
                     .scale(if (horizontalOrientation) 2.17f else 1f)
-                    .alpha(0.5f), data = data,
+                    .alpha(0.5f),
+                data = data,
                 contentScale = if (horizontalOrientation) ContentScale.FillHeight else ContentScale.Crop,
             )
         }
@@ -542,7 +549,7 @@ fun GhostImage(modifier: Modifier = Modifier, data: Any, contentScale: ContentSc
         contentScale = contentScale,
         contentDescription = "Ghost image",
 
-    )
+        )
 }
 
 @Composable
@@ -560,6 +567,7 @@ fun PreviewCameraButtons() {
                     Configuration.ORIENTATION_LANDSCAPE -> {
                         true
                     }
+
                     else -> {
                         false
                     }
