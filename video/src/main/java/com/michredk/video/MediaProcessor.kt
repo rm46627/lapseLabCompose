@@ -55,7 +55,7 @@ class MediaProcessor(private val context: Context, private val file: File) {
         }
 
         for (i in imageList.indices) {
-            videoEncoder.createFrame(imageList[i])
+            videoEncoder.createFrame(imageList[i], Pair(height, width))
             encodingProgressListener?.onFrameCreated(i + 1, imageList.size)
         }
 

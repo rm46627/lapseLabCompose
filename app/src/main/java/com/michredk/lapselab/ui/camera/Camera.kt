@@ -6,6 +6,7 @@ import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.ImageDecoder
 import android.graphics.Matrix
+import android.media.Image
 import android.net.Uri
 import android.os.Build
 import android.util.Log
@@ -169,43 +170,30 @@ fun CameraRoute(
                 object : ImageCapture.OnImageCapturedCallback() {
                     override fun onCaptureSuccess(image: ImageProxy) {
                         super.onCaptureSuccess(image)
+                        val finalBitmap = scaleCropRotateCameraImage(
+                            image = image,
+                            rotationDegrees = image.imageInfo.rotationDegrees.toFloat(),
+                            mirrorImage = cameraController.cameraSelector == CameraSelector.DEFAULT_FRONT_CAMERA,
+                        )
+                        captureBtnEnabled = true
+                        image.close()
+                        cameraViewModel.bitmap = finalBitmap
                         scope.launch {
-                            val finalBitmap = scaleCropRotateCameraImage(
-                                bitmap = image.toBitmap(),
-                                rotationDegrees = image.imageInfo.rotationDegrees.toFloat(),
-                                mirrorImage = cameraController.cameraSelector == CameraSelector.DEFAULT_FRONT_CAMERA,
-                                getLatestBitmapSize = {
-                                    withContext(Dispatchers.IO) {
-                                        val latestBitmap = cameraViewModel.bitmap ?: uriToBitmap(
-                                            context,
-                                            MediaManagerFactory(context).getLatestPhotoFile(
-                                                albumName
-                                            )?.toUri()
-                                        )
-                                        Pair(latestBitmap?.height, latestBitmap?.width)
-                                    }
-                                }
-                            )
-                            image.close()
-                            cameraViewModel.bitmap = finalBitmap
-
                             mediaManager.saveBitmap(
                                 bitmap = finalBitmap, subfolder = "$appPicturesDir/${albumName}"
                             )
-
-                            captureBtnEnabled = true
-                            if (shootBurst) {
-                                photosTaken++
-                            } else {
-                                withContext(Dispatchers.Main) {
-                                    navController.navigate(
-                                        PhotoPreviewDestination(
-                                            navigatedFromAlbumDetails
-                                        )
-                                    )
-                                }
-                            }
                         }
+                        if (shootBurst) {
+                            photosTaken++
+                        } else {
+                            navController.navigate(
+                                PhotoPreviewDestination(
+                                    navigatedFromAlbumDetails
+                                )
+                            )
+
+                        }
+
                     }
 
                     override fun onError(exception: ImageCaptureException) {
@@ -263,7 +251,7 @@ fun CameraRoute(
                 var noSelectionFlag: Boolean = false
                 var lastBitmap = cameraViewModel.bitmap ?: uriToBitmap(
                     context,
-                    MediaManagerFactory(context).getLatestPhotoFile(albumName)?.toUri()
+                    mediaManager.getLatestPhotoFile(albumName)?.toUri()
                 )
                 if (uris.isNotEmpty()) {
                     uris.forEachIndexed { idx, uri ->
@@ -342,15 +330,13 @@ private fun PhotoPicker(
     }
 }
 
-suspend fun scaleCropRotateCameraImage(
-    bitmap: Bitmap,
+fun scaleCropRotateCameraImage(
+    image: ImageProxy,
     rotationDegrees: Float,
-    mirrorImage: Boolean,
-    getLatestBitmapSize: suspend () -> Pair<Int?, Int?>
+    mirrorImage: Boolean
 ): Bitmap {
 
     val isPhotoVertical = rotationDegrees == 90f || rotationDegrees == 270f
-    val previousSize = getLatestBitmapSize()
 
     val matrix = Matrix().apply {
         if (mirrorImage) preScale(1f, -1f);
@@ -363,62 +349,35 @@ suspend fun scaleCropRotateCameraImage(
     var finalWidth: Int
     var finalHeight: Int
 
-
     // Calculate the target dimensions, ensuring the aspect ratio is maintained and no scaling/stretching occurs
-    var (targetWidth, targetHeight) = if (bitmap.width.toFloat() / bitmap.height.toFloat() > targetRatio) {
+    var (targetWidth, targetHeight) = if (image.width.toFloat() / image.height.toFloat() > targetRatio) {
         // Width is too large, so adjust the width to match the target aspect ratio
-        val adjustedWidth = (bitmap.height * targetRatio).toInt()
-        adjustedWidth to bitmap.height
+        val adjustedWidth = (image.height * targetRatio).toInt()
+        adjustedWidth to image.height
     } else {
         // Height is too large, so adjust the height to match the target aspect ratio
-        val adjustedHeight = (bitmap.width / targetRatio).toInt()
-        bitmap.width to adjustedHeight
+        val adjustedHeight = (image.width / targetRatio).toInt()
+        image.width to adjustedHeight
     }
     // Ensure target dimensions are even numbers
     finalWidth = targetWidth - targetWidth % 2
     finalHeight = targetHeight - targetHeight % 2
 
     // Calculate the x and y coordinates to center the crop
-    val x = (bitmap.width - finalWidth) / 2
-    val y = (bitmap.height - finalHeight) / 2
+    val x = (image.width - finalWidth) / 2
+    val y = (image.height - finalHeight) / 2
 
     // Create the cropped bitmap centered on the original image
     var croppedBitmap = Bitmap.createBitmap(
-        bitmap, x,             // X coordinate to start the crop
+        image.toBitmap(), x,             // X coordinate to start the crop
         y,             // Y coordinate to start the crop
         finalWidth,    // Width of the cropped image
         finalHeight,   // Height of the cropped image
-        Matrix(),
+        matrix,
         true
     )
 
-    var rotatedBitmap = if (previousSize.first != null && previousSize.second != null) {
-        val scaledBitmap = Bitmap.createScaledBitmap(
-            croppedBitmap,
-            previousSize.first!!,
-            previousSize.second!!,
-            true
-        )
-        Bitmap.createBitmap(
-            scaledBitmap, 0,             // X coordinate to start the crop
-            0,             // Y coordinate to start the crop
-            previousSize.first!!,    // Width of the cropped image
-            previousSize.second!!,   // Height of the cropped image
-            matrix,
-            true
-        )
-    } else {
-        Bitmap.createBitmap(
-            croppedBitmap, 0,             // X coordinate to start the crop
-            0,             // Y coordinate to start the crop
-            finalWidth,    // Width of the cropped image
-            finalHeight,   // Height of the cropped image
-            matrix,
-            true
-        )
-    }
-
-    return rotatedBitmap
+    return croppedBitmap
 }
 
 

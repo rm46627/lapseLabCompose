@@ -236,7 +236,7 @@ fun LabRoute(
                             rewindEffect = uiState.rewindEffect,
                             encodingProgress = { current, end ->
                                 encodingProgressCurrent = current
-                                encodingProgressEnd = end + 1
+                                encodingProgressEnd = end + 3
                             }
                         )
                     }
@@ -244,7 +244,11 @@ fun LabRoute(
                         filename,
                         "$appMoviesDir/${album!!.directoryName}"
                     )
-                    delay((measuredTime * 0.2).toLong())
+                    delay((measuredTime * 0.07).toLong())
+                    encodingProgressCurrent += 1
+                    delay((measuredTime * 0.07).toLong())
+                    encodingProgressCurrent += 1
+                    delay((measuredTime * 0.07).toLong())
                     encodingProgressCurrent += 1
                     withContext(Dispatchers.Main) {
                         if (creatingFirstAlbumEver) {

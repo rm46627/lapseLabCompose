@@ -39,7 +39,6 @@ class LapseCreator(private val context: Context, private val album: Album) {
         val videoFile = File(folder, "$name.mp4")
         Log.d(TAG, "creating videofile, ${videoFile.name}")
 
-        var (width, height) = getImageDimensions(photos[0])
         Log.d(TAG, "bit: $bitrate frames: $framesPerImage" )
         val finalbitrate =
             if (bitrate == 2000000 && framesPerImage <= 5)
@@ -56,7 +55,7 @@ class LapseCreator(private val context: Context, private val album: Album) {
             framesPerImage,
             10F,
             finalbitrate
-            )
+        )
 
         val mediaProcessor = MediaProcessor(context, encoderConfig)
         mediaProcessor.setOnEncodingProgressListener(object : EncodingProgressListener {
@@ -68,6 +67,7 @@ class LapseCreator(private val context: Context, private val album: Album) {
         var photosDirecredRewinded =
             if (rewindEffect) photosDirecred + photosDirecred.reversed().drop(1) else photosDirecred
         var i = 0
+        var (width, height) = getImageDimensions(photosDirecred[0])
         while (true) {
             when (val result = mediaProcessor.encodeMp4(
                 imageList = photosDirecredRewinded,

@@ -60,10 +60,10 @@ class VideoEncoder(
         drainCodec(false)
     }
 
-    fun createFrame(image: File) {
+    fun createFrame(image: File, videoSize: Pair<Int, Int>) {
         for (i in 0 until encoderConfig.framesPerImage) {
             val canvas = createCanvas()
-            drawBitmapAndPostCanvas(BitmapFactory.decodeFile(image.path), canvas)
+            drawBitmapAndPostCanvas(BitmapFactory.decodeFile(image.path), canvas, videoSize)
         }
     }
 
@@ -71,21 +71,43 @@ class VideoEncoder(
         return surface?.lockHardwareCanvas()
     }
 
-    private fun drawBitmapAndPostCanvas(bitmapOrg: Bitmap, canvas: Canvas?) {
+    private fun drawBitmapAndPostCanvas(
+        bitmapOrg: Bitmap,
+        canvas: Canvas?,
+        videoSize: Pair<Int, Int>
+    ) {
         val matrix = Matrix()
         matrix.postRotate(-90f)
-//        val scaledBitmap = Bitmap.createScaledBitmap(bitmapOrg, bitmapOrg.width, bitmapOrg.height, true)
 
-        val rotatedBitmap = Bitmap.createBitmap(
-            bitmapOrg,
-            0,
-            0,
-            bitmapOrg.width,
-            bitmapOrg.height,
-            matrix,
-            true
-        )
-//        scaledBitmap.recycle()
+        var rotatedBitmap =
+            if (videoSize.first != bitmapOrg.height && videoSize.second != bitmapOrg.width) {
+                val scaledBitmap = Bitmap.createScaledBitmap(
+                    bitmapOrg,
+                    videoSize.first,
+                    videoSize.second,
+                    true
+                )
+                Bitmap.createBitmap(
+                    scaledBitmap,
+                    0,
+                    0,
+                    videoSize.first,
+                    videoSize.second,
+                    matrix,
+                    true
+                )
+            } else {
+                Bitmap.createBitmap(
+                    bitmapOrg,
+                    0,
+                    0,
+                    bitmapOrg.width,
+                    bitmapOrg.height,
+                    matrix,
+                    true
+                )
+            }
+
         canvas?.drawBitmap(rotatedBitmap, 0f, 0f, null)
         rotatedBitmap.recycle()
         postCanvasFrame(canvas)
