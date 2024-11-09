@@ -89,6 +89,7 @@ import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavHostController
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
+import com.google.firebase.crashlytics.FirebaseCrashlytics
 import com.michredk.files.appPicturesDir
 import com.michredk.lapselab.files.MediaManagerFactory
 import com.michredk.lapselab.R
@@ -351,6 +352,9 @@ fun scaleCropRotateCameraImage(
         270f -> image.width > image.height  // 270 degrees rotated, portrait if width > height
         else -> false
     }
+
+    FirebaseCrashlytics.getInstance()
+        .recordException(RuntimeException("image:\nheight:${image.height}\nwidth:${image.width}\nrotationDegrees:$rotationDegrees\nisPhotoVertical:$isPhotoVertical"))
 
     val matrix = Matrix().apply {
         if (mirrorImage) preScale(1f, -1f);
