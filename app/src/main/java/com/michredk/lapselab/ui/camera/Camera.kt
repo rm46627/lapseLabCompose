@@ -107,11 +107,8 @@ import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 
 // TODO: add slider to control transparency of the ghost image
-//TODO: Check if user trying to do next photo in different orientation and warn him about that
-// e.g. view black screen with text asking for rotating device
-// send proper orientation with args
 
-// TODO: block camera rotation
+// TODO: Save selected camera for recomposition on device rotation
 
 @Serializable
 data class CameraDestination(
@@ -353,11 +350,8 @@ fun scaleCropRotateCameraImage(
         else -> false
     }
 
-    FirebaseCrashlytics.getInstance()
-        .recordException(RuntimeException("image:\nheight:${image.height}\nwidth:${image.width}\nrotationDegrees:$rotationDegrees\nisPhotoVertical:$isPhotoVertical"))
-
     val matrix = Matrix().apply {
-        if (mirrorImage) preScale(1f, -1f);
+        if (mirrorImage && isPhotoVertical) preScale(1f, -1f) else if (mirrorImage && !isPhotoVertical) preScale(-1f, 1f)
         if (isPhotoVertical) postRotate(rotationDegrees) else postRotate(
             rotationDegrees + 90f
         )
@@ -394,6 +388,18 @@ fun scaleCropRotateCameraImage(
         matrix,
         true
     )
+    val message = """
+        mirror: $mirrorImage
+        image:
+        height:${image.height}
+        width:${image.width}
+        rotationDegrees:$rotationDegrees
+        isPhotoVertical:$isPhotoVertical
+        croppedBitmap:
+        height: ${croppedBitmap.height}
+        width: ${croppedBitmap.width} 
+    """.trimIndent()
+    FirebaseCrashlytics.getInstance().recordException(RuntimeException(message))
 
     return croppedBitmap
 }
